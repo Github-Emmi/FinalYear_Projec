@@ -1,0 +1,82 @@
+{% extends 'student_templates/base.html' %}
+ {% load static %}
+ {% block title %} Student | Make Payment {% endblock %}
+ {% block dashboard_title %} Make Payment {% endblock dashboard_title %}
+ {% block dashboard_title1 %}make payment{% endblock dashboard_title1 %}
+   {% block main_content %}
+  <section class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body bg-success">
+              <table class="table table-bordered">
+                <thead>                  
+                  <tr>
+                    <th colspan="2" class="text-center">Bank Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Bank Name</td>
+                    <td><b>Garantee Trust Bank (GTB)</b></td>
+                  </tr>
+                  <tr>
+                    <td>Account Number</td>
+                    <td><b>0529038457</b></td>
+                  </tr>
+                  <tr>
+                    <td>Account Name</td>
+                    <td><b>Aghason Emmanuel Ibeabuchi</b></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+              <div class="card-body bg-success">
+                <table class="table table-bordered">
+                  <thead>                  
+                    <tr>
+                      <th colspan="2" class="text-center">Bank Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Bank Name</td>
+                      <td><b>Zeneth Bank</b></td>
+                    </tr>
+                    <tr>
+                      <td>Account Number</td>
+                      <td><b>1234567890</b></td>
+                    </tr>
+                    <tr>
+                      <td>Account Name</td>
+                      <td><b>Aghason Emmanuel Ibeabuchi</b></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <p><b> All School Fees Payments/Deposits Can Be Made To Any Of The Bank Account Details Provided Above. After A Success Payment You Are Adviced To Generate An Invoice/Reciept As This Will Be Used As Evidence Of Payment.<b><br>
+                <button type="button" class="btn btn-block btn-danger btn-lg">Please Note:</button><em> No Payments/Deposits Should Be Made To Any other Bank Account That Is Not Provided Above. The School Will Not Be Held Responsible For Any Loss That Comes With Making Payments To Any Other Bank Account . Thank You For Your Understanding And Corporation.
+                </em></b>
+          </div>
+        </div>
+    </div>
+
+      
+    </div>
+  </section>
+    
+  <!-- /.content -->
+
+{% endblock main_content %}

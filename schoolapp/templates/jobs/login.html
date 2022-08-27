@@ -4,13 +4,14 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Student Management System | Log in</title>
+  <title>FEBMEX School Management System | Log in</title>
   <!-- Tell the browser to be responsive to screen width -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Font Awesome -->
   <link rel="stylesheet" href="{% static 'assets/fontawesome-free/css/all.min.css' %}">
   <!-- Ionicons -->
+  <link rel="icon" href="/static/assets/images/febmex-logo.png" type="image/x-icon">
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <!-- icheck bootstrap -->
   <link rel="stylesheet" href="{% static 'assets/icheck-bootstrap/icheck-bootstrap.min.css' %}">
@@ -22,28 +23,28 @@
 <body class="hold-transition login-page">
 <div class="login-box">
   <div class="login-logo">
-    <a href="../../index2.html"><b>Student </b>Management System</a>
+    <a href="https://www.febmexinternationalschools.com"><img src="static/assets/images/febmex-logo.png"/> <b>FEBMEX School </b> Management System</a>
   </div>
   <!-- /.login-logo -->
   <div class="card">
     <div class="card-body login-card-body">
       <p class="login-box-msg">Sign in to your account</p>
 
-      <form action="{% url 'dologin' %}" method="post">
+      <form action="{% url 'do_login' %}" method="post">
         {% csrf_token %}
+        <div class ="row">
         {% if messages %}
         <div class="col-12">
         {% for message in messages %}
         {% if message.tags == 'error' %}
-        <div class="alert alert-danger" style="margin-buttom:10px">
-                {{ message }}
-        </div>
+        <div class="alert alert-danger" style="margin-buttom:10px">{{ message }} </div>
         {% endif %}
         {% endfor %}
         </div>
         {% endif %}
+      </div>
         <div class="input-group mb-3">
-          <input type="email" class="form-control" placeholder="Email" name="email">
+          <input type="email" class="form-control" placeholder="Email" name="email" required>
           <div class="input-group-append">
             <div class="input-group-text">
               <span class="fas fa-envelope"></span>
@@ -51,7 +52,7 @@
           </div>
         </div>
         <div class="input-group mb-3">
-          <input type="password" class="form-control" placeholder="Password" name="password">
+          <input type="password" class="form-control" placeholder="Password" name="password" required>
           <div class="input-group-append">
             <div class="input-group-text">
               <span class="fas fa-lock"></span>
@@ -74,9 +75,6 @@
           <!-- /.col -->
         </div>
       </form>
-      <p class="mb-0">
-        <a href="register.html" class="text-center">Create account | Signup</a>
-      </p>
     </div>
     <!-- /.login-card-body -->
   </div>

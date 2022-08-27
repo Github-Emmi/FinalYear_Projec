@@ -1,0 +1,31 @@
+{% extends 'admin_templates/base.html' %}
+{% load static %}
+{% block dashboard_title %} 
+     Edit {{ username }}'s data
+{% endblock dashboard_title %}
+{% block dashboard_title1 %}edit class{% endblock dashboard_title1 %}
+  {% block main_content %}
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+          <div class="row">
+              <div class="col-md-12">
+            <!-- general form elements -->
+            <div class="card card-primary">
+              <div class="card-header">
+                <h3 class="card-title">Edit Student</h3>
+              </div>
+              <!-- /.card-header -->
+              <!-- form start -->
+                {% url 'save_edit_student' as action_path %}
+                {% include 'admin_templates/form_template.html' with messages=messages form=form action_path=action_path button_text="Edit Student" %}
+            <!-- /.card -->
+
+
+
+          </div>
+          </div>
+      </div>
+    </section>
+    <!-- /.content -->
+{% endblock main_content %}
