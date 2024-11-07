@@ -1,0 +1,239 @@
+{% extends 'admin_templates/base.html' %}
+ {% load static %}
+ {% block title %} Admin | Add Staff {% endblock %}
+ {% block dashboard_title %} Add Staff {% endblock dashboard_title %}
+ {% block dashboard_title1 %}Add Staff{% endblock dashboard_title1 %}
+   {% block main_content %}
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- left column -->
+            <div class="col-md-12">
+                    <!-- general form elements -->
+                    <div class="card card-primary">
+                        <div class="card-header">
+                          <h3 class="card-title">Add Staff</h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <script language="javascript">
+                            function checkform() {
+                             if (document.regform.first_name.value == '') {
+                               alert("Please enter Staff first name!");
+                               document.regform.first_name.focus();
+                               return false;
+                             }
+                             if (document.regform.last_name.value == '') {
+                                alert("Please enter Staff last name!");
+                                document.regform.last_name.focus();
+                                return false;
+                              }
+                             if (document.regform.username.value == '') {
+                               alert("Please enter Staff username!");
+                               document.regform.username.focus();
+                               return false;
+                             }
+                             if (!document.regform.username.value.match(/^[A-Za-z0-9_\-]+$/)) {
+                               alert("For username you should use English letters and digits only!");
+                               document.regform.username.focus();
+                               return false;
+                             }
+                             if (document.regform.password.value == '') {
+                               alert("Please enter Staff password!");
+                               document.regform.password.focus();
+                               return false;
+                             }
+                             if (document.regform.password.value != document.regform.password2.value) {
+                               alert("Please check password not identical!");
+                               document.regform.password2.focus();
+                               return false;
+                             }
+                             if (document.regform.address.value == '') {
+                                alert("Please enter Staff address!");
+                                document.regform.password.focus();
+                                return false;
+                              }
+                            
+                             
+                             if (document.regform.email.value == '') {
+                               alert("Please enter Staff e-mail address!");
+                               document.regform.email.focus();
+                               return false;
+                             }
+                           
+                             for (i in document.regform.elements) {
+                               f = document.regform.elements[i];
+                               if (f.name && f.name.match(/^pay_account/)) {
+                                 if (f.value == '') continue;
+                                 var notice = f.getAttribute('data-validate-notice');
+                                 var invalid = 0;
+                                 if (f.getAttribute('data-validate') == 'regexp') {
+                                   var re = new RegExp(f.getAttribute('data-validate-regexp'));
+                                   if (!f.value.match(re)) {
+                                     invalid = 1;
+                                   }
+                                 } else if (f.getAttribute('data-validate') == 'email') {
+                                   var re = /^[^\@]+\@[^\@]+\.\w{2,4}$/;
+                                   if (!f.value.match(re)) {
+                                     invalid = 1;
+                                   }
+                                 }
+                                 if (invalid) {
+                                   alert('Invalid account format. Expected '+notice);
+                                   f.focus();
+                                   return false;
+                                 }
+                               }
+                             }
+                           
+                             if (document.regform.checked == false) {
+                               alert("You have to check the box to add staff");
+                               return false;
+                             }
+                           
+                             return true;
+                            }
+                           
+                            function IsNumeric(sText) {
+                             var ValidChars = "0123456789";
+                             var IsNumber=true;
+                             var Char;
+                             if (sText == '') return false;
+                             for (i = 0; i < sText.length && IsNumber == true; i++) { 
+                               Char = sText.charAt(i); 
+                               if (ValidChars.indexOf(Char) == -1) {
+                                 IsNumber = false;
+                               }
+                             }
+                             return IsNumber;
+                            }
+                            </script>
+                            
+
+                        <!-- form start -->
+                        <form role="form" method="post" action="{% url 'save_staff' %}" onsubmit="return checkform()" name="regform">
+                            {% csrf_token %}
+                          <div class="card-body">
+                            <div class="form-group">
+                              <label>First Name:</label>
+                              <input type="text" class="form-control" placeholder="Your First Name" name="first_name">
+                            </div>
+                            <div class="form-group">
+                              <label>Last Name:</label>
+                              <input type="text" class="form-control"  placeholder="Your Last Name" name="last_name">
+                            </div>
+                            <div class="form-group">
+                                <label>Username:</label>
+                                <input type="text" class="form-control"  placeholder="Username" name="username" id="id_username">
+                              </div>
+                              <div class="form-group">
+                                <label>Email:</label>
+                                <input type="email" class="form-control"  placeholder="Email@"  name="email" id="id_email">
+                              </div>
+                              
+                              <div class="form-group">
+                                <label>Address:</label>
+                                <input type="text" class="form-control"  placeholder="Address" name="address">
+                              </div>
+                              <div class="form-group">
+                                <label>Password:</label>
+                                <input type="password" class="form-control"  placeholder="Password" name="password">
+                              </div>
+                              <div class="form-group">
+                                <label>Verify Password:</label>
+                                <input type="password" class="form-control"  placeholder="Password" name="password2">
+                              </div>                             
+                            <div class="form-check">
+                              <input type="checkbox" name="checked" class="form-check-input">
+                              <label class="form-check-label" >Sure to add</label>
+                            </div>
+                            <div class ="form-group">
+                              {% if messages %}                           
+                              {% for message in messages %}
+                              {% if message.tags == 'error' %}
+                              <div class="alert alert-danger" style="margin-top:10px">{{ message }} </div>
+                              {% endif %}
+                              {% if message.tags == 'success' %}
+                              <div class="alert alert-success" style="margin-top:10px">{{ message }} </div>
+                              {% endif %}
+                              {% endfor %}
+                              {% endif %}
+                            </div>
+                          <!-- /.card-body -->
+                          <div class="card-footer">
+                            <button type="submit" class="btn btn-primary btn-block">Add Staff</button>
+                          </div>
+                        </form>
+                      </div>
+                      <!-- /.card -->
+                    </div>
+                </div>
+    </div><!-- /.container-fluid -->
+  </section>
+  {% endblock main_content %}
+
+  {% block custom_js %}
+<script>
+    $(document).ready(function(){
+        $("#id_email").keyup(function(){
+            var email=$(this).val();
+
+           if(email!=""){
+                $.ajax({
+                    url:'{% url 'check_email_exist' %}',
+                    type:'POST',
+                    data:{email:email}
+                })
+                .done(function(response){
+                    console.log(response);
+                    if(response=="True"){
+                        $(".email_error").remove();
+                        $("<span class='email_error' style='padding: 5px;color: red;font-weight: bold;'>Email already taken!</span>").insertAfter("#id_email");
+                    }
+                    else{
+                        $(".email_error").remove();
+                        $("<span class='email_error' style='padding: 5px;color: green;font-weight: bold;'>Email Available</span>").insertAfter("#id_email");
+                    }
+                })
+                .fail(function(){
+                    console.log("failed");
+                })
+            }
+            else{
+              $(".email_error").remove();
+            }
+
+        });
+
+        $("#id_username").keyup(function(){
+            var username=$(this).val();
+
+            if(username!=""){
+                $.ajax({
+                    url:'{% url 'check_username_exist' %}',
+                    type:'POST',
+                    data:{username:username}
+                })
+                .done(function(response){
+                    console.log(response);
+                    if(response=="True"){
+                        $(".username_error").remove();
+                        $("<span class='username_error' style='padding: 5px;color: red;font-weight: bold;'>Username already taken!</span>").insertAfter("#id_username");
+                    }
+                    else{
+                        $(".username_error").remove();
+                        $("<span class='username_error' style='padding: 5px;color: green;font-weight: bold;'>Username Available</span>").insertAfter("#id_username");
+                    }
+                })
+                .fail(function(){
+                    console.log("failed");
+                })
+            }
+            else{
+                $(".username_error").remove();
+            }
+
+        });
+
+    });
+</script>
+{% endblock custom_js %}

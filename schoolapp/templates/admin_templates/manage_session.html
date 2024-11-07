@@ -1,0 +1,77 @@
+{% extends 'admin_templates/base.html' %}
+ {% load static %}
+ {% block dashboard_title %}Manage Session {% endblock dashboard_title %}
+ {% block dashboard_title1 %}manage session {% endblock dashboard_title1 %}
+   {% block main_content %}
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- left column -->
+            <div class="col-md-8">
+                    <!-- general form elements -->
+                    <div class="card card-primary">
+                        <div class="card-header">
+                          <h3 class="card-title">Add Session</h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <script language="javascript">
+                          function checkform() {
+                           if (document.addses.session_start.value == '') {
+                             alert("Did You Forget To Add Session Start Year?");
+                             document.addses.session_start.focus();
+                             return false;
+                           }
+                           if (document.addses.session_end.value == '') {
+                              alert("Did You Forget To Add Session Start Year?");
+                              document.addses.session_end.focus();
+                              return false;
+                            }
+                            else{
+                              return true;
+                            }
+                          }
+                          </script>
+
+                        <!-- form start -->
+                        <form role="form" action="{% url 'manage_session_save' %}" method="post" onsubmit="return checkform()" name="addses">
+                          {% csrf_token %}
+                        <div class="card-body">
+                          <div class="form-group">
+                            <label>Term Name: </label>
+                            <input type="text" class="form-control" name="session_name" required="required">
+                          </div>
+                          <div class="form-group">
+                            <label>Term Start: </label>
+                            <input type="date" class="form-control" name="session_start" required="required">
+                          </div>
+                          <div class="form-group">
+                            <label>Term End: </label>
+                            <input type="date" class="form-control" name="session_end" required="required">
+                          </div>
+                           <div class="form-group">
+                              {% if messages %}
+                                {% for message in messages %}
+                                {% if message.tags == 'error' %}
+                                <div class="alert alert-danger" style="margin-top:10px">{{ message }}</div>
+                                {% endif %}
+                                {% if message.tags == 'success' %}
+                                <div class="alert alert-success" style="margin-top:10px">{{ message }}</div>
+                                {% endif %}
+                                {% endfor %}
+                              {% endif %}
+                            </div>
+        
+                        </div>
+                        <!-- /.card-body -->
+        
+                        <div class="card-footer">
+                          <button type="submit" class="btn btn-primary btn-block">Add Term</button>
+                        </div>
+                      </form>
+                      </div>
+                      <!-- /.card -->
+                    </div>
+                </div>
+    </div><!-- /.container-fluid -->
+  </section>
+  {% endblock main_content %}

@@ -1,0 +1,211 @@
+{% extends 'student_templates/base.html' %}
+ {% load static %}
+ {% block title %} Student | Result {% endblock %}
+ {% block dashboard_title %} My Results {% endblock dashboard_title %}
+ {% block dashboard_title1 %}my results{% endblock dashboard_title1 %}
+   {% block main_content %}
+  <section class="content">
+    <div class="container-fluid">
+      <div class="login-logo">
+        <img src="static/assets/images/febmex-logo.png"/> <b>FEBMEX International Groups Of School </b> <br>
+        <button type="button" class="btn btn-block bg-gradient-success disabled">CONTINUOUS ASSESSMENT REPORT</button>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <table class="table table-bordered">
+                <thead>                  
+                  <tr>
+                    <th colspan="2" class="text-center">STUDENT'S PERSONAL DATA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Name</td>
+                    <td>{{ user.first_name }} {{ user.last_name }}</td>
+                  </tr>
+                  <tr>
+                    <td>Date Of Birth</td>
+                    <td>{{ students.date_of_birth }}</td>
+                  </tr>
+                  <tr>
+                    <td>Gender</td>
+                    <td>{{ students.gender }}</td>
+                  </tr>
+                  <tr>
+                    <td>Class</td>
+                    <td>{{ students.class_id }}</td>
+                  </tr>
+                  <tr>
+                    <td>Department</td>
+                    <td>{{ students.department_id }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <table class="table table-bordered">
+                <thead>                  
+                  <tr>
+                    <th colspan="2" class="text-center">ATTENDANCE DATA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Total Attendance</td>
+                    <td>{{ total_attendance }}</td>
+                  </tr>
+                  <tr>
+                    <td>Total Present</td>
+                    <td>{{ attendance_present }}</td>
+                  </tr>
+                  <tr>
+                    <td>Total Absent</td>
+                    <td>{{ attendance_absent }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <table class="table table-bordered">
+                <thead>                  
+                  <tr>
+                    <th colspan="2" class="text-center">TERMINAL DURATION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Term</td>
+                    <td>{{ session_obj.session_name }}</td>
+                  </tr>
+                  <tr>
+                    <td>Term Begins</td>
+                    <td>{{ session_obj.session_start_year }}</td>
+                  </tr>
+                  <tr>
+                    <td>Term Ends</td>
+                    <td>{{ session_obj.session_end_year }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body table-responsive p-0">
+              <table class="table table-bordered table-hover text-nowrap">
+                <thead>                  
+                  <tr>
+                    <th colspan="7" class="text-center">ACADEMIC PERFORMANCE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>Subject</th>
+                    <th>Test Marks</th>
+                    <th>Exam Marks</th>
+                    <th>Total</th>
+                    <th>Grade</th>
+                    <th>Teacher's Comment</th>
+                    <th>Principal's Comment</th>
+                </tr>
+                  {% for row in studentresult %}
+                      <tr>
+                          <td>{{ row.subject_id.subject_name }}</td>
+                          <td>{{ row.student_assignment_result }}</td>
+                          <td>{{ row.student_exam_result }}</td>
+                          <td>{{ row.student_total_result }}</td>
+                          <td>
+                                {% if row.student_total_result < 40 %}
+                                <span class="alert alert-danger">F</span>
+                                {% elif row.student_total_result < 50 %}
+                                <span class="alert alert-warning">C</span>
+                                {% elif row.student_total_result < 70 %}
+                                 <span class="alert alert-info">B</span>
+                                 {% else %}
+                                 <span class="alert alert-success">A</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ row.score_remark }}</td>
+                            <td>{{ row.admincomment_id }}</td>
+                      </tr>
+                 {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body table-responsive p-0">
+              <table class="table table-bordered text-nowrap">
+                <thead>                  
+                  <tr>
+                    <th colspan="2" class="text-center">GRADE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>70 - 100 <span class="alert alert-success"> A </span></td>
+                    <td>40 - 49 <span class="alert alert-warning">C</span></td>
+                </tr>
+                      <tr>
+                          <td>50 - 69 <span class="alert alert-info">B</span></td>
+                          <td>0 - 39 <span class="alert alert-danger">F</span></td>
+                      </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body table-responsive p-0">
+              <table class="table table-bordered text-nowrap">
+                <thead>                  
+                  <tr>
+                    <th colspan="5" class="text-center">SPORTS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>Events </th>
+                    <th>Indoor Games </th>
+                    <th>Ball Games </th>
+                    <th>Tennis </th>
+                    <th>Jumps </th>
+                </tr>
+                      <tr>
+                          <th>Level attained </th>
+                          <td><i class="nav-icon fas fa-check"></i></td>
+                          <td><i class="nav-icon fas fa-check"></i></td>
+                          <td><i class="nav-icon fas fa-check"></i></td>
+                          <td><i class="nav-icon fas fa-check"></i></td>
+                      </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+  </section>
+    
+  <!-- /.content -->
+
+{% endblock main_content %}

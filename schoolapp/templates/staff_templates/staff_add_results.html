@@ -1,0 +1,147 @@
+{% extends 'staff_templates/base.html' %}
+{% load static %}
+{% block title %} Staff | Add Result {% endblock %}
+{% block dashboard_title %} Add Results {% endblock dashboard_title %}
+{% block dashboard_title1 %}add results{% endblock dashboard_title1 %}
+{% block main_content %}
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <form action="{% url 'save_student_result' %}" method="post">
+                    {% csrf_token %}
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title">Add Results</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Subject </label>
+                                <select class="form-control" name="subject" id="subject">
+                                    {% for subject in subjects %}
+                                    <option value="{{ subject.id }}">{{ subject.subject_name }}, {{subject.class_id}}, {{subject.department_id}} department.</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Session Year</label>
+                                <select class="form-control" name="session_year" id="session_year">
+                                    {% for session_year in session_years %}
+                                    <option value="{{ session_year.id }}">{{ session_year.session_start_year }} TO {{ session_year.session_end_year }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                {% if messages %}
+                                {% for message in messages %}
+                                {% if message.tags == 'error' %}
+                                <div class="alert alert-danger" style="margin-top:10px">{{ message }}</div>
+                                {% endif %}
+                                {% if message.tags == 'success' %}
+                                <div class="alert alert-success" style="margin-top:10px">{{ message }}</div>
+                                {% endif %}
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button type="button" class="btn btn-primary btn-block" id="fetch_student">Fetch Student</button>
+                        </div>
+                        <div id="student_data" class="card-footer">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock main_content %}
+
+{% block custom_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    $("#fetch_student").click(function() {
+        var subject = $("#subject").val();
+        var session_year = $("#session_year").val();
+
+        $.ajax({
+            url: '{% url 'get_students' %}',
+            type: 'POST',
+            data: {subject: subject, session_year: session_year},
+        })
+        .done(function(response) {
+            var json_data = JSON.parse(response);
+            console.log(json_data);
+
+            var div_data = `
+                <div class="form-group">
+                    <label>Student List</label>
+                    <select class="form-control" name="student_list">
+                        ${json_data.map(student => `<option value="${student.id}">ID: ${student.id} , ${student.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label for="test">Test Marks:</label>
+                            <input type="number" name="test_marks" id="test" class="form-control" placeholder="Test Marks" required="required">
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="exam">Exam Marks:</label>
+                            <input type="number" name="exam_marks" id="exam" class="form-control" placeholder="Exam Marks" required="required">
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="total">Total:</label>
+                            <input type="text" name="total_result" id="total" class="form-control" placeholder="Total Result" readonly>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="teacher_comment">Teacher's Comment:</label>
+                            <input type="text" name="teacher_comment" id="teacher_comment" class="form-control" readonly>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="principal_comment">Principal's Comment:</label>
+                            <input type="text" name="principal_comment" id="principal_comment" class="form-control" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button id="save_attendance" class="btn btn-success btn-block" type="submit">Save Result</button>
+                </div>`;
+
+            $("#student_data").html(div_data);
+
+            // Bind real-time calculation to input events
+            $("#test, #exam").on("input", function() {
+                let testScore = parseFloat($("#test").val()) || 0;
+                let examScore = parseFloat($("#exam").val()) || 0;
+                let totalScore = testScore + examScore;
+                $("#total").val(totalScore);
+
+                // Set comments based on total score
+                let teacherComment, principalComment;
+                if (totalScore >= 90) {
+                    teacherComment = "Excellent performance!";
+                    principalComment = "Outstanding result, keep it up!";
+                } else if (totalScore >= 70) {
+                    teacherComment = "Good job, can improve.";
+                    principalComment = "Nice effort, aim higher.";
+                } else if (totalScore >= 50) {
+                    teacherComment = "Average performance.";
+                    principalComment = "Needs improvement.";
+                } else {
+                    teacherComment = "Poor performance.";
+                    principalComment = "Serious improvement needed.";
+                }
+
+                $("#teacher_comment").val(teacherComment);
+                $("#principal_comment").val(principalComment);
+            });
+        })
+        .fail(function() {
+            alert("Error in Fetching Student");
+        });
+    });
+});
+</script>
+{% endblock custom_js %}

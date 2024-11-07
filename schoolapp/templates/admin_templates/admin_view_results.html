@@ -1,0 +1,135 @@
+{% extends 'admin_templates/base.html' %}
+ {% load static %}
+ {% block title %} Admin | View Results {% endblock %}
+ {% block dashboard_title %} View Results {% endblock dashboard_title %}
+ {% block dashboard_title1 %}view results{% endblock dashboard_title1 %}
+   {% block main_content %}
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+              <div class="col-md-12">
+            <!-- general form elements -->
+            <div class="card card-primary">
+              <div class="card-header">
+                <h3 class="card-title">View Results</h3>
+              </div>
+              <!-- /.card-header -->
+              <!-- form start -->
+                <div class="card-body">
+                   <div class="form-group">
+                    <label>Select A Student </label>
+                    <select class="form-control" name="students" id="students">
+                        {% for student in students %}
+                          <option value="{{ student.id }}">{{student.admin.first_name}} {{student.admin.last_name}}, {{student.class_id}}, {{student.department_id}} department.</option>
+                        {% endfor %}
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Session Year </label>
+                    <select class="form-control" name="session_year_id" id="session_year_id">
+                        {% for session_year in session_year_id %}
+                          <option value="{{ session_year.id }}">{{ session_year.session_start_year }} TO {{ session_year.session_end_year }}</option>
+                        {% endfor %}
+                    </select>
+                  </div>
+                  <div class="form-group">
+                     <button type="button" class="btn btn-primary btn-block" id="fetch_student">Fetch Student Results </button>
+                   </div>
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+
+
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+    <section>
+        <div class="container-fluid" id="student_data">
+            
+        </div>
+    </section>
+    <!-- /.content -->
+{% endblock main_content %}
+{% block custom_js %}
+<script>
+    $(document).ready(function(){
+
+        $("#fetch_student").click(function(){
+
+            var students=$("#students").val();
+            var session_year=$("#session_year_id").val();
+
+            $.ajax({
+                url:'{% url 'admin_get_student_result' %}',
+                type:'POST',
+                data:{students:students,session_year_id:session_year},
+            })
+            .done(function(response){
+                var json_data=JSON.parse(response);
+                var attendance_data=JSON.parse(response);
+                var div_data="<div class='login-logo'><img src='static/assets/images/febmex-logo.png'/> <b>FEBMEX International Groups Of School </b><br><button type='button' class='btn btn-block bg-gradient-success disabled'>CONTINUOUS ASSESSMENT REPORT</button></div> <div class='row'><div class='col-12'>";
+                
+                  div_data+="<div class='card'>";
+                  div_data+="<div class='card-body table-responsive p-0'>";
+                  div_data+="<table class='table table-bordered table-hover text-nowrap'>";
+                  div_data+="<thead><tr><th colspan='7' class='text-center'>ACADEMIC PERFORMANCE</th></tr></thead>";
+                  div_data+= "<tbody><tr><th>Subject</th><th>Test Marks</th><th>Exam Marks</th><th>Total</th><th>Grade</th><th>Teaher's Comments</th><th>Principal's Comments</th></tr>";
+                      for(key in json_data)
+                      {
+                        div_data+="<tr><td>"+json_data[key]['subject']+"</td><td>"+json_data[key]['test']+"</td><td>"+json_data[key]['exam']+"</td><td>"+json_data[key]['total']+"</td>";
+                        div_data+="<td>";
+                          if(json_data[key]['total'] < 40) 
+                              {  
+                                div_data+="<span class='alert alert-warning'>C</span>"; 
+                              }
+                              else if(json_data[key]['total'] < 50)
+                              {
+                                div_data+="<span class='alert alert-warning'>C</span>";
+                              }
+                              else if(json_data[key]['total'] < 70)
+                              {
+                                div_data+="<span class='alert alert-info'>B</span>";
+                              }
+                              
+                              else{
+                                div_data+="<span class='alert alert-success'>A</span>";
+                            }  
+                        div_data+="</td>";    
+                        div_data+="<td>"+json_data[key]['score_remark']+"</td>";  
+                        div_data+="<td>"+json_data[key]['admin_comment']+"</td>";
+
+
+                        div_data+="</tr>";
+
+                        if(json_data[key]['total'] < 40) 
+                    {  
+                      div_data+="<span class='alert alert-danger'>F</span>"; 
+                    }
+                    div_data+="</tr>";
+
+                    }
+
+                              
+                    div_data+="</tbod></table>";
+                    div_data+="</div></div>";
+
+                div_data+="</div></div>";
+
+                $("#student_data").html(div_data);
+
+            })
+            .fail(function(){
+                alert("Error in Fetching Student")
+            })
+
+         })
+
+    })
+
+</script>
+{% endblock custom_js %}

@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">  
+<head>
+   <meta charset="utf-8" http-equiv="encoding"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="{% block meta_description %} If quality education is your passion for your children, Febmex International Group of Schools is conceived to provide sound International education.{% endblock %}"> 
+	<meta name="Author" content="Aghason"> 
+    <meta name="keywords" content="{% block meta_keywords %}best schools in NNPC Ejigbo Lagos.{% endblock %}">
+
+    <title>{% block title%}FEBMEX International Group Of Schools{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'assets/css/normalize.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/font-awesome/css/font-awesome.min.css' %}" />
+	<link rel="stylesheet" href="{% static 'assets/elegant_font/style.css' %}" />
+    <script src="{% static 'assets/elegant_font/lte-ie7.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'assets/css/magnific-popup.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/slider-pro.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/owl.carousel.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/owl.theme.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/owl.transitions.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/animate.css' %}">
+	    <link rel="stylesheet" href="{% static 'assets/elegant_font/style.css"> 
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}"> 
+
+            <script src="{% static 'assets/js/html5shiv.min.js' %}"></script>
+        <script src="{% static 'assets/js/respond.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'assets/js/selectivizr.js' %}"></script>
+    </head>
+
+    <body>
+        <!-- Preloader -->
+        <div class="preloader">
+            <div class="status"></div>
+        </div>
+     
+        <!-- Header End -->
+        <header>
+            <!-- Navigation Menu start-->
+            
+        <nav id="topNav" class="navbar navbar-default main-menu">
+        <div class="container">
+            <button class="navbar-toggler hidden-md-up pull-right" type="button" data-toggle="collapse" data-target="#collapsingNavbar">
+                ☰ 
+            </button> 
+             <a class="navbar-brand page-scroll" href="#slider"><img class="logo" id="logo" src="{% static 'assets/images/febmex-logo.png' %}" alt="logo"></a>
+            <div class="collapse navbar-toggleable-sm" id="collapsingNavbar">
+                <ul class="nav navbar-nav">
+                     <li>
+                                <a class="active" href="{% url 'index' %}">HOME</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'about' %}">ABOUT</a>
+                            </li>
+                             <li>
+                                <a href="{% url 'classes' %}">CLASSES</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'academics' %}">ACADEMICS</a>
+                            </li>
+                           
+                            <li>
+                                <a href="{% url 'gallery' %}">GALLARY</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'contact' %}">CONTACT US</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'login' %}">LOGIN</a>
+                            </li>
+                </ul> 
+            </div>
+        </div>
+    </nav>
+    
+            
+        </header>
+        <!-- Header End --> 
+
+{% block content %}
+
+{% endblock %} 
+
+<!-- Footer Section Start -->
+<section class="footer-container">
+    <div class="container">
+        <div class="row footer-containertent">
+            <div class="col-md-4">
+                <img src="{% static 'assets/images/febmex-logo.png' %}" alt="">
+                <p>
+                    Febmex International Group of Schools is conceived to provide sound International education
+                    in an atmosphere of strong moral upbringing for young Nigerians.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h4>News & Updates</h4>
+                <p>
+                    This is to inform all Parents and Guardians that there is always vacancy here at Febmex International Group of schools for your children.
+                </p>
+            </div>
+            <div class="col-md-4 contac-us">
+                <h4>Contact Us</h4>
+                <p>Febmex International Group Of Schools</p>
+                <ul>
+                        <li><i class="fa fa-home"></i>17, Ramoni Jimoh Street, Ejigbo, Lagos</li>
+                        <li><i class="fa fa-phone"></i>(+234) 703-489-9625, (+234) 708-426-0613</li>
+                        <li><i class="fa fa-envelope-o"></i>febmex@yahoo.co.uk</li>
+                    </ul> 
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+
+    <div class="container">
+        <div class="row">
+            <div class="footer-containertent">
+
+                <ul class="footer-social-info">
+                    <li>
+                        <a target="_blanck" href="https://web.facebook.com/febmex/"><i class="fa fa-facebook"></i></a>
+                    </li>
+                    <li>
+                        <a target="_blanck" href="https://twitter.com/febmex_schools/"><i class="fa fa-twitter"></i></a>
+                    </li>
+                    <li>
+                        <a target="_blanck" href="https://instagram.com/febmex_school/"><i class="fa fa-instagram"></i></a>
+                    </li>
+                </ul>
+                <br/><br/>
+                <p>Copyright © 2022. Developed by <b>Aghason Emmanuel</b></p>
+                <p><i class="fa fa-envelope-o"></i> aghason.emmanuel@gmail.com</p>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- Footer End -->
+
+<script src="{% static 'assets/js/jquery-1.11.3.min.js' %}"></script>
+<script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'assets/js/modernizr.min.js' %}"></script>
+<script src="{% static 'assets/js/jquery.easing.1.3.js' %}"></script>
+<script src="{% static 'assets/js/jquery.scrollUp.min.js' %}"></script>
+<script src="{% static 'assets/js/jquery.easypiechart.js' %}"></script>
+<script src="{% static 'assets/js/isotope.pkgd.min.js' %}"></script>
+<script src="{% static 'assets/js/jquery.fitvids.js' %}"></script>
+<script src="{% static 'assets/js/jquery.stellar.min.js' %}"></script>
+<script src="{% static 'assets/js/jquery.waypoints.min.js' %}"></script>
+<script src="{% static 'assets/js/wow.min.js' %}"></script>
+<script src="{% static 'assets/js/jquery.nav.js' %}"></script>
+<script src="{% static 'assets/js/imagesloaded.pkgd.min.js' %}"></script>
+<script src="{% static 'assetsjs/smooth-scroll.min.js' %}"></script>
+<script src="{% static 'assets/js/jquery.magnific-popup.min.js' %}"></script>
+<script src="{% static 'assets/js/jquery.sliderPro.min.js' %}"></script>
+<script src="{% static 'assets/js/owl.carousel.min.js' %}"></script>
+<script src="{% static 'assets/js/custom.js' %}"></script>
+
+</body>
+</html> 
