@@ -9,7 +9,7 @@ from schoolapp.EmailBackEnd import EmailBackEnd
 # Create your views here.
 
 def index(request):
-     return render(request, 'templates/jobs/index.html', {})
+     return render(request, 'jobs/index.html', {})
 
 def about(request):
      return render(request, 'jobs/about.html', {}) 

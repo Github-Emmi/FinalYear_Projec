@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from schoolapp.forms import AddStudentForm, EditStudentForm
 from schoolapp.models import CustomUser, Class, Departments, SessionYearModel, Staffs, StudentResults, Students, Subjects, \
-    FeedBackStudent, FeedBackStaffs, LeaveReportStudent, LeaveReportStaff, Attendence, AttendanceReport
+    FeedBackStudent, FeedBackStaffs, LeaveReportStudent, LeaveReportStaff, Attendence, AttendanceReport, MedicalHistory
 @login_required(login_url="/")
 def admin_home(request):
     student_count1=Students.objects.all().count()
@@ -160,49 +160,107 @@ def add_student(request):
         ###############   Save Student Views #################
 @login_required(login_url="/")
 def save_student(request):
-    if request.method!="POST":
+    if request.method != "POST":
         return HttpResponse("Method Not Allowed")
-    else:
-        form=AddStudentForm(request.POST,request.FILES)
-        if form.is_valid():
-            first_name=form.cleaned_data["first_name"]
-            last_name=form.cleaned_data["last_name"]
-            username=form.cleaned_data["username"]
-            email=form.cleaned_data["email"]
-            password=form.cleaned_data["password"]
-            date_of_birth_id=form.cleaned_data["date_of_birth_id"]
-            address=form.cleaned_data["address"]
-            session_year_id=form.cleaned_data["session_year_id"]
-            class_id=form.cleaned_data["class_id"]
-            department_id=form.cleaned_data["department_id"]
-            sex=form.cleaned_data["sex"]
+    
+    form = AddStudentForm(request.POST, request.FILES)
+    if form.is_valid():
+        try:
+            # Extract form data
+            first_name = form.cleaned_data["first_name"]
+            last_name = form.cleaned_data["last_name"]
+            username = form.cleaned_data["username"]
+            email = form.cleaned_data["email"]
+            password = form.cleaned_data["password"]
+            session_year_id = form.cleaned_data["session_year_id"]
+            class_id = form.cleaned_data["class_id"]
+            department_id = form.cleaned_data["department_id"]
 
-            profile_pic=request.FILES['profile_pic']
-            fs=FileSystemStorage()
-            filename=fs.save(profile_pic.name,profile_pic)
-            profile_pic_url=fs.url(filename)
+            # Additional student details
+            date_of_birth = form.cleaned_data["date_of_birth_id"]
+            sex = form.cleaned_data["sex"]
+            profile_pic = request.FILES.get("profile_pic")
 
-            try:
-                user=CustomUser.objects.create_user(username=username,password=password,email=email,last_name=last_name,first_name=first_name,user_type=3)
-                user.students.address=address
-                user.students.date_of_birth=date_of_birth_id
-                class_obj=Class.objects.get(id=class_id)
-                user.students.class_id=class_obj
-                department_obj= Departments.objects.get(id=department_id)
-                user.students.department_id=department_obj
-                session_year = SessionYearModel.objects.get(id=session_year_id)
-                user.students.session_year_id=session_year
-                user.students.gender=sex
-                user.students.profile_pic=profile_pic_url
-                user.save()
-                messages.success(request,"Successfully Added Student")
-                return HttpResponseRedirect(reverse("add_student"))
-            except:
-                messages.error(request,"Failed to Add Student")
-                return HttpResponseRedirect(reverse("add_student"))
-        else:
-            form=AddStudentForm(request.POST)
-            return render(request, "admin_templates/add_student.html", {"form": form})
+            # Handle profile picture upload
+            profile_pic_url = None
+            if profile_pic:
+                fs = FileSystemStorage()
+                filename = fs.save(profile_pic.name, profile_pic)
+                profile_pic_url = fs.url(filename)
+
+            # Create CustomUser instance
+            user = CustomUser.objects.create_user(
+                username=username,
+                password=password,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                user_type=3  # Assuming '3' is for students
+            )
+
+            # Assign additional student information
+            student = user.students
+            student.date_of_birth = date_of_birth
+            student.gender = sex
+            student.profile_pic = profile_pic_url
+            student.age = form.cleaned_data["age"]
+            student.height = form.cleaned_data["height"]
+            student.weight = form.cleaned_data["weight"]
+            student.eye_color = form.cleaned_data["eye_color"]
+            student.place_of_birth = form.cleaned_data["place_of_birth"]
+            student.home_town = form.cleaned_data["home_town"]
+            student.state_of_origin = form.cleaned_data["state_of_origin"]
+            student.lga = form.cleaned_data["lga"]
+            student.nationality = form.cleaned_data["nationality"]
+            student.residential_address = form.cleaned_data["residential_address"]
+            student.bus_stop = form.cleaned_data["bus_stop"]
+            student.religion = form.cleaned_data["religion"]
+            student.last_class = form.cleaned_data["last_class"]
+            student.school_attended_last = form.cleaned_data["school_attended_last"]
+
+            # Parent details
+            student.father_name = form.cleaned_data["father_name"]
+            student.father_address = form.cleaned_data["father_address"]
+            student.father_occupation = form.cleaned_data["father_occupation"]
+            student.father_postion = form.cleaned_data["father_postion"]
+            student.father_phone_num_1 = form.cleaned_data["father_phone_num_1"]
+            student.father_phone_num_2 = form.cleaned_data["father_phone_num_2"]
+            student.mother_name = form.cleaned_data["mother_name"]
+            student.mother_address = form.cleaned_data["mother_address"]
+            student.mother_occupation = form.cleaned_data["mother_occupation"]
+            student.mother_position = form.cleaned_data["mother_position"]
+            student.mother_phone_num_1 = form.cleaned_data["mother_phone_num_1"]
+            student.mother_phone_num_2 = form.cleaned_data["mother_phone_num_2"]
+
+            # Set Foreign Keys
+            student.class_id = Class.objects.get(id=class_id)
+            student.department_id = Departments.objects.get(id=department_id)
+            student.session_year_id = SessionYearModel.objects.get(id=session_year_id)
+
+            # Medical history
+            medical_fields = [
+                'asthmatic', 'hypertension', 'disabilities', 'epilepsy', 'blind',
+                'mental_illness', 'tuberculosis', 'spectacle_use', 'sickle_cell',
+                'health_problems', 'medication', 'drug_allergy'
+            ]
+            for field in medical_fields:
+                setattr(student.medical_history_id, field, form.cleaned_data[field])
+
+            # Save student details
+            student.save()
+
+            messages.success(request, "Successfully Added Student")
+            return HttpResponseRedirect(reverse("add_student"))
+
+        except Exception as e:
+            messages.error(request, f"Failed to Add Student: {e}")
+            return HttpResponseRedirect(reverse("add_student"))
+    
+    # If form is not valid, re-render with errors
+    return render(request, "admin_templates/add_student.html", {"form": form})
+                
+                
+                
         
  ###############   Add Subject Views #################
 @login_required(login_url="/")
@@ -324,7 +382,7 @@ def edit_student(request,student_id):
     form.fields['first_name'].initial=student.admin.first_name
     form.fields['last_name'].initial=student.admin.last_name
     form.fields['username'].initial=student.admin.username
-    form.fields['address'].initial=student.address
+    form.fields['address'].initial=student.residential_address
     form.fields['class_id'].initial=student.class_id.id
     form.fields['department_id'].initial=student.department_id.id
     form.fields['sex'].initial=student.gender

@@ -103,3 +103,8 @@ path('student-feedback-save', StudentViews.student_feedback_save, name="student_
 path('student-view-result',StudentViews.student_view_result,name="student_view_result"),
 path('student-make-payment',StudentViews.student_make_payment,name="student_make_payment"),
 ]
+  
+
+
+
+

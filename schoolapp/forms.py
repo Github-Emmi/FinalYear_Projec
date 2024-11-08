@@ -1,12 +1,11 @@
 from django import forms
-from django.forms import ChoiceField
-
-from schoolapp.models import Departments, SessionYearModel, Subjects, Students, Class
-
-
-class ChoiceNoValidation(ChoiceField):
-    def validate(self, value):
-        pass
+from schoolapp.models import (
+    Departments,
+    SessionYearModel,
+    Students,
+    Class,
+    MedicalHistory,
+)
 
 
 class DateInput(forms.DateInput):
@@ -22,7 +21,7 @@ class AddStudentForm(forms.Form):
     password = forms.CharField(
         label="Password",
         max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.PasswordInput(attrs={"class": "form-control"}),
     )
     first_name = forms.CharField(
         label="First Name",
@@ -39,33 +38,111 @@ class AddStudentForm(forms.Form):
         max_length=50,
         widget=forms.TextInput(attrs={"class": "form-control", "autocomplete": "off"}),
     )
-    date_of_birth_id = forms.CharField(
-        label="Date Of Birth",
-        max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+
+    department_list = []
+    try:
+        deparments = Departments.objects.all()
+        for deparment in deparments:
+            small_deparment = (deparment.id, deparment.department_name)
+            department_list.append(small_deparment)
+    except:
+        department_list = []
+
+    class_list = []
+    try:
+        classes = Class.objects.all()
+        for cl in classes:
+            small_class = (cl.id, cl.class_name)
+            class_list.append(small_class)
+    except:
+        class_list = []
+
+    session_list = []
+    try:
+        sessions = SessionYearModel.objects.all()
+
+        for ses in sessions:
+            small_ses = (
+                ses.id,
+                str(ses.session_start_year) + "   TO  " + str(ses.session_end_year),
+            )
+            session_list.append(small_ses)
+    except:
+        session_list = []
+
+    department_id = forms.ChoiceField(
+        label="Department",
+        choices=department_list,
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+    class_id = forms.ChoiceField(
+        label="Class",
+        choices=class_list,
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+    session_year_id = forms.ChoiceField(
+        label="Session Year",
+        choices=session_list,
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+
+    profile_pic = forms.FileField(
+        label="Profile Picture",
+        required=False,
+        widget=forms.FileInput(attrs={"class": "form-control"}),
+    )
+
+    date_of_birth_id = forms.DateField(
+        label="Date of Birth",
+        widget=DateInput(attrs={"class": "form-control"}),
     )
     age = forms.CharField(
         label="Age",
-        max_length=50,
+        max_length=3,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     height = forms.CharField(
-        label="Height",
-        max_length=50,
+        label="Height (cm)",
+        max_length=5,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     weight = forms.CharField(
-        label="Weight",
-        max_length=50,
+        label="Weight (kg)",
+        max_length=5,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     eye_color = forms.CharField(
-        label="Eye Colour",
+        label="Eye Color",
+        max_length=20,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    residential_address = forms.CharField(
+        label="Residential Address",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    bus_stop = forms.CharField(
+        label="Bus Stop",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    religion = forms.CharField(
+        label="Religion",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    last_class = forms.CharField(
+        label="Last Class",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    school_attended_last = forms.CharField(
+        label="School Attended",
         max_length=50,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     place_of_birth = forms.CharField(
-        label="Place Of Birth",
+        label="Place of Birth",
         max_length=50,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
@@ -80,10 +157,11 @@ class AddStudentForm(forms.Form):
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     lga = forms.CharField(
-        label="LGA Of Origin",
+        label="Local Government Area",
         max_length=50,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
+
     nationality = forms.CharField(
         label="Nationality",
         max_length=50,
@@ -92,161 +170,153 @@ class AddStudentForm(forms.Form):
 
     gender_choice = (("Male", "Male"), ("Female", "Female"))
     sex = forms.ChoiceField(
-        label="Sex",
+        label="Gender",
         choices=gender_choice,
         widget=forms.Select(attrs={"class": "form-control"}),
     )
-    residential_address = forms.CharField(
-        label="Residential Address",
-        max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    bus_stop = forms.CharField(
-        label="The Nearest Bus-Stop",
-        max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    religion = forms.CharField(
-        label="Religion",
-        max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
+
+    # Parent Details
     father_name = forms.CharField(
         label="Father's Name",
-        max_length=50,
+        max_length=100,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     father_address = forms.CharField(
         label="Father's Address",
-        max_length=50,
+        max_length=100,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     father_occupation = forms.CharField(
         label="Father's Occupation",
-        max_length=50,
+        max_length=100,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     father_postion = forms.CharField(
-        label="Father Position Held",
-        max_length=50,
+        label="Father's Position",
+        max_length=100,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     father_phone_num_1 = forms.CharField(
-        label="Father Telephone Number (Home)",
-        max_length=50,
+        label="Father's Phone (Home)",
+        max_length=15,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     father_phone_num_2 = forms.CharField(
-        label="Father Telephone Number (Office)",
-        max_length=50,
+        label="Father's Phone (Office)",
+        max_length=15,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     mother_name = forms.CharField(
-        label="Mother's Name (in full)",
-        max_length=50,
+        label="Mother's Name",
+        max_length=100,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     mother_address = forms.CharField(
         label="Mother's Address",
-        max_length=50,
+        max_length=100,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     mother_occupation = forms.CharField(
         label="Mother's Occupation",
-        max_length=50,
+        max_length=100,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     mother_position = forms.CharField(
-        label="Mother Position Held",
-        max_length=50,
+        label="Mother's Position",
+        max_length=100,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     mother_phone_num_1 = forms.CharField(
-        label=" Mother Telephone Number (Home)",
-        max_length=50,
+        label="Mother's Phone (Home)",
+        max_length=15,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     mother_phone_num_2 = forms.CharField(
-        label="Mother Telephone Number (Office)",
-        max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    last_class = forms.CharField(
-        label="Last Class",
-        max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    school_attended_last = forms.CharField(
-        label="Name And Adress Of School Last Attended",
-        max_length=50,
+        label="Mother's Phone (Office)",
+        max_length=15,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
 
-    department_list = []
-    try:
-        deparments = Departments.objects.all()
-        for deparment in deparments:
-            small_deparment = (deparment.id, deparment.department_name)
-            department_list.append(small_deparment)
-    except:
-        department_list = []
+    # Medical Information
+    health_choice = (("Yes", "Yes"), ("No", "No"))
 
-    class_list = []
-    try:
-        classes = Class.objects.all()
-        for cl in classes:
-            small_class = (cl.id, cl.class_name)
-            class_list.append(small_class)
-    except:
-        class_list = []
-
-    session_list = []
-    try:
-        sessions = SessionYearModel.objects.all()
-
-        for ses in sessions:
-            small_ses = (
-                ses.id,
-                str(ses.session_start_year) + "   TO  " + str(ses.session_end_year),
-            )
-            session_list.append(small_ses)
-    except:
-        session_list = []
-
-    gender_choice = (("Male", "Male"), ("Female", "Female"))
-
-    department_id = forms.ChoiceField(
-        label="Department",
-        choices=department_list,
-        widget=forms.Select(attrs={"class": "form-control"}),
+    asthmatic = forms.ChoiceField(
+        label="Asthmatic",
+        choices=health_choice,
+        widget=forms.RadioSelect,
     )
-    class_id = forms.ChoiceField(
-        label="Class",
-        choices=class_list,
-        widget=forms.Select(attrs={"class": "form-control"}),
+    hypertension = forms.ChoiceField(
+        label="Hypertension",
+        choices=health_choice,
+        widget=forms.RadioSelect,
     )
-    session_year_id = forms.ChoiceField(
-        label="Session Year",
-        choices=session_list,
-        widget=forms.Select(attrs={"class": "form-control"}),
+    disabilities = forms.ChoiceField(
+        label="Disabilities",
+        choices=health_choice,
+        widget=forms.RadioSelect,
     )
-    profile_pic = forms.FileField(
-        label="Profile Pic",
-        max_length=50,
-        widget=forms.FileInput(attrs={"class": "form-control"}),
+    epilepsy = forms.ChoiceField(
+        label="Epilepsy",
+        choices=health_choice,
+        widget=forms.RadioSelect,
     )
+    blind = forms.ChoiceField(
+        label="Blind",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    mental_illness = forms.ChoiceField(
+        label="Mental Illness",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    tuberculosis = forms.ChoiceField(
+        label="Tuberculosis",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    spectacle_use = forms.ChoiceField(
+        label="Spectacle Use",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    sickle_cell = forms.ChoiceField(
+        label="Sickle Cell",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    health_problems = forms.ChoiceField(
+        label="Health Problems",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    medication = forms.CharField(
+        label="Current Medication",
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    drug_allergy = forms.CharField(
+        label="Drug Allergies",
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+
+
+############################################################
+# Edit Student Form #
+############################################################
 
 
 class EditStudentForm(forms.Form):
     email = forms.EmailField(
         label="Email",
         max_length=50,
-        widget=forms.EmailInput(attrs={"class": "form-control"}),
+        widget=forms.EmailInput(attrs={"class": "form-control", "autocomplete": "off"}),
     )
     password = forms.CharField(
         label="Password",
         max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.PasswordInput(attrs={"class": "form-control"}),
     )
     first_name = forms.CharField(
         label="First Name",
@@ -261,17 +331,7 @@ class EditStudentForm(forms.Form):
     username = forms.CharField(
         label="Username",
         max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    date_of_birth_id = forms.CharField(
-        label="Date Of Birth",
-        max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    address = forms.CharField(
-        label="Address",
-        max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "autocomplete": "off"}),
     )
 
     department_list = []
@@ -305,16 +365,9 @@ class EditStudentForm(forms.Form):
     except:
         session_list = []
 
-    gender_choice = (("Male", "Male"), ("Female", "Female"))
-
     department_id = forms.ChoiceField(
         label="Department",
         choices=department_list,
-        widget=forms.Select(attrs={"class": "form-control"}),
-    )
-    sex = forms.ChoiceField(
-        label="Sex",
-        choices=gender_choice,
         widget=forms.Select(attrs={"class": "form-control"}),
     )
     class_id = forms.ChoiceField(
@@ -327,13 +380,221 @@ class EditStudentForm(forms.Form):
         choices=session_list,
         widget=forms.Select(attrs={"class": "form-control"}),
     )
+
     profile_pic = forms.FileField(
-        label="Profile Pic",
-        max_length=50,
-        widget=forms.FileInput(attrs={"class": "form-control"}),
+        label="Profile Picture",
         required=False,
+        widget=forms.FileInput(attrs={"class": "form-control"}),
     )
 
+    date_of_birth_id = forms.DateField(
+        label="Date of Birth",
+        widget=DateInput(attrs={"class": "form-control"}),
+    )
+    age = forms.CharField(
+        label="Age",
+        max_length=3,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    height = forms.CharField(
+        label="Height (cm)",
+        max_length=5,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    weight = forms.CharField(
+        label="Weight (kg)",
+        max_length=5,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    eye_color = forms.CharField(
+        label="Eye Color",
+        max_length=20,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    residential_address = forms.CharField(
+        label="Residential Address",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    bus_stop = forms.CharField(
+        label="Bus Stop",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    religion = forms.CharField(
+        label="Religion",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    last_class = forms.CharField(
+        label="Last Class",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    school_attended_last = forms.CharField(
+        label="School Attended",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    place_of_birth = forms.CharField(
+        label="Place of Birth",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    home_town = forms.CharField(
+        label="Home Town",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    state_of_origin = forms.CharField(
+        label="State Of Origin",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    lga = forms.CharField(
+        label="Local Government Area",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+
+    nationality = forms.CharField(
+        label="Nationality",
+        max_length=50,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+
+    gender_choice = (("Male", "Male"), ("Female", "Female"))
+    sex = forms.ChoiceField(
+        label="Gender",
+        choices=gender_choice,
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+
+    # Parent Details
+    father_name = forms.CharField(
+        label="Father's Name",
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    father_address = forms.CharField(
+        label="Father's Address",
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    father_occupation = forms.CharField(
+        label="Father's Occupation",
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    father_postion = forms.CharField(
+        label="Father's Position",
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    father_phone_num_1 = forms.CharField(
+        label="Father's Phone (Home)",
+        max_length=15,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    father_phone_num_2 = forms.CharField(
+        label="Father's Phone (Office)",
+        max_length=15,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    mother_name = forms.CharField(
+        label="Mother's Name",
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    mother_address = forms.CharField(
+        label="Mother's Address",
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    mother_occupation = forms.CharField(
+        label="Mother's Occupation",
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    mother_position = forms.CharField(
+        label="Mother's Position",
+        max_length=100,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    mother_phone_num_1 = forms.CharField(
+        label="Mother's Phone (Home)",
+        max_length=15,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    mother_phone_num_2 = forms.CharField(
+        label="Mother's Phone (Office)",
+        max_length=15,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+
+    # Medical Information
+    health_choice = (("Yes", "Yes"), ("No", "No"))
+
+    asthmatic = forms.ChoiceField(
+        label="Asthmatic",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    hypertension = forms.ChoiceField(
+        label="Hypertension",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    disabilities = forms.ChoiceField(
+        label="Disabilities",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    epilepsy = forms.ChoiceField(
+        label="Epilepsy",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    blind = forms.ChoiceField(
+        label="Blind",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    mental_illness = forms.ChoiceField(
+        label="Mental Illness",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    tuberculosis = forms.ChoiceField(
+        label="Tuberculosis",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    spectacle_use = forms.ChoiceField(
+        label="Spectacle Use",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    sickle_cell = forms.ChoiceField(
+        label="Sickle Cell",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    health_problems = forms.ChoiceField(
+        label="Health Problems",
+        choices=health_choice,
+        widget=forms.RadioSelect,
+    )
+    medication = forms.CharField(
+        label="Current Medication",
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    drug_allergy = forms.CharField(
+        label="Drug Allergies",
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
 
 # class EditResultForm(forms.Form):
 #     def __init__(self, *args, **kwargs):
