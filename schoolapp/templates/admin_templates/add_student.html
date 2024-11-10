@@ -13,6 +13,14 @@ Add Student
               <div class="card-header">
                 <h3 class="card-title">Add Student</h3>
               </div>
+              <!-- Display non-field errors (e.g., ValidationErrors) -->
+              {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                 {% for error in form.non_field_errors %}
+                  <p>{{ error }}</p>
+                  {% endfor %}
+              </div>
+              {% endif %}
               <!-- /.card-header -->
               <!-- form start -->
                 {% url 'save_student' as action_path %}

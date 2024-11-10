@@ -4,34 +4,36 @@ from schoolapp.models import (
     SessionYearModel,
     Students,
     Class,
-    MedicalHistory,
 )
 
 
 class DateInput(forms.DateInput):
     input_type = "date"
 
+############################################################
+# Add Student Form #
+############################################################
 
 class AddStudentForm(forms.Form):
     email = forms.EmailField(
         label="Email",
         max_length=50,
-        widget=forms.EmailInput(attrs={"class": "form-control", "autocomplete": "off"}),
+        widget=forms.EmailInput(attrs={"class": "form-control", "autocomplete": "off","placeholder":"Enter your Email"}),
     )
     password = forms.CharField(
         label="Password",
         max_length=50,
-        widget=forms.PasswordInput(attrs={"class": "form-control"}),
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder":"Enter your Password"}),
     )
     first_name = forms.CharField(
         label="First Name",
         max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder":"Enter your Surname"}),
     )
     last_name = forms.CharField(
         label="Last Name",
         max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder":"Enter your name(s)"}),
     )
     username = forms.CharField(
         label="Username",
@@ -274,16 +276,18 @@ class AddStudentForm(forms.Form):
         label="Tuberculosis",
         choices=health_choice,
         widget=forms.RadioSelect,
+        
     )
     spectacle_use = forms.ChoiceField(
         label="Spectacle Use",
-        choices=health_choice,
+        choices=health_choice,  
         widget=forms.RadioSelect,
     )
     sickle_cell = forms.ChoiceField(
         label="Sickle Cell",
         choices=health_choice,
         widget=forms.RadioSelect,
+        
     )
     health_problems = forms.ChoiceField(
         label="Health Problems",
@@ -292,12 +296,10 @@ class AddStudentForm(forms.Form):
     )
     medication = forms.CharField(
         label="Current Medication",
-        required=False,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     drug_allergy = forms.CharField(
         label="Drug Allergies",
-        required=False,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
 
@@ -311,12 +313,19 @@ class EditStudentForm(forms.Form):
     email = forms.EmailField(
         label="Email",
         max_length=50,
-        widget=forms.EmailInput(attrs={"class": "form-control", "autocomplete": "off"}),
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-control",
+                "autocomplete": "off",
+                "readonly": "readonly",
+            }
+        ),
     )
     password = forms.CharField(
         label="Password",
         max_length=50,
-        widget=forms.PasswordInput(attrs={"class": "form-control"}),
+        required=False,
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder":"Leave blank or enter a new password"}),
     )
     first_name = forms.CharField(
         label="First Name",
@@ -538,63 +547,52 @@ class EditStudentForm(forms.Form):
     asthmatic = forms.ChoiceField(
         label="Asthmatic",
         choices=health_choice,
-        widget=forms.RadioSelect,
     )
     hypertension = forms.ChoiceField(
         label="Hypertension",
         choices=health_choice,
-        widget=forms.RadioSelect,
     )
     disabilities = forms.ChoiceField(
         label="Disabilities",
         choices=health_choice,
-        widget=forms.RadioSelect,
     )
     epilepsy = forms.ChoiceField(
         label="Epilepsy",
         choices=health_choice,
-        widget=forms.RadioSelect,
     )
     blind = forms.ChoiceField(
         label="Blind",
         choices=health_choice,
-        widget=forms.RadioSelect,
     )
     mental_illness = forms.ChoiceField(
         label="Mental Illness",
         choices=health_choice,
-        widget=forms.RadioSelect,
     )
     tuberculosis = forms.ChoiceField(
         label="Tuberculosis",
         choices=health_choice,
-        widget=forms.RadioSelect,
     )
     spectacle_use = forms.ChoiceField(
         label="Spectacle Use",
         choices=health_choice,
-        widget=forms.RadioSelect,
     )
     sickle_cell = forms.ChoiceField(
         label="Sickle Cell",
         choices=health_choice,
-        widget=forms.RadioSelect,
     )
     health_problems = forms.ChoiceField(
         label="Health Problems",
         choices=health_choice,
-        widget=forms.RadioSelect,
     )
     medication = forms.CharField(
         label="Current Medication",
-        required=False,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     drug_allergy = forms.CharField(
         label="Drug Allergies",
-        required=False,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
+
 
 # class EditResultForm(forms.Form):
 #     def __init__(self, *args, **kwargs):

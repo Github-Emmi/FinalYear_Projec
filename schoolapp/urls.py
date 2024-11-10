@@ -106,5 +106,3 @@ path('student-make-payment',StudentViews.student_make_payment,name="student_make
   
 
 
-
-

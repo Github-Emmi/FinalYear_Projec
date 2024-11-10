@@ -27,27 +27,6 @@ class SessionYearModel(models.Model):
         return f"{start_date} TO {end_date}"
 
 
-class MedicalHistory(models.Model):
-    id = models.AutoField(primary_key=True)
-    asthmatic = models.CharField(max_length=3)
-    hypertension = models.CharField(max_length=3)
-    disabilities = models.CharField(max_length=3)
-    epilepsy = models.CharField(max_length=3)
-    blind = models.CharField(max_length=3)
-    mental_illness = models.CharField(max_length=3)
-    tuberculosis = models.CharField(max_length=3)
-    spectacle_use = models.CharField(max_length=3)
-    sickle_cell = models.CharField(max_length=3)
-    health_problems = models.TextField(blank=True, null=True, max_length=225)
-    medication = models.TextField(blank=True, null=True, max_length=225)
-    drug_allergy = models.TextField(blank=True, null=True, max_length=225)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Medical history Record (ID: {self.id})"
-
-
 # creating Amin models
 class AdminHOD(models.Model):
     id = models.AutoField(primary_key=True)
@@ -143,11 +122,22 @@ class Students(models.Model):
     school_attended_last = models.CharField(max_length=225)
     profile_pic = models.FileField()
     date_of_birth = models.CharField(max_length=225)
+    asthmatic = models.CharField(max_length=3, default="")
+    hypertension = models.CharField(max_length=3, default="")
+    disabilities = models.CharField(max_length=3, default="")
+    epilepsy = models.CharField(max_length=3, default="")
+    blind = models.CharField(max_length=3, default="")
+    mental_illness = models.CharField(max_length=3, default="")
+    tuberculosis = models.CharField(max_length=3, default="")
+    spectacle_use = models.CharField(max_length=3, default="")
+    sickle_cell = models.CharField(max_length=3, default="")
+    health_problems = models.TextField(blank=True, null=True, max_length=225)
+    medication = models.TextField(blank=True, null=True, max_length=225)
+    drug_allergy = models.TextField(blank=True, null=True, max_length=225)
 
     class_id = models.ForeignKey(Class, on_delete=models.DO_NOTHING)
     department_id = models.ForeignKey(Departments, on_delete=models.DO_NOTHING)
     session_year_id = models.ForeignKey(SessionYearModel, on_delete=models.CASCADE)
-    medical_history_id = models.ForeignKey(MedicalHistory, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
@@ -263,7 +253,6 @@ def create_user_profile(sender, instance, created, **kwargs):
             class_obj, _ = Class.objects.get_or_create(id=1)
             department_obj, _ = Departments.objects.get_or_create(id=1)
             session_year_obj, _ = SessionYearModel.objects.get_or_create(id=1)
-            medical_history_obj, _ = MedicalHistory.objects.get_or_create(id=1)
             Students.objects.create(
                 admin=instance,
                 age="",
@@ -295,10 +284,21 @@ def create_user_profile(sender, instance, created, **kwargs):
                 school_attended_last="",
                 profile_pic="",
                 date_of_birth="",
+                asthmatic = "",
+                hypertension="",
+                disabilities="",
+                epilepsy="",
+                blind="",
+                mental_illness="",
+                turberculosis="",
+                spectacle_use="",
+                sickle_cell="",
+                health_problems="",
+                medication="",
+                drug_allergy="",
                 class_id=class_obj,
                 department_id=department_obj,
                 session_year_id=session_year_obj,
-                medical_history_id=medical_history_obj
             )
 
 
