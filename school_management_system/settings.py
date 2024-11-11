@@ -18,9 +18,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['young-crag-73292-fc9b6cd2329a.herokuapp.com','febmexinternationalschools.com','www.febmexinternationals.com']
 
-INSTALLED_APPS += ['cloudinary', 'cloudinary_storage']
-
-
 
 # Application definition
 AUTH_USER_MODEL = "schoolapp.CustomUser"
@@ -34,6 +31,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'schoolapp.apps.SchoolappConfig',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 CLOUDINARY_STORAGE = {
