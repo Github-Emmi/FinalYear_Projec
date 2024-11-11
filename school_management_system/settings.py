@@ -1,6 +1,7 @@
 
 import os
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,11 +19,19 @@ DEBUG = False
 ALLOWED_HOSTS = ['young-crag-73292-fc9b6cd2329a.herokuapp.com','febmexinternationalschools.com','www.febmexinternationals.com']
 
 
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+}
+
+
+
 # Application definition
 AUTH_USER_MODEL = "schoolapp.CustomUser"
 AUTHENTICATION_BACKENDS = ["schoolapp.EmailBackEnd.EmailBackEnd"]
 
-INSTALLED_APPS = [
+INSTALLED_APPS += [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -30,7 +39,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'schoolapp.apps.SchoolappConfig',
+    'cloudinary',
+    'cloudinary_storage',
 ]
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dmkcqgan1',          # Replace with your Cloud Name
+    'API_KEY': '716231591674135',      # Replace with your API Key
+    'API_SECRET': 'lVtlknqZrOUITzpCqmQjWNMUvkQ',  # Replace with your API Secret
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -118,12 +136,15 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
+
 STATIC_URL = '/static/'
+STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Media folder
 
 MEDIA_URL = '/media/'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 STATICFILES_DIRS = (
