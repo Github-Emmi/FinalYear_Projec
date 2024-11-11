@@ -20,7 +20,7 @@ ALLOWED_HOSTS = ['young-crag-73292-fc9b6cd2329a.herokuapp.com','febmexinternatio
 
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config(dmkcqgan1'),
+    'CLOUD_NAME': config('dmkcqgan1'),
     'API_KEY': config('716231591674135'),
     'API_SECRET': config('lVtlknqZrOUITzpCqmQjWNMUvkQ'),
 }
