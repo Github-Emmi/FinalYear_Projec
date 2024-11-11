@@ -18,12 +18,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['young-crag-73292-fc9b6cd2329a.herokuapp.com','febmexinternationalschools.com','www.febmexinternationals.com']
 
-
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('dmkcqgan1'),
-    'API_KEY': config('716231591674135'),
-    'API_SECRET': config('lVtlknqZrOUITzpCqmQjWNMUvkQ'),
-}
+INSTALLED_APPS += ['cloudinary', 'cloudinary_storage']
 
 
 
@@ -31,7 +26,7 @@ CLOUDINARY_STORAGE = {
 AUTH_USER_MODEL = "schoolapp.CustomUser"
 AUTHENTICATION_BACKENDS = ["schoolapp.EmailBackEnd.EmailBackEnd"]
 
-INSTALLED_APPS += [
+INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,8 +34,6 @@ INSTALLED_APPS += [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'schoolapp.apps.SchoolappConfig',
-    'cloudinary',
-    'cloudinary_storage',
 ]
 
 CLOUDINARY_STORAGE = {
