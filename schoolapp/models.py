@@ -290,7 +290,7 @@ def create_user_profile(sender, instance, created, **kwargs):
                 epilepsy="",
                 blind="",
                 mental_illness="",
-                turberculosis="",
+                tuberculosis="",
                 spectacle_use="",
                 sickle_cell="",
                 health_problems="",

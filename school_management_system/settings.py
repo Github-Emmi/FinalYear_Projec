@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-@ne=c1c(o^7&s+k-+ayf%nt(&!f-#kye$l1w-p)@pfwchn9k6v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['young-crag-73292-fc9b6cd2329a.herokuapp.com','febmexinternationalschools.com','www.febmexinternationals.com']
+ALLOWED_HOSTS = ['young-crag-73292-fc9b6cd2329a.herokuapp.com','febmexinternationalschools.com','www.febmexinternationals.com',]
 
 
 # Application definition
@@ -81,8 +81,8 @@ WSGI_APPLICATION = 'school_management_system.wsgi.application'
 
 DATABASES = {
     'default': {
-       #  'ENGINE': 'django.db.backends.sqlite3',
-       #  'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
          'ENGINE': 'django.db.backends.postgresql',
          'NAME': 'd1qe3rhra0pv6n',
          'USER': 'u84tvdiunq6uj7',
