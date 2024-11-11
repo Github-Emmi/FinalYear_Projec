@@ -273,7 +273,7 @@ class AddStudentForm(forms.Form):
         widget=forms.RadioSelect,
     )
     tuberculosis = forms.ChoiceField(
-        label="Tuberculosis",
+        label="tuberculosis",
         choices=health_choice,
         widget=forms.RadioSelect,
         

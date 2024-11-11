@@ -301,7 +301,7 @@ def save_student(request):
             student.disabilities = form.cleaned_data["asthmatic"]
             student.epilepsy = form.cleaned_data["asthmatic"]
             student.blind = form.cleaned_data["asthmatic"]
-            student.tuberculosis = form.cleaned_data["turberculosis"]
+            student.tuberculosis = form.cleaned_data["tuberculosis"]
             student.spectacle_use = form.cleaned_data["spectacle_use"]
             student.sickle_cell = form.cleaned_data["sickle_cell"]
             student.medication = form.cleaned_data["medication"]
