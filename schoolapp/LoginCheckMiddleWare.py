@@ -32,10 +32,10 @@ class LoginCheckMiddleWare(MiddlewareMixin):
                 else:
                     return HttpResponseRedirect(reverse("student_home"))
             else:
-                return HttpResponseRedirect(reverse("login"))
+                return HttpResponseRedirect(reverse(""))
 
         else:
-            if request.path == reverse("login") or request.path == reverse("do_login"):
-                pass
-            else:
-                return HttpResponseRedirect(reverse("login"))
+            if user is None:
+                if modulename == "schoolapp.views" or modulename == "django.views.static":
+                    return HttpResponseRedirect(reverse(""))
+            

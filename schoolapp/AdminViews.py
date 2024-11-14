@@ -204,7 +204,7 @@ def save_department(request):
         try:
             department_model = Departments(department_name=departments)
             department_model.save()
-            messages.success(request, "Successfully Added Department")
+            messages.success(request, f"Successfully Added {department_model} Department")
             return HttpResponseRedirect(reverse("add_department"))
         except:
             messages.error(request, "Failed To Add Class")
@@ -297,7 +297,7 @@ def save_student(request):
 
             # Medical history
             student.asthmatic = form.cleaned_data["asthmatic"]
-            student.hypertension= form.cleaned_data["asthmatic"]
+            student.hypertension = form.cleaned_data["asthmatic"]
             student.disabilities = form.cleaned_data["asthmatic"]
             student.epilepsy = form.cleaned_data["asthmatic"]
             student.blind = form.cleaned_data["asthmatic"]
@@ -306,7 +306,7 @@ def save_student(request):
             student.sickle_cell = form.cleaned_data["sickle_cell"]
             student.medication = form.cleaned_data["medication"]
             student.health_problems = form.cleaned_data["health_problems"]
-            student.adrug_allergy = form.cleaned_data["adrug_allergy"]
+            student.drug_allergy = form.cleaned_data["drug_allergy"]
 
             # Set Foreign Keys
             student.class_id = Class.objects.get(id=class_id)
@@ -339,7 +339,6 @@ def add_subject(request):
         {"staffs": staffs, "classes": classes, "departments": departments},
     )
 
-
 @login_required(login_url="/")
 def save_subject(request):
     if request.method != "POST":
@@ -366,7 +365,34 @@ def save_subject(request):
         except:
             messages.error(request, "failed to Add Subject")
             return HttpResponseRedirect(reverse("add_subject"))
+        
+###############   Add Session Year Views #################
+@login_required(login_url="/")
+def add_session_year(request):
+    return render(request, "admin_templates/add_session_year.html")
 
+@login_required(login_url="/")
+def add_session_year_save(request):
+    if request.method != "POST":
+        return HttpResponseRedirect(reverse("add_session_year"))
+    else:
+        session_name = request.POST.get("session_name")
+        session_start_year = request.POST.get("session_start")
+        session_end_year = request.POST.get("session_end")
+        try:
+            session_year = SessionYearModel(
+                session_name=session_name,
+                session_start_year=session_start_year,
+                session_end_year=session_end_year,
+            )
+            session_year.save()
+            messages.success(request, "Successfully Added Session Year")
+            return HttpResponseRedirect(reverse("add_session_year"))
+        except:
+            messages.error(request, "failed to Add Session")
+            return HttpResponseRedirect(reverse("add_session_year"))        
+
+        ####################### Manage Session #######################
 
 @login_required(login_url="/")
 def manage_staff(request):
@@ -427,33 +453,18 @@ def manage_subject(request):
         },
     )
 
-
 @login_required(login_url="/")
-def manage_session(request):
-    return render(request, "admin_templates/manage_session.html")
+def manage_session_year(request):
+    session_years = SessionYearModel.objects.all()
+    return render(
+        request,
+        "admin_templates/manage_session_year.html",
+        {
+            "session_years": session_years,
+        },
+    )
 
-
-@login_required(login_url="/")
-def manage_session_save(request):
-    if request.method != "POST":
-        return HttpResponseRedirect(reverse("manage_session"))
-    else:
-        session_name = request.POST.get("session_name")
-        session_start_year = request.POST.get("session_start")
-        session_end_year = request.POST.get("session_end")
-        try:
-            session_year = SessionYearModel(
-                session_name=session_name,
-                session_start_year=session_start_year,
-                session_end_year=session_end_year,
-            )
-            session_year.save()
-            messages.success(request, "Successfully Added Session Year")
-            return HttpResponseRedirect(reverse("manage_session"))
-        except:
-            messages.error(request, "failed to Add Session")
-            return HttpResponseRedirect(reverse("manage_session"))
-
+####################### Manage Session #######################
 
 @login_required(login_url="/")
 def edit_staff(request, staff_id):
@@ -485,7 +496,7 @@ def save_edit_staff(request):
             staff_model = Staffs.objects.get(admin=staff_id)
             staff_model.address = address
             staff_model.save()
-            messages.success(request, "Successfully Edited Staff")
+            messages.success(request, f"Successfully Edited {user.first_name}")
             return HttpResponseRedirect(
                 reverse("edit_staff", kwargs={"staff_id": staff_id})
             )
@@ -495,6 +506,38 @@ def save_edit_staff(request):
                 reverse("edit_staff", kwargs={"staff_id": staff_id})
             )
 
+@login_required(login_url="/")
+def edit_session_year(request, session_year_id):
+    Session_year = SessionYearModel.objects.get(id=session_year_id)
+    return render(
+        request, "admin_templates/edit_session_year.html", {"Session_year": Session_year, "session_year_id": session_year_id}
+    )
+
+@login_required(login_url="/")
+def save_edit_session_year(request):
+    if request.method != "POST":
+        return HttpResponse("<h2>Method Not Allowed</h2>")
+    else:
+        session_id = request.POST.get("session_id")
+        session_name = request.POST.get("session_name")
+        session_start = request.POST.get("session_start")
+        session_end = request.POST.get("session_end")
+
+        try:
+            sessions = SessionYearModel.objects.get(id=session_id)
+            sessions.session_name = session_name
+            sessions.session_start_year = session_start
+            sessions.session_end_year = session_end
+            sessions.save()
+            messages.success(request, f"Successfully Edited Class {session_name}")
+            return HttpResponseRedirect(
+                reverse("edit_session_year", kwargs={"session_id": session_id})
+            )
+        except:
+            messages.error(request, f"Failed to Edit {session_name}")
+            return HttpResponseRedirect(
+                reverse("edit_session_year", kwargs={"session_id": session_id})
+            )
 
 @login_required(login_url="/")
 def edit_student(request, student_id):
@@ -674,7 +717,7 @@ def save_edit_student(
                 student.mother_phone_num_2 = mother_phone_num_2
                 student.asthmatic = asthmatic
                 student.hypertension = hypertension
-                student.disabilities =disabilities
+                student.disabilities = disabilities
                 student.epilepsy = epilepsy
                 student.blind = blind
                 student.mental_illness = mental_illness
@@ -684,7 +727,7 @@ def save_edit_student(
                 student.health_problems = health_problems
                 student.medication = medication
                 student.drug_allergy = drug_allergy
-                
+
                 ####### fetching session's Objects ######
                 session_year = SessionYearModel.objects.get(id=session_year_id)
                 student.session_year_id = session_year
@@ -791,7 +834,7 @@ def save_edit_class(request):
             classes = Class.objects.get(id=class_id)
             classes.class_name = class_name
             classes.save()
-            messages.success(request, "Successfully Edited Class")
+            messages.success(request, f"Successfully Edited Class {class_name}")
             return HttpResponseRedirect(
                 reverse("edit_class", kwargs={"class_id": class_id})
             )

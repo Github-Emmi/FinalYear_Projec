@@ -29,19 +29,26 @@ path('add-student', AdminViews.add_student, name='add_student'),
 path('save_student', AdminViews.save_student, name='save_student'),
 path('add-subject', AdminViews.add_subject, name='add_subject'),
 path('save-subject', AdminViews.save_subject, name='save_subject'),
+path('add-session-year', AdminViews.add_session_year, name='add_session_year'),
+path('add-session-year-save', AdminViews.add_session_year_save, name='add_session_year_save'),
+
 path('manage-staff', AdminViews.manage_staff, name='manage_staff'),
 path('manage-student', AdminViews.manage_student, name='manage_student'),
 path('manage-class', AdminViews.manage_class, name='manage_class'),
 path('manage-department', AdminViews.manage_department, name='manage_department'),
 path('manage-subject', AdminViews.manage_subject, name='manage_subject'),
-path('manage-session', AdminViews.manage_session, name='manage_session'),
-path('manage-session-save', AdminViews.manage_session_save, name='manage_session_save'),
+path('manage-session-year', AdminViews.manage_session_year, name='manage_session_year'),
+
+#########       path ends for edit and save Session Year      ###########
+path('edit-session-year/<str:session_year_id>', AdminViews.edit_session_year, name='edit_session_year'),
+path('save-edit-session-year', AdminViews.save_edit_session_year, name='save_edit_session_year'),
+#########       path ends for edit and save Student      ###########
 path('edit-student/<str:student_id>', AdminViews.edit_student, name='edit_student'),
 path('save-edit-student', AdminViews.save_edit_student, name='save_edit_student'),
-#########       path ends for edit and save Student      ###########
+#########       path ends for edit and save Staff      ###########
 path('edit-staff/<str:staff_id>', AdminViews.edit_staff, name='edit_staff'),
 path('save-edit-staff', AdminViews.save_edit_staff, name='save_edit_staff'),
-#########       path ends for edit and save Staff         ###########
+#########       path ends for edit and save Staff         ###########   
 path('edit-subject/<str:subject_id>', AdminViews.edit_subject, name='edit_subject'),
 path('save-edit-subject', AdminViews.save_edit_subject, name='save_edit_subject'),
 #########       path ends for edit and save Subject       ###########
@@ -50,6 +57,7 @@ path('save-edit-department', AdminViews.save_edit_department, name='save_edit_de
 #########       path ends for edit and save Department     ###########
 path('edit-class/<str:class_id>', AdminViews.edit_class, name='edit_class'),
 path('save-edit-class', AdminViews.save_edit_class, name='save_edit_class'),
+
 path('check-email-exist', AdminViews.check_email_exist,name="check_email_exist"),
 path('check-username-exist', AdminViews.check_username_exist,name="check_username_exist"),
 path('student-feedback-message', AdminViews.student_feedback_message,name="student_feedback_message"),

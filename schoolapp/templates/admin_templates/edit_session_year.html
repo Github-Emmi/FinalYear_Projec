@@ -1,0 +1,55 @@
+{% extends 'admin_templates/base.html' %}
+ {% load static %}
+ {% block title %} Admin | Session Year {% endblock %}
+ {% block dashboard_title %} 
+     Edit Staff: {{ Session_year.session_name }}
+ {% endblock dashboard_title %}
+ {% block dashboard_title1 %} edit term{% endblock dashboard_title1 %}
+   {% block main_content %}
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- left column -->
+            <div class="col-md-8">
+                    <!-- general form elements -->
+                    <div class="card card-primary">
+                        <div class="card-header">
+                          <h3 class="card-title">Edit: {{ Session_year.session_name }} Starts: {{ Session_year.session_start_year }} Ends: {{ Session_year.session_end_year }} Details</h3>
+                        </div>
+                        <!-- /.card-header -->
+                        
+                        <!-- form start -->
+                        <form role="form" method="post" action="{% url 'save_edit_session_year' %}">
+                            {% csrf_token %}
+                          <div class="card-body">
+                            <div class="form-group">
+                              <label>Term Name:</label>
+                              <input type="text" class="form-control" placeholder="Term Name" name="session_name" value="{{ Session_year.session_name }}">
+                            </div>
+                            <div class="form-group">
+                              <label>Term Start:</label>
+                              <input type="date" class="form-control"  placeholder="{{ Session_year.session_start_year }}" name="session_start" value="{{ Session_year.session_start_year }}">
+                            </div>
+                            <div class="form-group">
+                                <label>Term End:</label>
+                                <input type="date" class="form-control"  placeholder="Username" name="session_end" value="{{ ession_year.session_end_year }}">
+                                <input type="hidden"  name="session_id" value="{{ session_year.id }}">
+                              </div>
+                              <div class="form-check">
+                                <input type="checkbox" name="checked" class="form-check-input">
+                                <label class="form-check-label" >Sure to add</label>
+                              </div>
+                            {% include 'admin_templates/verification_message.html' with user=user %}
+                          <!-- /.card-body -->
+                          <div class="card-footer">
+                            <button type="submit" class="btn btn-primary btn-block">Save Staff</button>
+                          </div>
+                        </form>
+                      </div>
+                      <!-- /.card -->
+                    </div>
+                </div>
+              </div>
+    </div><!-- /.container-fluid -->
+  </section>
+  {% endblock main_content %}

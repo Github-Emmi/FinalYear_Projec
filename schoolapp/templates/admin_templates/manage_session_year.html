@@ -1,7 +1,8 @@
 {% extends 'admin_templates/base.html' %}
  {% load static %}
- {% block dashboard_title %} Manage Staffs {% endblock dashboard_title %}
- {% block dashboard_title1 %}manage staffs {% endblock dashboard_title1 %}
+ {% block title %} Admin | Manage Session Year {% endblock %}
+ {% block dashboard_title %} Manage Session Year {% endblock dashboard_title %}
+ {% block dashboard_title1 %}Manage Session Year {% endblock dashboard_title1 %}
 {% block main_content %}
 <section class="content">
     <div class="container-fluid">
@@ -10,7 +11,7 @@
                     <div class="col-12">
                       <div class="card">
                         <div class="card-header">
-                          <h3 class="card-title">Staff Details</h3>
+                          <h3 class="card-title">Session Year Details</h3>
           
                           <div class="card-tools">
                             <div class="input-group input-group-sm" style="width: 150px;">
@@ -27,31 +28,23 @@
                           <table class="table table-hover text-nowrap">
                             <thead>
                               <tr>
-                                {% comment %} <th>ID</th> {% endcomment %}
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Username</th>
-                                <th>Email</th>
-                                <th>Address</th>
-                                <th>Date Joined</th>
-                                <th>Last Login</th>
+                                <th>ID</th>
+                                <th>Session Name</th>
+                                <th>Session Start Year</th>
+                                <th>Session End Year</th>
                                 <th>Action</th>
                                 
                                 
                               </tr>
                             </thead>
                             <tbody>
-                                {% for staff in staffs %}
+                                {% for session_year in session_years %}
                               <tr>
-                                <td>{{ staff.admin.id }}</td>
-                                <td>{{ staff.admin.first_name }}</td>
-                                <td>{{ staff.admin.last_name }}</td>
-                                <td>{{ staff.admin.username }}</td>
-                                <td>{{ staff.admin.email }}</td>
-                                <td>{{ staff.address }}</td>
-                                <td>{{ staff.admin.date_joined }}</td>
-                                <td>{{ staff.admin.last_login }}</td>
-                                <td><a href="/edit-staff/{{ staff.admin.id }}" class="btn btn-success">Edit</a></td>    
+                                <td>{{ session_year.id }}</td>
+                                <td>{{ session_year.session_name }}</td> 
+                                <td>{{ session_year.session_start_year }}</td> 
+                                <td>{{ session_year.session_end_year }}</td>
+                                <td><a href="/edit-session-year/{{ session_year.id }}" class="btn btn-success">Edit</a></td>            
                               </tr>
                               {% endfor %}
                             </tbody>

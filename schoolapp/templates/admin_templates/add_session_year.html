@@ -1,7 +1,7 @@
 {% extends 'admin_templates/base.html' %}
  {% load static %}
- {% block dashboard_title %}Manage Session {% endblock dashboard_title %}
- {% block dashboard_title1 %}manage session {% endblock dashboard_title1 %}
+ {% block dashboard_title %}Add Term {% endblock dashboard_title %}
+ {% block dashboard_title1 %}Add Term {% endblock dashboard_title1 %}
    {% block main_content %}
 <section class="content">
     <div class="container-fluid">
@@ -11,7 +11,7 @@
                     <!-- general form elements -->
                     <div class="card card-primary">
                         <div class="card-header">
-                          <h3 class="card-title">Add Session</h3>
+                          <h3 class="card-title">Add Term</h3>
                         </div>
                         <!-- /.card-header -->
                         <script language="javascript">
@@ -33,12 +33,12 @@
                           </script>
 
                         <!-- form start -->
-                        <form role="form" action="{% url 'manage_session_save' %}" method="post" onsubmit="return checkform()" name="addses">
+                        <form role="form" action="{% url 'add_session_year_save' %}" method="post" onsubmit="return checkform()" name="addses">
                           {% csrf_token %}
                         <div class="card-body">
                           <div class="form-group">
                             <label>Term Name: </label>
-                            <input type="text" class="form-control" name="session_name" required="required">
+                            <input type="text" class="form-control" name="session_name" required="required" placeholder="Enter Term">
                           </div>
                           <div class="form-group">
                             <label>Term Start: </label>
@@ -48,19 +48,12 @@
                             <label>Term End: </label>
                             <input type="date" class="form-control" name="session_end" required="required">
                           </div>
-                           <div class="form-group">
-                              {% if messages %}
-                                {% for message in messages %}
-                                {% if message.tags == 'error' %}
-                                <div class="alert alert-danger" style="margin-top:10px">{{ message }}</div>
-                                {% endif %}
-                                {% if message.tags == 'success' %}
-                                <div class="alert alert-success" style="margin-top:10px">{{ message }}</div>
-                                {% endif %}
-                                {% endfor %}
-                              {% endif %}
-                            </div>
-        
+                          <div class="form-check">
+                            <input type="checkbox" name="checked" class="form-check-input">
+                            <label class="form-check-label" >Sure to add</label>
+                          </div>
+                          {% include 'admin_templates/verification_message.html' with user=user %}
+                    
                         </div>
                         <!-- /.card-body -->
         
