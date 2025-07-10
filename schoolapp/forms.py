@@ -1,39 +1,48 @@
 from django import forms
-from schoolapp.models import (
-    Departments,
-    SessionYearModel,
-    Students,
-    Class,
-)
+from schoolapp.models import Departments, SessionYearModel, Students, Class, Room, Class
 
 
 class DateInput(forms.DateInput):
     input_type = "date"
 
+
 ############################################################
 # Add Student Form #
 ############################################################
+
 
 class AddStudentForm(forms.Form):
     email = forms.EmailField(
         label="Email",
         max_length=50,
-        widget=forms.EmailInput(attrs={"class": "form-control", "autocomplete": "off","placeholder":"Enter your Email"}),
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-control",
+                "autocomplete": "off",
+                "placeholder": "Enter your Email",
+            }
+        ),
     )
     password = forms.CharField(
         label="Password",
         max_length=50,
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder":"Enter your Password"}),
+        widget=forms.PasswordInput(
+            attrs={"class": "form-control", "placeholder": "Enter your Password"}
+        ),
     )
     first_name = forms.CharField(
         label="First Name",
         max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder":"Enter your Surname"}),
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Enter your Surname"}
+        ),
     )
     last_name = forms.CharField(
         label="Last Name",
         max_length=50,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder":"Enter your name(s)"}),
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Enter your name(s)"}
+        ),
     )
     username = forms.CharField(
         label="Username",
@@ -276,18 +285,16 @@ class AddStudentForm(forms.Form):
         label="Tuberculosis",
         choices=health_choice,
         widget=forms.RadioSelect,
-        
     )
     spectacle_use = forms.ChoiceField(
         label="Spectacle Use",
-        choices=health_choice,  
+        choices=health_choice,
         widget=forms.RadioSelect,
     )
     sickle_cell = forms.ChoiceField(
         label="Sickle Cell",
         choices=health_choice,
         widget=forms.RadioSelect,
-        
     )
     health_problems = forms.ChoiceField(
         label="Health Problems",
@@ -325,7 +332,12 @@ class EditStudentForm(forms.Form):
         label="Password",
         max_length=50,
         required=False,
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder":"Leave blank or enter a new password"}),
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Leave blank or enter a new password",
+            }
+        ),
     )
     first_name = forms.CharField(
         label="First Name",
@@ -592,6 +604,20 @@ class EditStudentForm(forms.Form):
         label="Drug Allergies",
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
+
+
+
+class CreateRoomForm(forms.ModelForm):
+    class Meta:
+        model = Room
+        fields = ['name', 'channel_name', 'is_classroom_room', 'classroom_id']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'channel_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'is_classroom_room': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'classroom': forms.Select(attrs={'class': 'form-control'}),
+        }
+
 
 
 # class EditResultForm(forms.Form):

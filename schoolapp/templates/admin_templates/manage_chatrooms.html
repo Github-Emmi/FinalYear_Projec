@@ -1,0 +1,103 @@
+{% extends 'admin_templates/base.html' %}
+{% block page_title %} Add Chat Room {% endblock page_title %}
+{% block main_content %}
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+          <div class="row">
+              <div class="col-md-12">
+            <!-- general form elements -->
+            <div class="card card-primary">
+              <div class="card-header">
+                <h3 class="card-title">Add Chat Room</h3>
+              </div>
+              <!-- Display non-field errors (e.g., ValidationErrors) -->
+              {% if form.non_field_errors %}
+              <div class="alert alert-danger">
+                 {% for error in form.non_field_errors %}
+                  <p>{{ error }}</p>
+                  {% endfor %}
+              </div>
+              {% endif %}
+              <!-- /.card-header -->
+              <!-- form start -->
+                {% url 'admin_manage_chatrooms' as action_path %}
+                {% include 'admin_templates/form_template.html' with messages=messages form=form action_path=action_path button_text="Add Chat Room" %}
+            </div>
+            <!-- /.card -->
+
+
+
+          </div>
+          </div>
+      </div>
+    </section>
+    <!-- /.content -->
+{% endblock main_content %}
+
+{% block custom_js %}
+<script>
+    $(document).ready(function(){
+        $("#id_name").keyup(function(){
+            var name=$(this).val();
+
+           if(name!=""){
+                $.ajax({
+                    url:'{% url 'check_name_exist' %}',
+                    type:'POST',
+                    data:{name:name}
+                })
+                .done(function(response){
+                    console.log(response);
+                    if(response=="True"){
+                        $(".name_error").remove();
+                        $("<span class='name_error' style='padding: 5px;color: red;font-weight: bold;'>Name already taken!</span>").insertAfter("#id_name");
+                    }
+                    else{
+                        $(".name_error").remove();
+                        $("<span class='name_error' style='padding: 5px;color: green;font-weight: bold;'>Name Available</span>").insertAfter("#id_name");
+                    }
+                })
+                .fail(function(){
+                    console.log("failed");
+                })
+            }
+            else{
+              $(".name_error").remove();
+            }
+
+        });
+
+        $("#id_channel_name").keyup(function(){
+            var channel_name=$(this).val();
+
+            if(channel_name!=""){
+                $.ajax({
+                    url:'{% url 'check_channel_name_exist' %}',
+                    type:'POST',
+                    data:{channel_name:channel_name}
+                })
+                .done(function(response){
+                    console.log(response);
+                    if(response=="True"){
+                        $(".channel_name_error").remove();
+                        $("<span class='channel_name_error' style='padding: 5px;color: red;font-weight: bold;'>Channel name already taken!</span>").insertAfter("#id_channel_name");
+                    }
+                    else{
+                        $(".channel_name_error").remove();
+                        $("<span class='channel_name_error' style='padding: 5px;color: green;font-weight: bold;'>Channel name Available</span>").insertAfter("#id_channel_name");
+                    }
+                })
+                .fail(function(){
+                    console.log("failed");
+                })
+            }
+            else{
+                $(".channel_name_error").remove();
+            }
+
+        });
+
+    });
+</script>
+{% endblock custom_js %}

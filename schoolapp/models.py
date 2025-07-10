@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.dispatch.dispatcher import receiver
 from django.db.models.signals import post_save
+from django.conf import settings
 
 
 # Create your models here.
@@ -25,6 +26,7 @@ class SessionYearModel(models.Model):
         start_date = self.session_start_year.strftime("%d %B %Y")
         end_date = self.session_end_year.strftime("%d %B %Y")
         return f"{start_date} TO {end_date}"
+    
 
 
 # creating Amin models
@@ -142,8 +144,19 @@ class Students(models.Model):
     updated_at = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
 
-    # creating Attendence Models
 
+class Room(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True)
+    channel_name = models.CharField(max_length=100, unique=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    is_classroom_room = models.BooleanField(default=False)
+    classroom_id = models.ForeignKey(Class, on_delete=models.CASCADE, null=True, blank=True)
+    staff = models.ForeignKey(Staffs, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
 
 class Attendence(models.Model):
     id = models.AutoField(primary_key=True)

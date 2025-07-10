@@ -3,26 +3,13 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 import json
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
-from schoolapp.forms import AddStudentForm, EditStudentForm
-from schoolapp.models import (
-    CustomUser,
-    Class,
-    Departments,
-    SessionYearModel,
-    Staffs,
-    StudentResults,
-    Students,
-    Subjects,
-    FeedBackStudent,
-    FeedBackStaffs,
-    LeaveReportStudent,
-    LeaveReportStaff,
-    Attendence,
-    AttendanceReport,
-)
+from schoolapp.forms import AddStudentForm, EditStudentForm, CreateRoomForm
+from schoolapp.models import *
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 @login_required(login_url="/")
@@ -135,6 +122,34 @@ def admin_profile_save(request):
             return HttpResponseRedirect(reverse("admin_profile"))
 
 
+#######################   Chat Room View   ###########################
+User = get_user_model()
+
+
+@login_required
+def admin_manage_chatrooms(request):
+    if request.user.user_type != "1":  # that is Only HOD has access
+        return redirect("login")
+
+    if request.method == "POST":
+        form = CreateRoomForm(request.POST)
+        if form.is_valid():
+            room = form.save(commit=False)
+            room.created_by = request.user
+            room.save()
+            messages.success(request, f"Successfully Added Chat {room.name}")
+            return redirect("admin_manage_chatrooms")
+    else:
+        form = CreateRoomForm()
+
+    all_rooms = Room.objects.all().order_by("-created_at")
+    return render(
+        request,
+        "admin_templates/manage_chatrooms.html",
+        {"form": form, "rooms": all_rooms},
+    )
+
+
 @login_required(login_url="/")
 def add_staff(request):
     return render(request, "admin_templates/add_staff.html")
@@ -204,7 +219,9 @@ def save_department(request):
         try:
             department_model = Departments(department_name=departments)
             department_model.save()
-            messages.success(request, f"Successfully Added {department_model} Department")
+            messages.success(
+                request, f"Successfully Added {department_model} Department"
+            )
             return HttpResponseRedirect(reverse("add_department"))
         except:
             messages.error(request, "Failed To Add Class")
@@ -339,6 +356,7 @@ def add_subject(request):
         {"staffs": staffs, "classes": classes, "departments": departments},
     )
 
+
 @login_required(login_url="/")
 def save_subject(request):
     if request.method != "POST":
@@ -365,11 +383,13 @@ def save_subject(request):
         except:
             messages.error(request, "failed to Add Subject")
             return HttpResponseRedirect(reverse("add_subject"))
-        
+
+
 ###############   Add Session Year Views #################
 @login_required(login_url="/")
 def add_session_year(request):
     return render(request, "admin_templates/add_session_year.html")
+
 
 @login_required(login_url="/")
 def add_session_year_save(request):
@@ -390,9 +410,34 @@ def add_session_year_save(request):
             return HttpResponseRedirect(reverse("add_session_year"))
         except:
             messages.error(request, "failed to Add Session")
-            return HttpResponseRedirect(reverse("add_session_year"))        
+            return HttpResponseRedirect(reverse("add_session_year"))
 
         ####################### Manage Session #######################
+
+
+@staff_member_required
+def manage_rooms(request):
+    if request.method == "POST":
+        # Admin can create  classroom or staff rooms
+        name = request.POST["name"]
+        channel = request.POST["channel"]
+        is_class = "classroom" in request.POST
+        classroom = request.POST.get("classroom")
+        staff_group = request.POST.get("staff_group")
+
+        Room.objects.create(
+            name=name,
+            channel_name=channel,
+            created_by=request.user,
+            is_classroom_room=is_class,
+            classroom=classroom if is_class else None,
+            staff_group=None if is_class else staff_group,
+        )
+        return redirect("manage_rooms")
+
+    rooms = Room.objects.all()
+    return render(request, "schoolapp/admin/manage_rooms.html", {"rooms": rooms})
+
 
 @login_required(login_url="/")
 def manage_staff(request):
@@ -453,6 +498,7 @@ def manage_subject(request):
         },
     )
 
+
 @login_required(login_url="/")
 def manage_session_year(request):
     session_years = SessionYearModel.objects.all()
@@ -464,7 +510,9 @@ def manage_session_year(request):
         },
     )
 
+
 ####################### Manage Session #######################
+
 
 @login_required(login_url="/")
 def edit_staff(request, staff_id):
@@ -506,12 +554,16 @@ def save_edit_staff(request):
                 reverse("edit_staff", kwargs={"staff_id": staff_id})
             )
 
+
 @login_required(login_url="/")
 def edit_session_year(request, session_year_id):
     Session_year = SessionYearModel.objects.get(id=session_year_id)
     return render(
-        request, "admin_templates/edit_session_year.html", {"Session_year": Session_year, "session_year_id": session_year_id}
+        request,
+        "admin_templates/edit_session_year.html",
+        {"Session_year": Session_year, "session_year_id": session_year_id},
     )
+
 
 @login_required(login_url="/")
 def save_edit_session_year(request):
@@ -538,6 +590,7 @@ def save_edit_session_year(request):
             return HttpResponseRedirect(
                 reverse("edit_session_year", kwargs={"session_id": session_id})
             )
+
 
 @login_required(login_url="/")
 def edit_student(request, student_id):
@@ -889,12 +942,29 @@ def check_email_exist(request):
     else:
         return HttpResponse(False)
 
-
 @csrf_exempt
 def check_username_exist(request):
     username = request.POST.get("username")
     user_obj = CustomUser.objects.filter(username=username).exists()
     if user_obj:
+        return HttpResponse(True)
+    else:
+        return HttpResponse(False)
+    
+@csrf_exempt
+def check_name_exist(request):
+    name = request.POST.get("name")
+    room_obj = Room.objects.filter(name=name).exists()
+    if room_obj:
+        return HttpResponse(True)
+    else:
+        return HttpResponse(False)
+
+@csrf_exempt
+def check_channel_name_exist(request):
+    channel_name = request.POST.get("channel_name")
+    room_obj = Room.objects.filter(channel_name=channel_name).exists()
+    if room_obj:
         return HttpResponse(True)
     else:
         return HttpResponse(False)

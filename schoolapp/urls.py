@@ -19,6 +19,7 @@ path('logout', views.user_logout, name='logout'),
 path('admin-home', AdminViews.admin_home, name='admin_home'),
 path('admin-profile', AdminViews.admin_profile, name='admin_profile'),
 path('admin-profile-save', AdminViews.admin_profile_save, name="admin_profile_save"),
+path('admin-chatrooms/', AdminViews.admin_manage_chatrooms, name='admin_manage_chatrooms'),
 path('add-staff', AdminViews.add_staff, name='add_staff'),
 path('save_staff', AdminViews.save_staff, name='save_staff'),
 path('add-class', AdminViews.add_class, name='add_class'),
@@ -60,6 +61,8 @@ path('save-edit-class', AdminViews.save_edit_class, name='save_edit_class'),
 
 path('check-email-exist', AdminViews.check_email_exist,name="check_email_exist"),
 path('check-username-exist', AdminViews.check_username_exist,name="check_username_exist"),
+path('check-name-exist', AdminViews.check_name_exist,name="check_name_exist"),
+path('check-channel-name-exist', AdminViews.check_channel_name_exist,name="check_channel_name_exist"),
 path('student-feedback-message', AdminViews.student_feedback_message,name="student_feedback_message"),
 path('student-feedback-message-replied', AdminViews.student_feedback_message_replied,name="student_feedback_message_replied"),
 path('staff-feedback-message', AdminViews.staff_feedback_message,name="staff_feedback_message"),
@@ -112,5 +115,3 @@ path('student-view-result',StudentViews.student_view_result,name="student_view_r
 path('student-make-payment',StudentViews.student_make_payment,name="student_make_payment"),
 ]
   
-
-
