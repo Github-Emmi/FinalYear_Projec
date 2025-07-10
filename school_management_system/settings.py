@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-@ne=c1c(o^7&s+k-+ayf%nt(&!f-#kye$l1w-p)@pfwchn9k6v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['young-crag-73292-fc9b6cd2329a.herokuapp.com','febmexinternationalschools.com','www.febmexinternationals.com',]
+ALLOWED_HOSTS = ['*',]
 
 
 # Application definition
@@ -44,7 +44,6 @@ CLOUDINARY_STORAGE = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this line
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -81,14 +80,14 @@ WSGI_APPLICATION = 'school_management_system.wsgi.application'
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': BASE_DIR / 'db.sqlite3',
-         'ENGINE': 'django.db.backends.postgresql',
-         'NAME': 'd1qe3rhra0pv6n',
-         'USER': 'u84tvdiunq6uj7',
-         'PASSWORD': 'pb2dd58b14606b7a61c4c0826de1b99a2719451f586de465e1ddf5d59ee0380b2',
-         'PORT': '5432',
-         'HOST': 'cb5ajfjosdpmil.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        #  'ENGINE': 'django.db.backends.postgresql',
+        #  'NAME': 'd1qe3rhra0pv6n',
+        #  'USER': 'u84tvdiunq6uj7',
+        #  'PASSWORD': 'pb2dd58b14606b7a61c4c0826de1b99a2719451f586de465e1ddf5d59ee0380b2',
+        #  'PORT': '5432',
+        #  'HOST': 'cb5ajfjosdpmil.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
         
     }
 }
