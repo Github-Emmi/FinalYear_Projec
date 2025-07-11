@@ -43,6 +43,16 @@
                 </a>
                 <ul class="nav nav-treeview">
                   <li class="nav-item">
+                    {% url 'admin_manage_chatrooms' as admin_manage_chatrooms %}
+                    <a href="{{ admin_manage_chatrooms }}" id="add-section" class="nav-link {% if request.path == admin_manage_chatrooms %} active {% endif %}">
+                      <i class="nav-icon fas fa-th"></i>
+                      <p>
+                        Add ChatRoom
+                      </p>
+                    </a>
+                  </li>
+
+                  <li class="nav-item">
                     {% url 'add_staff' as add_staff %}
                     <a href="{{ add_staff }}" id="add-section" class="nav-link {% if request.path == add_staff %} active {% endif %}">
                       <i class="nav-icon fas fa-th"></i>
