@@ -449,13 +449,12 @@ def manage_staff(request):
 
 @login_required(login_url="/")
 def manage_student(request):
-    students = Students.objects.all()
-    return render(
-        request,
-        "admin_templates/manage_student.html",
-        {
-            "students": students,
-        },
+    return generic_paginated_list(
+        request=request,
+        model=Students,
+        related_fields=['admin'],
+        template_name='admin_templates/manage_student.html',
+        table_template='admin_templates/includes/student_table.html'
     )
 
 

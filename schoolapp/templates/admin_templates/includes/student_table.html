@@ -1,0 +1,20 @@
+{% for student in page_obj %}
+<tr>
+  <td>{{ student.admin.id }}</td>
+  <td>{{ student.admin.first_name }}</td>
+  <td>{{ student.admin.last_name }}</td>
+  <td>{{ student.admin.username }}</td>
+  <td>{{ student.admin.email }}</td>
+  <td>{{ student.residential_address }}</td>
+  <td>{{ student.gender }}</td>
+  <td>{{ student.date_of_birth }}</td>
+  <td>{{ student.session_year_id }}</td>
+  <td>{{ student.class_id }}</td>
+  <td>{{ student.department_id }}</td>
+  <td><img src="{{ student.profile_pic }}" alt="UserPic" width="50"></td>
+  <td>{{ student.admin.last_login }}</td>
+  <td>{{ student.admin.date_joined }}</td>
+  <td><a href="/edit-student/{{ student.admin.id }}" class="btn btn-success">Edit</a></td>
+  <td><a href="{% url 'delete_student' student.admin.id %}" class="btn btn-danger">Delete</a></td>
+</tr>
+{% endfor %}

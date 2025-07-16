@@ -11,6 +11,5 @@
   <td><a href="/edit-staff/{{ staff.admin.id }}" class="btn btn-success">Edit</a></td>
   <td><a href="{% url 'delete_staff' staff.admin.id %}" class="btn btn-danger">Delete</a></td>
 </tr>
-{% empty %}
-<tr><td colspan="10">No staff found.</td></tr>
+
 {% endfor %}
