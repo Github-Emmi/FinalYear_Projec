@@ -1,0 +1,9 @@
+{% for department in page_obj %}
+                              <tr>
+                                {% comment %} <td>{{ department.id }}</td> {% endcomment %}
+                                <td>{{ department.department_name }}</td>     
+                                <td><a href="/edit-department/{{ department.id }}" class="btn btn-success">Edit</a></td>  
+                                <td>
+                                  <a href="{% url 'delete_department' department.id %}" class="btn btn-danger" data-toggle="modal" data-target="#modal-danger-{{ department.id }}">Delete</a></td>            
+                              </tr>
+    {% endfor %}

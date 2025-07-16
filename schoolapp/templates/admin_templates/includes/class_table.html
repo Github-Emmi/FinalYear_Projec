@@ -1,0 +1,10 @@
+  {% for class in page_obj %}
+                              <tr>
+                                {% comment %} <td>{{ class.id }}</td> {% endcomment %}
+                                <td>{{ class.class_name }}</td>     
+                                <td><a href="/edit-class/{{ class.id }}" class="btn btn-success">Edit</a></td>
+                                <td>
+                                  <a href="{% url 'delete_class' class.id %}" class="btn btn-danger" data-toggle="modal" data-target="#modal-danger-{{ class.id }}">Delete</a></td>          
+                              </tr>
+
+      {% endfor %}

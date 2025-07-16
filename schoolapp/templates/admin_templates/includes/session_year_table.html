@@ -1,0 +1,11 @@
+{% for session_year in page_obj %}
+                              <tr>
+                                {% comment %} <td>{{ session_year.id }}</td> {% endcomment %}
+                                <td>{{ session_year.session_name }}</td> 
+                                <td>{{ session_year.session_start_year }}</td> 
+                                <td>{{ session_year.session_end_year }}</td>
+                                <td><a href="{% url 'edit_session_year' session_year.id %}" class="btn btn-success">Edit</a></td>
+                                <td>
+                                  <a href="{% url 'delete_session_year' session_year.id %}" class="btn btn-danger" data-toggle="modal" data-target="#modal-danger-{{ session_year.id }}">Delete</a></td>          
+                              </tr>
+ {% endfor %}

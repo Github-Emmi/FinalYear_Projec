@@ -1,6 +1,6 @@
 {% for staff in page_obj %}
 <tr>
-  <td>{{ staff.admin.id }}</td>
+  {% comment %} <td>{{ staff.admin.id }}</td> {% endcomment %}
   <td>{{ staff.admin.first_name }}</td>
   <td>{{ staff.admin.last_name }}</td>
   <td>{{ staff.admin.username }}</td>
@@ -9,7 +9,9 @@
   <td>{{ staff.admin.date_joined }}</td>
   <td>{{ staff.admin.last_login }}</td>
   <td><a href="/edit-staff/{{ staff.admin.id }}" class="btn btn-success">Edit</a></td>
-  <td><a href="{% url 'delete_staff' staff.admin.id %}" class="btn btn-danger">Delete</a></td>
+  <td>
+    <a href="{% url 'delete_staff' staff.admin.id %}" class="btn btn-danger" data-toggle="modal" data-target="#modal-danger-{{ staff.admin.id }}">Delete</a>
+  </td>          
 </tr>
 
 {% endfor %}

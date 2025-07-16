@@ -1,0 +1,14 @@
+{% for subject in page_obj %}
+                              <tr>
+                                {% comment %} <td>{{ subject.id }}</td>  {% endcomment %}
+                                <td>{{ subject.subject_name }}</td> 
+                                <td>{{ subject.class_id.class_name }}</td> 
+                                <td>{{ subject.department_id.department_name }}</td>
+                                <td>{{ subject.staff_id.first_name }} {{ subject.staff_id.last_name }}</td>    
+                                <td><a href="/edit-subject/{{ subject.id }}" class="btn btn-success">Edit</a></td> 
+                                <td>
+                                  <a href="{% url 'delete_subject' subject.id %}" class="btn btn-danger" data-toggle="modal" data-target="#modal-danger-{{ subject.id }}">Delete</a></td>          
+                              </tr>
+ {% endfor %}
+
+ 

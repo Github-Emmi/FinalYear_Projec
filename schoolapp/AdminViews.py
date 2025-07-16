@@ -460,49 +460,46 @@ def manage_student(request):
 
 @login_required(login_url="/")
 def manage_class(request):
-    classes = Class.objects.all()
-    return render(
-        request,
-        "admin_templates/manage_class.html",
-        {
-            "classes": classes,
-        },
+    return generic_paginated_list(
+        request=request,
+        model=Class,
+        related_fields=[],
+        template_name='admin_templates/manage_class.html',
+        table_template='admin_templates/includes/student_table.html'
     )
 
 
 @login_required(login_url="/")
 def manage_department(request):
-    departments = Departments.objects.all()
-    return render(
-        request,
-        "admin_templates/manage_department.html",
-        {
-            "departments": departments,
-        },
+    return generic_paginated_list(
+        request=request,
+        model=Departments,
+        related_fields=[],
+        template_name='admin_templates/manage_department.html',
+        table_template='admin_templates/includes/department_table.html'
     )
 
 
 @login_required(login_url="/")
 def manage_subject(request):
-    subjects = Subjects.objects.all()
-    return render(
-        request,
-        "admin_templates/manage_subject.html",
-        {
-            "subjects": subjects,
-        },
+    return generic_paginated_list(
+        request=request,
+        model=Subjects,
+        related_fields=['class_id', 'department_id', 'staff_id'],
+        template_name='admin_templates/manage_subject.html',
+        table_template='admin_templates/includes/subject_table.html'
     )
+
 
 
 @login_required(login_url="/")
 def manage_session_year(request):
-    session_years = SessionYearModel.objects.all()
-    return render(
-        request,
-        "admin_templates/manage_session_year.html",
-        {
-            "session_years": session_years,
-        },
+    return generic_paginated_list(
+        request=request,
+        model=SessionYearModel,
+        related_fields=[],
+        template_name='admin_templates/manage_session_year.html',
+        table_template='admin_templates/includes/session_year_table.html'
     )
 
 
@@ -839,15 +836,15 @@ def save_edit_student(
 @login_required(login_url="/")
 def delete_student(request, student_id):
     try:
-        student = Students.objects.get(id=student_id)
+        student = CustomUser.objects.get(id=student_id)
         student.delete()
-        messages.success(request, "Successfully Deleted Student")
-    except Students.DoesNotExist:
+        messages.success(request, f"Successfully Deleted {student.admin.first_name}")
+    except CustomUser.DoesNotExist:
         messages.error(request, "Student Not Found")
     except Exception as e:
         messages.error(request, f"Error Deleting Student: {str(e)}")
-
-    return HttpResponseRedirect(reverse("manage_student"))
+    
+    return HttpResponseRedirect(reverse("manage_staff"))
 
 @login_required(login_url="/")
 def edit_subject(request, subject_id):

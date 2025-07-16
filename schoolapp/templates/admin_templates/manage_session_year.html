@@ -1,53 +1,39 @@
 {% extends 'admin_templates/base.html' %}
  {% load static %}
- {% block title %} Admin | Manage Session Year {% endblock %}
  {% block dashboard_title %} Manage Session Year {% endblock dashboard_title %}
  {% block dashboard_title1 %}Manage Session Year {% endblock dashboard_title1 %}
 {% block main_content %}
 <section class="content">
-    <div class="container-fluid">
-                <!-- /.row -->
-                <div class="row">
-                    <div class="col-12">
-                      <div class="card">
-                        <div class="card-header">
-                          <h3 class="card-title">Session Year Details</h3>
-          
-                          <div class="card-tools">
-                            <div class="input-group input-group-sm" style="width: 150px;">
-                              <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
-          
-                              <div class="input-group-append">
-                                <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header">
+        <form method="get" id="searchForm">
+          <div class="input-group input-group-sm" style="width: 200px;">
+            <input type="text" name="q" class="form-control" placeholder="Search Staffs" value="{{ search_query|default_if_none:'' }}">
+            <div class="input-group-append">
+              <button type="submit" class="btn btn-default">
+                <i class="fas fa-search"></i> 
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
                         <!-- /.card-header -->
                         <div class="card-body table-responsive p-0">
                           <table class="table table-hover text-nowrap">
                             <thead>
                               <tr>
-                                <th>ID</th>
+                                {% comment %} <th>ID</th> {% endcomment %}
                                 <th>Session Name</th>
                                 <th>Session Start Year</th>
                                 <th>Session End Year</th>
-                                <th>Action</th>
-                                
-                                
+                                <th colspan="2">Actions</th>
                               </tr>
                             </thead>
-                            <tbody>
-                                {% for session_year in session_years %}
-                              <tr>
-                                <td>{{ session_year.id }}</td>
-                                <td>{{ session_year.session_name }}</td> 
-                                <td>{{ session_year.session_start_year }}</td> 
-                                <td>{{ session_year.session_end_year }}</td>
-                                <td><a href="{% url 'edit_session_year' session_year.id %}" class="btn btn-success">Edit</a></td>
-                                <td>
-                                  <a href="{% url 'delete_session_year' session_year.id %}" class="btn btn-danger" data-toggle="modal" data-target="#modal-danger-{{ session_year.id }}">Delete</a></td>          
-                              </tr>
+                            <tbody id="table-body">
+                                {% include 'admin_templates/includes/session_year_table.html' %}
+
+                              {% for session_year in page_obj %}
                               <div class="modal fade" id="modal-danger-{{ session_year.id }}">
                                 <div class="modal-dialog">
                                   <div class="modal-content bg-danger">
@@ -73,6 +59,9 @@
                               {% endfor %}
                             </tbody>
                           </table>
+                          <div class="card-footer">
+                          {% include 'includes/pagination.html' %}
+                        </div>
                         </div>
                         <!-- /.card-body -->
                       </div>

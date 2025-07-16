@@ -1,30 +1,26 @@
 {% extends 'admin_templates/base.html' %}
  {% load static %}
- {% block dashboard_title %} Manage Class {% endblock dashboard_title %}
- {% block dashboard_title1 %}manage class {% endblock dashboard_title1 %}
+ {% block dashboard_title %} Manage Classes {% endblock dashboard_title %}
+ {% block dashboard_title1 %}Manage Classes {% endblock dashboard_title1 %}
 {% block main_content %}
 <section class="content">
-    <div class="container-fluid">
-                <!-- /.row -->
-                <div class="row">
-                    <div class="col-12">
-                      <div class="card">
-                        <div class="card-header">
-                          <h3 class="card-title">Class Details</h3>
-          
-                          <div class="card-tools">
-                            <form method="GET" action="{% url 'manage_class' %}" class="form-inline">
-                              <div class="input-group input-group-sm" style="width: 200px;">
-                                <input type="text" name="table_search" class="form-control float-right" placeholder="Search Classes" value="{{ request.GET.table_search|default:'' }}">
-                                <div class="input-group-append">
-                                  <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
-                                </div>
-                              </div>
-                            </form>
-                        </div>
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header">
+        <form method="get" id="searchForm">
+          <div class="input-group input-group-sm" style="width: 200px;">
+            <input type="text" name="q" class="form-control" placeholder="Search Staffs" value="{{ search_query|default_if_none:'' }}">
+            <div class="input-group-append">
+              <button type="submit" class="btn btn-default">
+                <i class="fas fa-search"></i> 
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
                         <!-- /.card-header -->
                         <div class="card-body table-responsive p-0">
-                          <table class="table table-hover text-nowrap">
+                          <table class="table table-hover table-fixed text-nowrap">
                             <thead>
                               <tr>
                                 {% comment %} <th>ID</th> {% endcomment %}
@@ -33,15 +29,10 @@
                                 <th>Delete</th>
                               </tr>
                             </thead>
-                            <tbody>
-                                {% for class in classes %}
-                              <tr>
-                                {% comment %} <td>{{ class.id }}</td> {% endcomment %}
-                                <td>{{ class.class_name }}</td>     
-                                <td><a href="/edit-class/{{ class.id }}" class="btn btn-success">Edit</a></td>
-                                <td>
-                                  <a href="{% url 'delete_class' class.id %}" class="btn btn-danger" data-toggle="modal" data-target="#modal-danger-{{ class.id }}">Delete</a></td>          
-                              </tr>
+                            <tbody id="table-body">
+                              {% include 'admin_templates/includes/class_table.html' %}
+                              
+                              {% for class in page_obj %}
                               <div class="modal fade" id="modal-danger-{{ class.id }}">
                                 <div class="modal-dialog">
                                   <div class="modal-content bg-danger">
@@ -69,6 +60,9 @@
                               {% endfor %}
                             </tbody>
                           </table>
+                        </div>
+                        <div class="card-footer">
+                          {% include 'includes/pagination.html' %}
                         </div>
                         <!-- /.card-body -->
                       </div>

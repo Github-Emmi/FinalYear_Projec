@@ -4,30 +4,24 @@
  {% block dashboard_title1 %}Manage Subjects {% endblock dashboard_title1 %}
 {% block main_content %}
 <section class="content">
-    <div class="container-fluid">
-                <!-- /.row -->
-                <div class="row">
-                    <div class="col-12">
-                      <div class="card">
-                        <div class="card-header">
-                          <h3 class="card-title">Subject Details</h3>
-          
-                          <div class="card-tools">
-                            <div class="input-group input-group-sm" style="width: 150px;">
-                              <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
-          
-                              <div class="input-group-append">
-                                <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <!-- /.card-header -->
-                        <div class="card-body table-responsive p-0">
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header">
+        <form method="get" id="searchForm">
+          <div class="input-group input-group-sm" style="width: 200px;">
+            <input type="text" name="q" class="form-control" placeholder="Search Subjects" value="{{ search_query|default_if_none:'' }}">
+            <div class="input-group-append">
+              <button type="submit" class="btn btn-default">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
                           <table class="table table-hover text-nowrap">
                             <thead>
                               <tr>
-                                {% comment %} <th>ID</th> {% endcomment %}
+                                {% comment %} <th>ID</th>  {% endcomment %}
                                 <th>Subject Name</th>
                                 <th>Class</th>
                                 <th>Department</th>
@@ -36,18 +30,10 @@
                                 <th>Delete</th>
                               </tr>
                             </thead>
-                            <tbody>
-                                {% for subject in subjects %}
-                              <tr>
-                                {% comment %} <td>{{ subject.id }}</td> {% endcomment %}
-                                <td>{{ subject.subject_name }}</td> 
-                                <td>{{ subject.class_id.class_name }}</td> 
-                                <td>{{ subject.department_id.department_name }}</td>
-                                <td>{{ subject.staff_id.first_name }} {{ subject.staff_id.last_name }}</td>    
-                                <td><a href="/edit-subject/{{ subject.id }}" class="btn btn-success">Edit</a></td> 
-                                <td>
-                                  <a href="{% url 'delete_subject' subject.id %}" class="btn btn-danger" data-toggle="modal" data-target="#modal-danger-{{ subject.id }}">Delete</a></td>          
-                              </tr>
+                            <tbody id="table-body">
+                              {% include 'admin_templates/includes/subject_table.html' %}
+
+                              {% for subject in page_obj %}
                               <div class="modal fade" id="modal-danger-{{ subject.id }}">
                                 <div class="modal-dialog">
                                   <div class="modal-content bg-danger">
@@ -62,7 +48,7 @@
                                     </div>
                                     <div class="modal-footer justify-content-between">
                                       <button type="button" class="btn btn-outline-light" data-dismiss="modal">Cancel</button>
-                                      <a href="{% url 'delete_subject' subject.id %}" class="btn btn-danger">Delete</a>
+                                      <a href="/delete-subject/{{ subject.id }}" class="btn btn-danger">Delete</a>
                                     </div>
                                   </div> <!-- /.modal-content -->
                                 </div> <!-- /.modal-dialog -->
@@ -70,6 +56,9 @@
                               {% endfor %}
                             </tbody>
                           </table>
+                        </div>
+                         <div class="card-footer">
+                          {% include 'includes/pagination.html' %}
                         </div>
                         <!-- /.card-body -->
                       </div>
