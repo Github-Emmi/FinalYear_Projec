@@ -5,10 +5,11 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 from django.urls import reverse
-from schoolapp.models import CustomUser,Departments,SessionYearModel,Students,Subjects,Class,Attendence, AttendanceReport, Staffs, LeaveReportStaff, \
-    StudentResults,FeedBackStaffs
+from schoolapp.models import *
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def staff_home(request):
     #For Fetch All Student Under Staff
     subjects=Subjects.objects.filter(staff_id=request.user.id)
@@ -58,11 +59,13 @@ def staff_home(request):
 
     return render(request,"staff_templates/staff-home.html",{"students_count":students_count,"attendance_count":attendance_count,"leave_count":leave_count,"subject_count":subject_count,"subject_list":subject_list,"attendance_list":attendance_list,"student_list":student_list,"present_list":student_list_attendance_present,"absent_list":student_list_attendance_absent})
 
+@login_required
 def staff_profile(request):
     user=CustomUser.objects.get(id=request.user.id)
     staff=Staffs.objects.get(admin=user)
     return render(request,"staff_templates/staff_profile.html",{"user":user,"staff":staff})
 
+@login_required
 def staff_profile_save(request):
     if request.method!="POST":
         return HttpResponseRedirect(reverse("staff_profile"))
@@ -87,7 +90,17 @@ def staff_profile_save(request):
         except:
             messages.error(request, "Failed to Update Profile")
             return HttpResponseRedirect(reverse("staff_profile"))
-        
+
+# schoolapp/StaffViews.py
+@login_required
+def staff_chatroom(request):
+    Staffs.objects.get(admin=request.user)
+    room = Room.objects.filter(is_classroom_room=False, staff__isnull=False).first()
+    staff_list = Staffs.objects.select_related('admin').all()
+    return render(request, 'staff_templates/chatroom.html', {'room': room, 'participants': staff_list})
+
+
+@login_required
 def staff_take_attendance(request):
     subjects=Subjects.objects.filter(staff_id=request.user.id)
     session_years=SessionYearModel.objects.all()
@@ -132,7 +145,8 @@ def save_attendance_data(request):
         return HttpResponse("OK")
     except:
         return HttpResponse("ERR")
-    
+
+@login_required   
 def staff_update_attendance(request):
     subjects=Subjects.objects.filter(staff_id=request.user.id)
     session_year_id=SessionYearModel.objects.all()
@@ -184,11 +198,13 @@ def save_updateattendance_data(request):
     except:
         return HttpResponse("ERR")
     
+@login_required   
 def staff_apply_leave(request):
     staff_obj = Staffs.objects.get(admin=request.user.id)
     leave_data=LeaveReportStaff.objects.filter(staff_id=staff_obj)
     return render(request,"staff_templates/staff_apply_leave.html",{"leave_data":leave_data})
 
+@login_required
 def staff_apply_leave_save(request):
     if request.method!="POST":
         return HttpResponseRedirect(reverse("staff_apply_leave"))
@@ -206,11 +222,13 @@ def staff_apply_leave_save(request):
             messages.error(request, "Failed To Apply for Leave")
             return HttpResponseRedirect(reverse("staff_apply_leave"))
         
+@login_required       
 def staff_feedback(request):
     staff_id=Staffs.objects.get(admin=request.user.id)
     feedback_data=FeedBackStaffs.objects.filter(staff_id=staff_id)
     return render(request,"staff_templates/staff_feedback.html",{"feedback_data":feedback_data})
 
+@login_required
 def staff_feedback_save(request):
     if request.method!="POST":
         return HttpResponseRedirect(reverse("staff_feedback_save"))
@@ -227,12 +245,13 @@ def staff_feedback_save(request):
             messages.error(request, "Failed To Send Feedback")
             return HttpResponseRedirect(reverse("staff_feedback"))
 
+@login_required
 def staff_add_result(request):
     subjects = Subjects.objects.filter(staff_id=request.user.id)
     session_years = SessionYearModel.objects.all()
     return render(request, "staff_templates/staff_add_results.html",{"subjects":subjects,"session_years":session_years})
 
-
+@login_required
 def save_student_result(request):
     if request.method!='POST':
         return HttpResponseRedirect('staff_add_result')

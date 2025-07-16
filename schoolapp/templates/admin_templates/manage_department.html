@@ -29,9 +29,8 @@
                               <tr>
                                 {% comment %} <th>ID</th> {% endcomment %}
                                 <th>Class Name</th>                           
-                                <th>Action</th>
-                                
-                                
+                                <th>Edit</th>
+                                <th>Delete</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -39,9 +38,33 @@
                               <tr>
                                 {% comment %} <td>{{ department.id }}</td> {% endcomment %}
                                 <td>{{ department.department_name }}</td>     
-                                <td><a href="/edit-department/{{ department.id }}" class="btn btn-success">Edit</a></td>            
+                                <td><a href="/edit-department/{{ department.id }}" class="btn btn-success">Edit</a></td>  
+                                <td>
+                                  <a href="{% url 'delete_department' department.id %}" class="btn btn-danger" data-toggle="modal" data-target="#modal-danger-{{ department.id }}">Delete</a></td>            
                               </tr>
-                              {% endfor %}
+                              <div class="modal fade" id="modal-danger-{{ department.id }}">
+                                <div class="modal-dialog">
+                                  <div class="modal-content bg-danger">
+                                    <div class="modal-header">
+                                      <h4 class="modal-title">Delete {{ department.department_name }}</h4>
+                                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                      </button>
+                                    </div>
+                                    <div class="modal-body">
+                                      <p>Are you sure you want to delete this department?</p>
+                                    </div>
+                                    <div class="modal-footer justify-content-between">
+                                      <button type="button" class="btn btn-outline-light" data-dismiss="modal">Close</button>
+                                      <a href="{% url 'delete_department' department.id %}" class="btn btn-outline-light">Delete</a>
+                                    </div>
+                                  </div>
+                                </div>
+                                <!-- /.modal-dialog -->
+                              </div>
+                              <!-- /.modal -->
+                            </tr>
+                            {% endfor %}
                             </tbody>
                           </table>
                         </div>

@@ -1,0 +1,16 @@
+{% for staff in page_obj %}
+<tr>
+  <td>{{ staff.admin.id }}</td>
+  <td>{{ staff.admin.first_name }}</td>
+  <td>{{ staff.admin.last_name }}</td>
+  <td>{{ staff.admin.username }}</td>
+  <td>{{ staff.admin.email }}</td>
+  <td>{{ staff.address }}</td>
+  <td>{{ staff.admin.date_joined }}</td>
+  <td>{{ staff.admin.last_login }}</td>
+  <td><a href="/edit-staff/{{ staff.admin.id }}" class="btn btn-success">Edit</a></td>
+  <td><a href="{% url 'delete_staff' staff.admin.id %}" class="btn btn-danger">Delete</a></td>
+</tr>
+{% empty %}
+<tr><td colspan="10">No staff found.</td></tr>
+{% endfor %}

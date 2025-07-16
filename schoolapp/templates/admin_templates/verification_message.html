@@ -1,6 +1,6 @@
 {% if messages %}
                                 {% for message in messages %}
-                                  {% if message.tags == 'error' %}
+                                   {% if message.tags == 'error' %}
                           <div class="card card-danger">
                             <div class="card-header">
                               <h3 class="card-title" style="margin-top:10px">{{ message }}</h3>
@@ -9,8 +9,9 @@
                               </div>
                             </div>
                           </div>
-                                  {% endif %}
-                                  {% if message.tags == 'success' %}
+                                   {% endif %}
+
+                                {% if message.tags == 'success' %}
                           <div class="card card-success">
                               <div class="card-header">
                                 <h3 class="card-title" style="margin-top:10px">{{ message }}</h3>

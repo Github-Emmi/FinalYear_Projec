@@ -1,0 +1,129 @@
+{% extends 'student_templates/base.html' %}
+ {% load static %}
+ {% block title %} Student | Student Profile {% endblock %}
+ {% block dashboard_title %} Student Profile {% endblock dashboard_title %}
+ {% block dashboard_title1 %}student profile{% endblock dashboard_title1 %}
+
+    {% block main_content %}
+    
+<link rel="stylesheet" href="{% static 'css/chatroom.css' %}">
+
+<div class="chat-container">
+  <!-- Sidebar: Participants -->
+  <aside class="chat-sidebar">
+    <h3>Participants</h3>
+    <ul id="participant-list">
+      {% for person in participants %}
+        <li data-uid="{{ person.admin.id }}">
+          <img src="{{ person.admin.avatar.url }}" class="avatar">
+          {{ person.admin.get_full_name }}
+        </li>
+      {% endfor %}
+    </ul>
+    <button id="start-call" class="btn btn-success">Start Call</button>
+    <button id="end-call" class="btn btn-danger" style="display:none">End Call</button>
+  </aside>
+
+  <!-- Main Chat Area -->
+  <section class="chat-main">
+    <div id="local-stream" class="stream-container"></div>
+    <div id="remote-streams" class="stream-container"></div>
+
+    <div class="chat-box">
+      <div id="chat-messages" class="messages"></div>
+      <form id="chat-form">
+        <input id="chat-input" placeholder="Type a message..." autocomplete="off" />
+        <button type="submit" class="btn btn-primary">Send</button>
+      </form>
+    </div>
+  </section>
+</div>
+
+<!-- Agora SDK -->
+<script src="https://cdn.agora.io/sdk/release/AgoraRTC_N.js"></script>
+<script>
+  const API_TOKEN_URL = "{% url 'generate_agora_token' room.id %}";
+  let client, localAudioTrack, localVideoTrack;
+
+  async function initAgora() {
+    const res = await fetch(API_TOKEN_URL);
+    const { app_id, token, channel_name, uid } = await res.json();
+
+    client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+    await client.join(app_id, channel_name, token, uid);
+
+    localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+    localVideoTrack = await AgoraRTC.createCameraVideoTrack();
+
+    localVideoTrack.play(document.getElementById('local-stream'));
+    await client.publish([localAudioTrack, localVideoTrack]);
+
+    client.on('user-published', async (user, mediaType) => {
+      await client.subscribe(user, mediaType);
+      const el = document.createElement('div');
+      el.id = user.uid;
+      el.className = 'stream-video';
+      document.getElementById('remote-streams').appendChild(el);
+      if (mediaType === 'video') user.videoTrack.play(el);
+      if (mediaType === 'audio') user.audioTrack.play();
+    });
+
+    client.on('user-unpublished', (user) => {
+      document.getElementById(user.uid)?.remove();
+    });
+  }
+
+  document.getElementById('start-call').onclick = async () => {
+    document.getElementById('start-call').style.display = 'none';
+    document.getElementById('end-call').style.display = 'inline-block';
+    await initAgora();
+  };
+
+  document.getElementById('end-call').onclick = async () => {
+    await client.leave();
+    localAudioTrack.close();
+    localVideoTrack.close();
+    document.getElementById('local-stream').innerHTML = '';
+    document.getElementById('remote-streams').innerHTML = '';
+    document.getElementById('start-call').style.display = 'inline-block';
+    document.getElementById('end-call').style.display = 'none';
+  };
+</script>
+
+<!-- WebSocket for Messaging -->
+<script>
+  const chatSocket = new WebSocket(
+    'ws://' + window.location.host + '/ws/chat/{{ room.id }}/'
+  );
+
+  chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const el = document.createElement('div');
+    el.className = 'message received';
+    el.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+    document.getElementById('chat-messages').appendChild(el);
+  };
+
+  chatSocket.onclose = function(e) {
+    console.error('WebSocket closed unexpectedly');
+  };
+
+  document.getElementById('chat-form').onsubmit = function(e) {
+    e.preventDefault();
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    chatSocket.send(JSON.stringify({
+      'message': message,
+      'username': '{{ request.user.get_full_name }}'
+    }));
+
+    const el = document.createElement('div');
+    el.className = 'message sent';
+    el.innerHTML = `<strong>You:</strong> ${message}`;
+    document.getElementById('chat-messages').appendChild(el);
+    input.value = '';
+  };
+</script>
+{% endblock %}

@@ -14,6 +14,11 @@ class CustomUser(AbstractUser):
     user_type = models.CharField(default=1, choices=user_type_data, max_length=10)
 
 
+class RememberToken(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    token = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
 # Session Year models Lives Here:
 class SessionYearModel(models.Model):
     id = models.AutoField(primary_key=True)
@@ -137,8 +142,8 @@ class Students(models.Model):
     medication = models.TextField(blank=True, null=True, max_length=225)
     drug_allergy = models.TextField(blank=True, null=True, max_length=225)
 
-    class_id = models.ForeignKey(Class, on_delete=models.DO_NOTHING)
-    department_id = models.ForeignKey(Departments, on_delete=models.DO_NOTHING)
+    class_id = models.ForeignKey(Class, on_delete=models.CASCADE)
+    department_id = models.ForeignKey(Departments, on_delete=models.CASCADE)
     session_year_id = models.ForeignKey(SessionYearModel, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
@@ -156,11 +161,11 @@ class Room(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return self.classroom_id.class_name if self.channel_name else self.name
 
 class Attendence(models.Model):
     id = models.AutoField(primary_key=True)
-    subject_id = models.ForeignKey(Subjects, on_delete=models.DO_NOTHING)
+    subject_id = models.ForeignKey(Subjects, on_delete=models.CASCADE)
     session_year_id = models.ForeignKey(SessionYearModel, on_delete=models.CASCADE)
     attendance_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -187,7 +192,7 @@ class StudentResults(models.Model):
 
 class AttendanceReport(models.Model):
     id = models.AutoField(primary_key=True)
-    student_id = models.ForeignKey(Students, on_delete=models.DO_NOTHING)
+    student_id = models.ForeignKey(Students, on_delete=models.CASCADE)
     attendance_id = models.ForeignKey(Attendence, on_delete=models.CASCADE)
     status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

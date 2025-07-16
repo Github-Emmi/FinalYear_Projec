@@ -4,9 +4,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.core.files.storage import FileSystemStorage
-from schoolapp.models import Class, Departments, FeedBackStudent, LeaveReportStudent, SessionYearModel, Students, \
-    Subjects, Attendence, AttendanceReport, CustomUser, StudentResults
+from schoolapp.models import *
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def student_home(request):
     user = CustomUser.objects.get(id=request.user.id)
     students = Students.objects.get(admin=user)
@@ -34,11 +35,13 @@ def student_home(request):
     
     return render(request,"student_templates/student_home.html",{"total_attendance":attendance_total,"attendance_absent":attendance_absent,"attendance_present":attendance_present,"subjects":subjects,"data_name":subject_name,"data1":data_present,"data2":data_absent,'subjects_data':subjects_data,'session_obj':session_obj,'students':students})
 
+@login_required
 def student_profile(request):
     user=CustomUser.objects.get(id=request.user.id)
     students=Students.objects.get(admin=user)
     return render(request,"student_templates/student_profile.html",{"user":user,"students":students})
 
+@login_required
 def student_profile_save(request):
     if request.method != "POST":
         return HttpResponseRedirect(reverse("student_profile"))
@@ -72,7 +75,20 @@ def student_profile_save(request):
         except:
             messages.success(request, "Profiled Failed To Saved!")
             return HttpResponseRedirect(reverse("student_profile"))
+        
 
+# schoolapp/StudentViews.py
+@login_required
+def student_chatroom(request):
+    student = Students.objects.get(admin=request.user)
+    room = Room.objects.filter(is_classroom_room =True, classroom_id=student.class_id).first()
+    if not room:
+        return render(request, 'student_templates/error.html', {'message': 'No chatroom available for your class.'})
+    classmates = Students.objects.filter(class_id=student.class_id).select_related('admin')
+    return render(request, 'student_templates/chatroom.html', {'room': room, 'participants': classmates})
+
+
+@login_required
 def student_view_attendance(request):
     user = CustomUser.objects.get(id=request.user.id)
     students = Students.objects.get(admin=user)
@@ -82,6 +98,7 @@ def student_view_attendance(request):
     subjects= Subjects.objects.filter(department_id=department, class_id=classes)
     return render(request,"student_templates/student_view_attendance.html",{"subjects":subjects,'students':students})
 
+@login_required
 def student_view_attendance_post(request):
     subject_id=request.POST.get("subject")
     start_date=request.POST.get("start_date")
@@ -99,6 +116,7 @@ def student_view_attendance_post(request):
     attendance_reports=AttendanceReport.objects.filter(attendance_id__in=attendance,student_id=stud_obj)
     return render(request,"student_templates/student_attendance_data.html",{"attendance_reports":attendance_reports,"students":students})
 
+@login_required
 def student_apply_leave(request):
     user = CustomUser.objects.get(id=request.user.id)
     students = Students.objects.get(admin=user)
@@ -106,6 +124,7 @@ def student_apply_leave(request):
     leave_data=LeaveReportStudent.objects.filter(student_id=student_obj)
     return render(request,"student_templates/student_apply_leave.html",{"leave_data":leave_data,"students":students})
 
+@login_required
 def student_apply_leave_save(request):
     if request.method!="POST":
         return HttpResponseRedirect(reverse("student_apply_leave"))
@@ -122,7 +141,8 @@ def student_apply_leave_save(request):
         except:
             messages.error(request, "Failed To Apply for Leave")
             return HttpResponseRedirect(reverse("student_apply_leave"))
-        
+
+@login_required
 def student_feedback(request):
     user = CustomUser.objects.get(id=request.user.id)
     students = Students.objects.get(admin=user)
@@ -130,6 +150,7 @@ def student_feedback(request):
     feedback_data=FeedBackStudent.objects.filter(student_id=student_id)
     return render(request,"student_templates/student_feedback.html",{"feedback_data":feedback_data,"students":students})
 
+@login_required
 def student_feedback_save(request):
     if request.method!="POST":
         return HttpResponseRedirect(reverse("student_feedback_save"))
@@ -146,6 +167,7 @@ def student_feedback_save(request):
             messages.error(request, "Failed To Send Feedback")
             return HttpResponseRedirect(reverse("student_feedback"))
 
+@login_required
 def student_view_result(request):
     student_obj=Students.objects.get(admin=request.user.id)
     attendance_total=AttendanceReport.objects.filter(student_id=student_obj).count()
@@ -158,6 +180,7 @@ def student_view_result(request):
     session_obj=SessionYearModel.objects.get(id=student_obj.session_year_id.id)
     return render(request,"student_templates/student_result.html",{"total_attendance":attendance_total,"attendance_absent":attendance_absent,"attendance_present":attendance_present,"studentresult":studentresult,"students":students,"session_obj":session_obj})
 
+@login_required
 def student_make_payment(request):
     user= CustomUser.objects.get(id=request.user.id)
     students= Students.objects.get(admin=user)

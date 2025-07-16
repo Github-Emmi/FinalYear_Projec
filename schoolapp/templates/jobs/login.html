@@ -33,15 +33,9 @@
       <form action="{% url 'do_login' %}" method="post">
         {% csrf_token %}
         <div class ="row">
-        {% if messages %}
-        <div class="col-12">
-        {% for message in messages %}
-        {% if message.tags == 'error' %}
-        <div class="alert alert-danger" style="margin-buttom:10px">{{ message }} </div>
-        {% endif %}
-        {% endfor %}
+        {% include 'admin_templates/verification_message.html' with user=user %}
         </div>
-        {% endif %}
+        
       </div>
         <div class="input-group mb-3">
           <input type="email" class="form-control" placeholder="Email" name="email" required>
@@ -52,18 +46,18 @@
           </div>
         </div>
         <div class="input-group mb-3">
-          <input type="password" class="form-control" placeholder="Password" name="password" required>
+          <input type="password" class="form-control" placeholder="Password" name="password" id="passwordInput"required>
           <div class="input-group-append">
             <div class="input-group-text">
-              <span class="fas fa-lock"></span>
+              <span id="togglePassword" class="fas fa-lock" style="cursor: pointer;"></span>
             </div>
           </div>
         </div>
         <div class="row">
           <div class="col-8">
             <div class="icheck-primary">
-              <input type="checkbox" id="remember">
-              <label for="remember">
+              <input type="checkbox" id="remember_me_input" name="remember_me">
+              <label for="remember_me_input">
                 Remember Me
               </label>
             </div>
@@ -88,5 +82,48 @@
 <!-- AdminLTE App -->
 <script src="{% static 'assets/js/adminlte.min.js' %}"></script>
 
+{% block extern_js %}  
+<script>
+  $(document).ready(function() {
+    // Toggle password visibility
+    $("#togglePassword").click(function() {
+      const passwordInput = $("#passwordInput");
+      const type = passwordInput.attr("type") === "password" ? "text" : "password";
+      passwordInput.attr("type", type);
+      $(this).toggleClass("fa-lock fa-eye");
+    });
+
+    // Load from cookies
+    if (Cookies.get("remember") === "true") {
+      $('input[name="email"]').val(Cookies.get("email"));
+      $('input[name="password"]').val(Cookies.get("password"));
+      $('#remember_me_input').prop('checked', true);
+    }
+
+    // On submit
+    $('form').on('submit', function() {
+      // Check if the "Remember Me" checkbox is checked
+      $('#remember_me_input').val($('#remember_me_input').is(':checked') ? "true" : "false");
+      
+      // Store email and password in cookies if "Remember Me" is checked
+      if ($('#remember_me_input').is(':checked')) {
+        Cookies.set("email", $('input[name="email"]').val(), { expires: 7 });
+        Cookies.set("password", $('input[name="password"]').val(), { expires: 7 });
+        Cookies.set("remember", "true", { expires: 7 });
+      } else {
+        Cookies.remove("email");
+        Cookies.remove("password");
+        Cookies.remove("remember");
+      }
+    });
+  });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/3.0.1/js.cookie.min.js"></script>
+
+
+
+{% endblock extern_js %} 
+
 </body>
 </html>
+

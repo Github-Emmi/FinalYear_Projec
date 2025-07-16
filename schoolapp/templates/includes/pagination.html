@@ -1,0 +1,30 @@
+<div id="pagination-area">
+  <ul class="pagination pagination-sm m-0 float-right">
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link pagination-link" href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}">«</a>
+      </li>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+      <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+        <a class="page-link pagination-link" href="?page={{ num }}&q={{ search_query }}">{{ num }}</a>
+      </li>
+    {% endfor %}
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link pagination-link" href="?page={{ page_obj.next_page_number }}&q={{ search_query }}">»</a>
+      </li>
+    {% endif %}
+  </ul>
+</div>
+{% if not page_obj %}
+  <div class="alert alert-info" role="alert">
+    No results found.
+  </div>
+{% endif %}
+{% if page_obj %}
+  <div class="pagination-info">
+    <p>Showing {{ page_obj.end_index }} of {{ page_obj.paginator.count }} entries</p>
+  </div>
+{% endif %}
+</div>

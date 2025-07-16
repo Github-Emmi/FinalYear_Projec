@@ -7,8 +7,12 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
-from schoolapp.forms import AddStudentForm, EditStudentForm, CreateRoomForm
+from schoolapp.forms import *
 from schoolapp.models import *
+from django.db.models import Q
+from django.core.paginator import Paginator
+from .generic_views import generic_paginated_list
+from django.template.loader import render_to_string
 from django.contrib.admin.views.decorators import staff_member_required
 
 
@@ -123,31 +127,24 @@ def admin_profile_save(request):
 
 
 #######################   Chat Room View   ###########################
-User = get_user_model()
-
-
 @login_required
 def admin_manage_chatrooms(request):
-    if request.user.user_type != "1":  # that is Only HOD has access
-        return redirect("login")
+    if request.user.user_type != '1':
+        return redirect('login')
 
-    if request.method == "POST":
+    if request.method == 'POST':
         form = CreateRoomForm(request.POST)
         if form.is_valid():
             room = form.save(commit=False)
             room.created_by = request.user
             room.save()
-            messages.success(request, f"Successfully Added Chat {room.name}")
-            return redirect("admin_manage_chatrooms")
+            return redirect('admin_manage_chatrooms')
     else:
         form = CreateRoomForm()
 
-    all_rooms = Room.objects.all().order_by("-created_at")
-    return render(
-        request,
-        "admin_templates/manage_chatrooms.html",
-        {"form": form, "rooms": all_rooms},
-    )
+    rooms = Room.objects.all().order_by('-created_at')
+    return render(request, 'admin_templates/manage_chatrooms.html', {'form': form, 'rooms': rooms})
+
 
 
 @login_required(login_url="/")
@@ -441,13 +438,12 @@ def manage_rooms(request):
 
 @login_required(login_url="/")
 def manage_staff(request):
-    staffs = Staffs.objects.all()
-    return render(
-        request,
-        "admin_templates/manage_staff.html",
-        {
-            "staffs": staffs,
-        },
+    return generic_paginated_list(
+        request=request,
+        model=Staffs,
+        related_fields=['admin'],
+        template_name='admin_templates/manage_staff.html',
+        table_template='admin_templates/includes/staff_table.html'
     )
 
 
@@ -554,15 +550,33 @@ def save_edit_staff(request):
                 reverse("edit_staff", kwargs={"staff_id": staff_id})
             )
 
+@login_required(login_url="/")
+def delete_staff(request, staff_id):
+    try:
+        staff = CustomUser.objects.get(id=staff_id)
+        staff.delete()
+        messages.success(request, "Successfully Deleted Staff")
+    except CustomUser.DoesNotExist:
+        messages.error(request, "Staff Not Found")
+    except Exception as e:
+        messages.error(request, f"Error Deleting Staff: {str(e)}")
+    
+    return HttpResponseRedirect(reverse("manage_staff"))    
+
 
 @login_required(login_url="/")
 def edit_session_year(request, session_year_id):
-    Session_year = SessionYearModel.objects.get(id=session_year_id)
-    return render(
-        request,
-        "admin_templates/edit_session_year.html",
-        {"Session_year": Session_year, "session_year_id": session_year_id},
-    )
+    try:
+        session = SessionYearModel.objects.get(id=session_year_id)
+        context = {
+            "Session_year": session,
+            "user": request.user,
+        }
+        return render(request, "admin_templates/edit_session_year.html", context)
+    except SessionYearModel.DoesNotExist:
+        messages.error(request, "Session Year not found")
+        return HttpResponseRedirect(reverse("manage_session_year"))
+
 
 
 @login_required(login_url="/")
@@ -581,16 +595,27 @@ def save_edit_session_year(request):
             sessions.session_start_year = session_start
             sessions.session_end_year = session_end
             sessions.save()
-            messages.success(request, f"Successfully Edited Class {session_name}")
-            return HttpResponseRedirect(
-                reverse("edit_session_year", kwargs={"session_id": session_id})
-            )
-        except:
-            messages.error(request, f"Failed to Edit {session_name}")
-            return HttpResponseRedirect(
-                reverse("edit_session_year", kwargs={"session_id": session_id})
-            )
+            messages.success(request, f"Successfully Edited Session Year: {session_name}")
+        except SessionYearModel.DoesNotExist:
+            messages.error(request, "Session Year not found")
+        except Exception as e:
+            messages.error(request, f"Failed to edit: {str(e)}")
 
+        return HttpResponseRedirect(reverse("edit_session_year", kwargs={"session_year_id": session_id}))
+
+
+@login_required(login_url="/")
+def delete_session_year(request, session_year_id):
+    try:
+        session_year = SessionYearModel.objects.get(id=session_year_id)
+        session_year.delete()
+        messages.success(request, "Successfully Deleted Session Year")
+    except SessionYearModel.DoesNotExist:
+        messages.error(request, "Session Year Not Found")
+    except Exception as e:
+        messages.error(request, f"Error Deleting Session Year: {str(e)}")
+    
+    return HttpResponseRedirect(reverse("manage_session_year")) 
 
 @login_required(login_url="/")
 def edit_student(request, student_id):
@@ -812,6 +837,18 @@ def save_edit_student(
                 {"form": form, "id": student_id, "username": student.admin.username},
             )
 
+@login_required(login_url="/")
+def delete_student(request, student_id):
+    try:
+        student = Students.objects.get(id=student_id)
+        student.delete()
+        messages.success(request, "Successfully Deleted Student")
+    except Students.DoesNotExist:
+        messages.error(request, "Student Not Found")
+    except Exception as e:
+        messages.error(request, f"Error Deleting Student: {str(e)}")
+
+    return HttpResponseRedirect(reverse("manage_student"))
 
 @login_required(login_url="/")
 def edit_subject(request, subject_id):
@@ -866,6 +903,19 @@ def save_edit_subject(
                 reverse("edit_subject", kwargs={"subject_id": subject_id})
             )
 
+@login_required(login_url="/")
+def delete_subject(request, subject_id):
+    try:
+        subject = Subjects.objects.get(id=subject_id)
+        subject.delete()
+        messages.success(request, "Successfully Deleted Subject")
+        return HttpResponseRedirect(reverse("manage_subject"))
+    except Subjects.DoesNotExist:
+        messages.error(request, "Subject Not Found")
+    except Exception as e:
+        messages.error(request, f"Error Deleting Subject: {str(e)}")
+    
+    return HttpResponseRedirect(reverse("manage_subject"))      
 
 @login_required(login_url="/")
 def edit_class(request, class_id):
@@ -897,10 +947,18 @@ def save_edit_class(request):
                 reverse("edit_class", kwargs={"class_id": class_id})
             )
 
+@login_required(login_url="/")
+def delete_class(request, class_id):
+    try:
+        classes = Class.objects.get(id=class_id)
+        classes.delete()
+        messages.success(request, "Successfully Deleted Class")
+        return HttpResponseRedirect(reverse("manage_class"))
+    except:
+        messages.error(request, "Failed to Delete Class")
+        return HttpResponseRedirect(reverse("manage_class"))    
 
-login_required(login_url="/")
-
-
+@login_required(login_url="/")
 def edit_department(request, department_id):
     departments = Departments.objects.get(id=department_id)
     return render(
@@ -922,7 +980,7 @@ def save_edit_department(request):
             departments = Departments.objects.get(id=department_id)
             departments.department_name = department_name
             departments.save()
-            messages.success(request, "Successfully Edited Class")
+            messages.success(request, "Successfully Edited Department")
             return HttpResponseRedirect(
                 reverse("edit_department", kwargs={"department_id": department_id})
             )
@@ -931,6 +989,18 @@ def save_edit_department(request):
             return HttpResponseRedirect(
                 reverse("edit_department", kwargs={"department_id": department_id})
             )
+
+
+@login_required(login_url="/")
+def delete_department(request, department_id):
+    try:
+        departments = Departments.objects.get(id=department_id)
+        departments.delete()
+        messages.success(request, "Successfully Deleted Department")
+        return HttpResponseRedirect(reverse("manage_department"))
+    except:
+        messages.error(request, "Failed to Delete Department")
+        return HttpResponseRedirect(reverse("manage_department"))
 
 
 @csrf_exempt

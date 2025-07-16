@@ -3,6 +3,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.contrib.auth import login,logout
 from django.urls import reverse
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from .models import RememberToken
+import secrets
 
 from schoolapp.EmailBackEnd import EmailBackEnd
 
@@ -30,26 +34,43 @@ def contact(request):
 def user_login(request):
     return render(request, 'jobs/login.html', {})
 
+
 def DoLogin(request):
     if request.method != "POST":
         return HttpResponse('<h2>Method Not Allowed</h2>')
     else:
-        user = EmailBackEnd.authenticate(request,username=request.POST.get("email"), password=request.POST.get("password"))
-        if user!=None:
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        remember = request.POST.get("remember_me") == "true"
+
+        user = EmailBackEnd.authenticate(request, username=email, password=password)
+        if user is not None:
             login(request, user)
-            if user.user_type =="1":
-                return HttpResponseRedirect("/admin-home")
-            elif user.user_type=="2":
-                return HttpResponseRedirect(reverse("staff_home"))
-            else:
-                return HttpResponseRedirect(reverse("student_home"))
+
+            if remember:
+                token = secrets.token_hex(32)
+                RememberToken.objects.update_or_create(user=user, defaults={'token': token})
+                response = HttpResponseRedirect(reverse_user_home(user))
+                response.set_cookie('remember_token', token, max_age=60*60*24*7, httponly=True, secure=True)
+                return response
+
+            return HttpResponseRedirect(reverse_user_home(user))
         else:
-            messages.error(request,"Invalid Login Details")
-            return HttpResponseRedirect("/")
+            messages.error(request, "Invalid Login Details (Email or Password)")
+            return HttpResponseRedirect("/login")
+
+def reverse_user_home(user):
+    if user.user_type == "1":
+        return "/admin-home"
+    elif user.user_type == "2":
+        return reverse("staff_home")
+    else:
+        return reverse("student_home")
         
 def user_logout(request):
     logout(request)
     return HttpResponseRedirect('/')      
+
 
 
 

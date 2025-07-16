@@ -35,14 +35,24 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     # Agora integration app
-    'agora',    
+    'agora',
+    "channels", 
 ]
 
 # Agora credentials
 AGORA_APP_ID = config('AGORA_APP_ID')
 AGORA_APP_CERTIFICATE = config('AGORA_APP_CERTIFICATE')
 
+ASGI_APPLICATION = "school_management_system.asgi.application"
 
+# Channel layer (in-memory for now)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
+# Cloudinary configuration
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dmkcqgan1',          # Replace with your Cloud Name
     'API_KEY': '716231591674135',      # Replace with your API Key
@@ -57,6 +67,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'schoolapp.middleware.RememberMeMiddleware', # Custom middleware for "Remember Me"
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'schoolapp.LoginCheckMiddleWare.LoginCheckMiddleWare',
@@ -144,6 +155,7 @@ STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
 
 # Media files configuration
 MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Static root (for Heroku)

@@ -1,6 +1,6 @@
 from django.urls import path
-
 from schoolapp import views, AdminViews, StaffViews, StudentViews
+from schoolapp import views_token
 
 urlpatterns = [
 path('', views.index, name='index'),
@@ -19,7 +19,10 @@ path('logout', views.user_logout, name='logout'),
 path('admin-home', AdminViews.admin_home, name='admin_home'),
 path('admin-profile', AdminViews.admin_profile, name='admin_profile'),
 path('admin-profile-save', AdminViews.admin_profile_save, name="admin_profile_save"),
+
+path('agora/token/<int:room_id>/', views_token.generate_agora_token, name='generate_agora_token'),
 path('admin-chatrooms/', AdminViews.admin_manage_chatrooms, name='admin_manage_chatrooms'),
+
 path('add-staff', AdminViews.add_staff, name='add_staff'),
 path('save_staff', AdminViews.save_staff, name='save_staff'),
 path('add-class', AdminViews.add_class, name='add_class'),
@@ -43,21 +46,27 @@ path('manage-session-year', AdminViews.manage_session_year, name='manage_session
 #########       path ends for edit and save Session Year      ###########
 path('edit-session-year/<str:session_year_id>', AdminViews.edit_session_year, name='edit_session_year'),
 path('save-edit-session-year', AdminViews.save_edit_session_year, name='save_edit_session_year'),
+path('delete-session-year/<str:session_year_id>', AdminViews.delete_session_year, name='delete_session_year'),
 #########       path ends for edit and save Student      ###########
 path('edit-student/<str:student_id>', AdminViews.edit_student, name='edit_student'),
 path('save-edit-student', AdminViews.save_edit_student, name='save_edit_student'),
+path('delete-student/<str:student_id>', AdminViews.delete_student, name='delete_student'),
 #########       path ends for edit and save Staff      ###########
 path('edit-staff/<str:staff_id>', AdminViews.edit_staff, name='edit_staff'),
 path('save-edit-staff', AdminViews.save_edit_staff, name='save_edit_staff'),
+path('delete-staff/<str:staff_id>', AdminViews.delete_staff, name='delete_staff'),
 #########       path ends for edit and save Staff         ###########   
 path('edit-subject/<str:subject_id>', AdminViews.edit_subject, name='edit_subject'),
 path('save-edit-subject', AdminViews.save_edit_subject, name='save_edit_subject'),
+path('delete-subject/<str:subject_id>', AdminViews.delete_subject, name='delete_subject'),
 #########       path ends for edit and save Subject       ###########
 path('edit-department/<str:department_id>', AdminViews.edit_department, name='edit_department'),
 path('save-edit-department', AdminViews.save_edit_department, name='save_edit_department'),
+path('delete-department/<str:department_id>', AdminViews.delete_department, name='delete_department'),
 #########       path ends for edit and save Department     ###########
 path('edit-class/<str:class_id>', AdminViews.edit_class, name='edit_class'),
 path('save-edit-class', AdminViews.save_edit_class, name='save_edit_class'),
+path('delete-class/<str:class_id>', AdminViews.delete_class, name='delete_class'),
 
 path('check-email-exist', AdminViews.check_email_exist,name="check_email_exist"),
 path('check-username-exist', AdminViews.check_username_exist,name="check_username_exist"),
@@ -84,7 +93,8 @@ path('admin-get-student-result', AdminViews.admin_get_student_result,name="admin
    ####################################
 path('staff-home', StaffViews.staff_home, name="staff_home"),
 path('staff-profile', StaffViews.staff_profile, name="staff_profile"),
-path('staff-rofile-save', StaffViews.staff_profile_save, name="staff_profile_save"),
+path('staff-profile-save', StaffViews.staff_profile_save, name="staff_profile_save"),
+path('staff-chatroom/', StaffViews.staff_chatroom, name='staff_chatroom'),
 path('staff-take-attendance', StaffViews.staff_take_attendance, name="take_attendance"),
 path('staff-update-attendance', StaffViews.staff_update_attendance, name="staff_update_attendance"),
 path('get-students', StaffViews.get_students, name="get_students"),
@@ -105,6 +115,8 @@ path('save-student-result', StaffViews.save_student_result, name="save_student_r
 path('student-home', StudentViews.student_home, name="student_home"), 
 path('student-profile', StudentViews.student_profile, name="student_profile"),
 path('staff-profile-save', StudentViews.student_profile_save, name="student_profile_save"),
+path('student-chatroom/', StudentViews.student_chatroom, name='student_chatroom'),
+path('agora-token-<int:room_id>/', views_token.generate_agora_token, name='generate_agora_token'),
 path('student-view-attendance', StudentViews.student_view_attendance, name="student_view_attendance"),
 path('student-view-attendance-post', StudentViews.student_view_attendance_post, name="student_view_attendance_post"),
 path('student-apply-leave', StudentViews.student_apply_leave, name="student_apply_leave"),
@@ -114,4 +126,8 @@ path('student-feedback-save', StudentViews.student_feedback_save, name="student_
 path('student-view-result',StudentViews.student_view_result,name="student_view_result"),
 path('student-make-payment',StudentViews.student_make_payment,name="student_make_payment"),
 ]
-  
+
+
+
+    
+    

@@ -44,8 +44,32 @@
                                 <td>{{ session_year.session_name }}</td> 
                                 <td>{{ session_year.session_start_year }}</td> 
                                 <td>{{ session_year.session_end_year }}</td>
-                                <td><a href="/edit-session-year/{{ session_year.id }}" class="btn btn-success">Edit</a></td>            
+                                <td><a href="{% url 'edit_session_year' session_year.id %}" class="btn btn-success">Edit</a></td>
+                                <td>
+                                  <a href="{% url 'delete_session_year' session_year.id %}" class="btn btn-danger" data-toggle="modal" data-target="#modal-danger-{{ session_year.id }}">Delete</a></td>          
                               </tr>
+                              <div class="modal fade" id="modal-danger-{{ session_year.id }}">
+                                <div class="modal-dialog">
+                                  <div class="modal-content bg-danger">
+                                    <div class="modal-header">
+                                      <h4 class="modal-title">Delete {{ session_year.session_name }}</h4>
+                                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                      </button>
+                                    </div>
+                                    <div class="modal-body">
+                                      <p>Are you sure you want to delete this staff?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                      <button type="button" class="btn btn-outline-light" data-dismiss="modal">Cancel</button>
+                                        <a href="{% url 'delete_session_year' session_year.id %}" class="btn btn-danger">Delete</a>
+                                      </button>
+                                    </div>
+                                  </div> <!-- /.modal-content -->
+                                  
+                                </div> <!-- /.modal-dialog -->
+                                
+                              </div> <!-- /.modal -->
                               {% endfor %}
                             </tbody>
                           </table>
