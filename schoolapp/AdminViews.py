@@ -126,26 +126,6 @@ def admin_profile_save(request):
             return HttpResponseRedirect(reverse("admin_profile"))
 
 
-#######################   Chat Room View   ###########################
-@login_required
-def admin_manage_chatrooms(request):
-    if request.user.user_type != '1':
-        return redirect('login')
-
-    if request.method == 'POST':
-        form = CreateRoomForm(request.POST)
-        if form.is_valid():
-            room = form.save(commit=False)
-            room.created_by = request.user
-            room.save()
-            return redirect('admin_manage_chatrooms')
-    else:
-        form = CreateRoomForm()
-
-    rooms = Room.objects.all().order_by('-created_at')
-    return render(request, 'admin_templates/manage_chatrooms.html', {'form': form, 'rooms': rooms})
-
-
 
 @login_required(login_url="/")
 def add_staff(request):

@@ -1,6 +1,5 @@
 from django.urls import path
 from schoolapp import views, AdminViews, StaffViews, StudentViews
-from schoolapp import views_token
 
 urlpatterns = [
 path('', views.index, name='index'),
@@ -19,9 +18,6 @@ path('logout', views.user_logout, name='logout'),
 path('admin-home', AdminViews.admin_home, name='admin_home'),
 path('admin-profile', AdminViews.admin_profile, name='admin_profile'),
 path('admin-profile-save', AdminViews.admin_profile_save, name="admin_profile_save"),
-
-path('agora/token/<int:room_id>/', views_token.generate_agora_token, name='generate_agora_token'),
-path('admin-chatrooms/', AdminViews.admin_manage_chatrooms, name='admin_manage_chatrooms'),
 
 path('add-staff', AdminViews.add_staff, name='add_staff'),
 path('save_staff', AdminViews.save_staff, name='save_staff'),
@@ -115,8 +111,6 @@ path('save-student-result', StaffViews.save_student_result, name="save_student_r
 path('student-home', StudentViews.student_home, name="student_home"), 
 path('student-profile', StudentViews.student_profile, name="student_profile"),
 path('staff-profile-save', StudentViews.student_profile_save, name="student_profile_save"),
-path('student-chatroom/', StudentViews.student_chatroom, name='student_chatroom'),
-path('agora-token-<int:room_id>/', views_token.generate_agora_token, name='generate_agora_token'),
 path('student-view-attendance', StudentViews.student_view_attendance, name="student_view_attendance"),
 path('student-view-attendance-post', StudentViews.student_view_attendance_post, name="student_view_attendance_post"),
 path('student-apply-leave', StudentViews.student_apply_leave, name="student_apply_leave"),

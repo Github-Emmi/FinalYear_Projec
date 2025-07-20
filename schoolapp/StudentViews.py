@@ -77,17 +77,6 @@ def student_profile_save(request):
             return HttpResponseRedirect(reverse("student_profile"))
         
 
-# schoolapp/StudentViews.py
-@login_required
-def student_chatroom(request):
-    student = Students.objects.get(admin=request.user)
-    room = Room.objects.filter(is_classroom_room =True, classroom_id=student.class_id).first()
-    if not room:
-        return render(request, 'student_templates/error.html', {'message': 'No chatroom available for your class.'})
-    classmates = Students.objects.filter(class_id=student.class_id).select_related('admin')
-    return render(request, 'student_templates/chatroom.html', {'room': room, 'participants': classmates})
-
-
 @login_required
 def student_view_attendance(request):
     user = CustomUser.objects.get(id=request.user.id)

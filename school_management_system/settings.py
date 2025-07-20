@@ -34,23 +34,9 @@ INSTALLED_APPS = [
     'schoolapp.apps.SchoolappConfig',
     'cloudinary',
     'cloudinary_storage',
-    # Agora integration app
-    'agora',
-    "channels", 
 ]
 
-# Agora credentials
-AGORA_APP_ID = config('AGORA_APP_ID')
-AGORA_APP_CERTIFICATE = config('AGORA_APP_CERTIFICATE')
 
-ASGI_APPLICATION = "school_management_system.asgi.application"
-
-# Channel layer (in-memory for now)
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
-}
 
 # Cloudinary configuration
 CLOUDINARY_STORAGE = {
@@ -100,14 +86,17 @@ WSGI_APPLICATION = 'school_management_system.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        #  'ENGINE': 'django.db.backends.postgresql',
-        #  'NAME': 'd1qe3rhra0pv6n',
-        #  'USER': 'u84tvdiunq6uj7',
-        #  'PASSWORD': 'pb2dd58b14606b7a61c4c0826de1b99a2719451f586de465e1ddf5d59ee0380b2',
-        #  'PORT': '5432',
-        #  'HOST': 'cb5ajfjosdpmil.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'febmexdb',
+        'USER': 'emmidev',
+        'PASSWORD': 'Aghason1999',
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
         
     }
 }
@@ -166,3 +155,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
