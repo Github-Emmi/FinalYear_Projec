@@ -111,7 +111,7 @@ def staff_add_assignment(request):
 
         try:
             class_obj = Class.objects.get(id=class_id)
-            dept_obj = Departments.objects.get(id=department_id)
+            department_obj = Departments.objects.get(id=department_id)
             session_obj = SessionYearModel.objects.get(id=session_year)
 
             assignment = Assignment.objects.create(
@@ -119,28 +119,25 @@ def staff_add_assignment(request):
                 description=description,
                 file=file,
                 class_id=class_obj,
-                department_id=dept_obj,
+                department_id=department_obj,
                 session_year=session_obj,
                 staff=staff,
                 due_date=due_date
             )
 
-            # ✅ Notify students in the selected class, department, and session
-            students = Students.objects.filter(
-                class_id=class_obj,
-                department_id=dept_obj,
-                session_year_id=session_obj
-            )
-
+            # 🔔 Send notifications to all students in that class/department
+            students = Students.objects.filter(class_id=assignment.class_id,
+                                               department_id=assignment.department_id,
+                                               session_year_id=assignment.session_year)
             for student in students:
                 notify.send(
-                    sender=request.user,
-                    recipient=student.admin,
-                    verb=f"New assignment posted: {title}",
-                    description=description
-                )
-
-            messages.success(request, "Assignment uploaded successfully.")
+                sender=request.user,
+                recipient=student.admin,
+                verb=f"New assignment posted: {assignment.title}",
+                description=assignment.description,
+                target=assignment  # This links to get_absolute_url() of the Assignment model
+      )
+            messages.success(request, "Assignment uploaded successfully and notifications sent.")
         except Exception as e:
             messages.error(request, f"Error: {e}")
 

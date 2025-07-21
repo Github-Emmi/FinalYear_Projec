@@ -15,3 +15,12 @@ def student_sessions_processor(request):
         sessions = SessionYearModel.objects.filter(id__in=combined_session_ids)
         return {'student_sessions': sessions}
     return {}
+
+def notifications(request):
+    if request.user.is_authenticated:
+        qs = request.user.notification_student.filter(read=False)
+        return {
+            'unread_notification_count': qs.count(),
+            'recent_notifications': request.user.notification_student.all()[:5],  # latest 5
+        }
+    return {}

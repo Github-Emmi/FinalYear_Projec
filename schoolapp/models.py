@@ -4,6 +4,10 @@ from django.dispatch.dispatcher import receiver
 from django.db.models.signals import post_save
 from django.conf import settings
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+from django.urls import reverse
+
+
 
 
 # Create your models here.
@@ -194,6 +198,10 @@ class Assignment(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.class_id} - {self.department_id})"
+    
+    def get_absolute_url(self):
+        return reverse('student_assignment_detail', kwargs={'assignment_id': self.id})
+    
 
 ####### Assignment Submission Model #######
 class AssignmentSubmission(models.Model):
@@ -265,13 +273,22 @@ class FeedBackStaffs(models.Model):
     objects = models.Manager()
 
 
+User = get_user_model()
+
 class NotificationStudent(models.Model):
-    id = models.AutoField(primary_key=True)
-    student_id = models.ForeignKey(Students, on_delete=models.CASCADE)
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now_add=True)
-    objects = models.Manager()
+    recipient = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notification_student'  # <--- unique related name here
+    )
+    verb = models.CharField(max_length=255,)
+    description = models.TextField(blank=True)
+    link = models.URLField(blank=True)
+    read = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
 
 
 class NotificationStaffs(models.Model):

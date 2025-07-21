@@ -1,5 +1,6 @@
 from django.urls import path
 from schoolapp import views, AdminViews, StaffViews, StudentViews
+from . import views
 
 urlpatterns = [
 path('', views.index, name='index'),
@@ -8,7 +9,6 @@ path('classes.html', views.classes, name='classes'),
 path('academics.html', views.academics, name='academics'),
 path('gallery.html', views.gallery, name='gallery'),
 path('contact.html', views.contact, name='contact'),
-path('sent.html', views.sent, name='sent'),
 path('login', views.user_login, name='login'),
 path('DoLogin', views.DoLogin, name='do_login'),
 path('logout', views.user_logout, name='logout'),
@@ -106,6 +106,12 @@ path('staff-feedback', StaffViews.staff_feedback, name="staff_feedback"),
 path('staff-feedback-save', StaffViews.staff_feedback_save, name="staff_feedback_save"),
 path('staff-add-result', StaffViews.staff_add_result, name="staff_add_result"),
 path('save-student-result', StaffViews.save_student_result, name="save_student_result"),
+path('notifications/', views.notifications_all, name='notifications_all'),
+path('notifications/mark-all-read/', views.mark_all_read, name='notifications_mark_all_read'),
+path('notifications/<int:pk>/read/', views.notification_read, name='notification_read'),
+path('assignment/<int:assignment_id>/', StudentViews.assignment_detail, name='student_assignment_detail'),
+
+
 
    ####################################
            # Student Views #

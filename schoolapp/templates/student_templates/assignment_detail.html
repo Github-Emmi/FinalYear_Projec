@@ -1,0 +1,17 @@
+{% if submission %}
+    <div class="alert alert-success">
+        <strong>Status:</strong> Submitted on {{ submission.submitted_at }}
+        {% if submission.submitted_file %}
+            <br><a href="{{ submission.submitted_file.url }}" target="_blank">View Uploaded File</a>
+        {% endif %}
+    </div>
+{% else %}
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="submitted_file">Upload Your Submission (PDF, DOCX, etc):</label>
+            <input type="file" name="submitted_file" class="form-control-file" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Assignment</button>
+    </form>
+{% endif %}

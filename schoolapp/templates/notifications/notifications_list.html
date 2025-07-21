@@ -1,0 +1,23 @@
+{% extends 'student_templates/base.html' %}
+{% load humanize %}
+{% load static %}
+{% block title %}Notifications{% endblock %}
+
+{% block main_content %}
+<div class="container mt-4">
+    <h4>Notifications</h4>
+    <a href="{% url 'notifications_mark_all_read' %}" class="btn btn-sm btn-outline-success mb-3">Mark all as read</a>
+    <ul class="list-group">
+        {% for note in notifications %}
+        <li class="list-group-item {% if note.unread %}list-group-item-warning{% endif %}">
+            <a href="{% url 'notification_read' note.pk %}">
+                <strong>{{ note.verb }}</strong> - {{ note.description }}<br>
+                <small>{{ note.timestamp|naturaltime }}</small>
+            </a>
+        </li>
+        {% empty %}
+        <li class="list-group-item">No notifications.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

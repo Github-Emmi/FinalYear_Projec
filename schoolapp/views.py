@@ -7,6 +7,9 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from .models import RememberToken
 import secrets
+from django.shortcuts import render, get_object_or_404, redirect
+from notifications.models import Notification
+from django.contrib.auth.decorators import login_required
 
 from schoolapp.EmailBackEnd import EmailBackEnd
 
@@ -72,29 +75,26 @@ def user_logout(request):
     return HttpResponseRedirect('/')      
 
 
+@login_required
+def notifications_all(request):
+    """Show all notifications for the current user."""
+    notifications = Notification.objects.filter(recipient=request.user).order_by('-timestamp')
+    return render(request, 'notifications/notifications_list.html', {'notifications': notifications})
 
 
+@login_required
+def mark_all_read(request):
+    """Mark all notifications as read for the current user."""
+    Notification.objects.filter(recipient=request.user, unread=True).update(unread=False)
+    return redirect('notifications_all')
 
-def sent(request):
-     if request.method == "POST":
-          message_name = request.POST['name']
-          message_email = request.POST['email']
-          message_subject = request.POST['subject']
-          message = request.POST['message']
-          # send an email 
-          send_mail(
-               'New message from ' + message_name, 
-               message,
-               message_email,
-               ['febmex02@gmail.com', 'aghason.emmanuel@gmail.com'],
-          )
-          return render(request, 'jobs/sent.html', {
-               'message_name': message_name,
-               ' message_email': message_email,
-               ' message_subject': message_subject,
-               'message' : message
-               })
-     else:
-          return render(request,'jobs/index.html')
+
+@login_required
+def notification_read(request, pk):
+    """Mark a single notification as read and redirect to its target (if any)."""
+    notification = get_object_or_404(Notification, pk=pk, recipient=request.user)
+    notification.unread = False
+    notification.save()
+    return redirect(notification.target.get_absolute_url() if notification.target else 'notifications_all')
 
 

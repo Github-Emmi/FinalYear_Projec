@@ -1,34 +1,35 @@
 {% load static %}
 <ul class="navbar-nav ml-auto">
     
-    <!-- Notifications Dropdown Menu -->
     <li class="nav-item dropdown">
-      <a class="nav-link" data-toggle="dropdown" href="#">
+    <a class="nav-link" data-toggle="dropdown" href="#">
         <i class="far fa-bell"></i>
-      </a>
-      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-        <span class="dropdown-item dropdown-header">15 Notifications</span>
+        {% with user.notifications.unread.count as unread_count %}
+            {% if unread_count > 0 %}
+                <span class="badge badge-danger navbar-badge">{{ unread_count }}</span>
+            {% endif %}
+        {% endwith %}
+    </a>
+    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+        <span class="dropdown-item dropdown-header">
+            {{ user.notifications.unread.count }} New Notification{{ user.notifications.unread.count|pluralize }}
+        </span>
         <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item">
-          <i class="fas fa-envelope mr-2"></i> 4 new notifications from staffs
-          <span class="float-right text-muted text-sm">3 mins</span>
+
+        {% for note in user.notifications.all|slice:":5" %}
+        <a href="{% url 'notification_read' note.pk %}" class="dropdown-item">
+            <i class="fas fa-info-circle mr-2"></i> {{ note.verb }}
+            <span class="float-right text-muted text-sm">{{ note.timestamp|timesince }} ago</span>
         </a>
         <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item"> 
-          <i class="fas fa-users mr-2"></i> 8 friend requests
-          <span class="float-right text-muted text-sm">12 hours</span>
-        </a>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item">
-          <i class="fas fa-file mr-2"></i> 3 new reports
-          <span class="float-right text-muted text-sm">2 days</span>
-        </a>
-        <div class="dropdown-divider"></div>
-        <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
-    </li>
+        {% endfor %}
+
+        <a href="{% url 'notifications_all' %}" class="dropdown-item dropdown-footer">See All Notifications</a>
+    </div>
+</li>
     <li class="nav-item">
-      <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#">
-        <i class="fas fa-th-large"></i>
-      </a>
+        <a class="nav-link" href="{% url 'notifications_mark_all_read' %}">
+            <i class="fas fa-check"></i> Mark all as read
+        </a>
     </li>
-  </ul>
+  </ul> 

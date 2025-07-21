@@ -8,6 +8,7 @@ from schoolapp.models import *
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
 
 
 @login_required
@@ -161,6 +162,35 @@ def submit_assignment(request, assignment_id):
         "assignment": assignment
     })
 
+@login_required
+def assignment_detail(request, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id)
+    student = Students.objects.get(admin=request.user)
+
+    if request.method == "POST":
+        submitted_file = request.FILES.get("submitted_file")
+        if not submitted_file:
+            messages.error(request, "Please select a file to upload.")
+            return redirect("student_assignment_detail", assignment_id=assignment.id)
+
+        try:
+            AssignmentSubmission.objects.create(
+                assignment=assignment,
+                student=student,
+                submitted_file=submitted_file
+            )
+            messages.success(request, "Assignment submitted successfully.")
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
+
+        return redirect("student_assignment_detail", assignment_id=assignment.id)
+
+    submission = AssignmentSubmission.objects.filter(assignment=assignment, student=student).first()
+
+    return render(request, "student_templates/assignment_detail.html", {
+        "assignment": assignment,
+        "submission": submission
+    })
 
 
 @login_required
