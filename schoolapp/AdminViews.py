@@ -396,30 +396,6 @@ def add_session_year_save(request):
         ####################### Manage Session #######################
 
 
-@staff_member_required
-def manage_rooms(request):
-    if request.method == "POST":
-        # Admin can create  classroom or staff rooms
-        name = request.POST["name"]
-        channel = request.POST["channel"]
-        is_class = "classroom" in request.POST
-        classroom = request.POST.get("classroom")
-        staff_group = request.POST.get("staff_group")
-
-        Room.objects.create(
-            name=name,
-            channel_name=channel,
-            created_by=request.user,
-            is_classroom_room=is_class,
-            classroom=classroom if is_class else None,
-            staff_group=None if is_class else staff_group,
-        )
-        return redirect("manage_rooms")
-
-    rooms = Room.objects.all()
-    return render(request, "schoolapp/admin/manage_rooms.html", {"rooms": rooms})
-
-
 @login_required(login_url="/")
 def manage_staff(request):
     return generic_paginated_list(
@@ -1009,23 +985,6 @@ def check_username_exist(request):
     else:
         return HttpResponse(False)
     
-@csrf_exempt
-def check_name_exist(request):
-    name = request.POST.get("name")
-    room_obj = Room.objects.filter(name=name).exists()
-    if room_obj:
-        return HttpResponse(True)
-    else:
-        return HttpResponse(False)
-
-@csrf_exempt
-def check_channel_name_exist(request):
-    channel_name = request.POST.get("channel_name")
-    room_obj = Room.objects.filter(channel_name=channel_name).exists()
-    if room_obj:
-        return HttpResponse(True)
-    else:
-        return HttpResponse(False)
 
 
 def staff_feedback_message(request):

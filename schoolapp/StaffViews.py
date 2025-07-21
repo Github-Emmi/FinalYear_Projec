@@ -1,12 +1,13 @@
 import json
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 from django.urls import reverse
 from schoolapp.models import *
 from django.contrib.auth.decorators import login_required
+from notifications.signals import notify
 
 
 @login_required
@@ -91,15 +92,68 @@ def staff_profile_save(request):
             messages.error(request, "Failed to Update Profile")
             return HttpResponseRedirect(reverse("staff_profile"))
 
-# schoolapp/StaffViews.py
+####### Assignment Views ###    
 @login_required
-def staff_chatroom(request):
-    Staffs.objects.get(admin=request.user)
-    room = Room.objects.filter(is_classroom_room=False, staff__isnull=False).first()
-    staff_list = Staffs.objects.select_related('admin').all()
-    return render(request, 'staff_templates/chatroom.html', {'room': room, 'participants': staff_list})
+def staff_add_assignment(request):
+    staff = Staffs.objects.get(admin=request.user.id)
+    classes = Class.objects.all()
+    departments = Departments.objects.all()
+    sessions = SessionYearModel.objects.all()
+
+    if request.method == "POST":
+        title = request.POST.get("title")
+        description = request.POST.get("description")
+        file = request.FILES.get("file")
+        class_id = request.POST.get("class_id")
+        department_id = request.POST.get("department_id")
+        session_year = request.POST.get("session_year")
+        due_date = request.POST.get("due_date")
+
+        try:
+            class_obj = Class.objects.get(id=class_id)
+            dept_obj = Departments.objects.get(id=department_id)
+            session_obj = SessionYearModel.objects.get(id=session_year)
+
+            assignment = Assignment.objects.create(
+                title=title,
+                description=description,
+                file=file,
+                class_id=class_obj,
+                department_id=dept_obj,
+                session_year=session_obj,
+                staff=staff,
+                due_date=due_date
+            )
+
+            # ✅ Notify students in the selected class, department, and session
+            students = Students.objects.filter(
+                class_id=class_obj,
+                department_id=dept_obj,
+                session_year_id=session_obj
+            )
+
+            for student in students:
+                notify.send(
+                    sender=request.user,
+                    recipient=student.admin,
+                    verb=f"New assignment posted: {title}",
+                    description=description
+                )
+
+            messages.success(request, "Assignment uploaded successfully.")
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
+
+        return redirect("staff_add_assignment")
+
+    return render(request, "staff_templates/add_assignment.html", {
+        "classes": classes,
+        "departments": departments,
+        "sessions": sessions
+    })
 
 
+######## Attendance Views #######
 @login_required
 def staff_take_attendance(request):
     subjects=Subjects.objects.filter(staff_id=request.user.id)
@@ -289,4 +343,6 @@ def save_student_result(request):
     # # except:
     # #     messages.error(request, "Failed to Add Result")
     # #     return HttpResponseRedirect(reverse("staff_add_result"))
+
+
     

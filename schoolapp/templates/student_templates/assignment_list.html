@@ -1,0 +1,44 @@
+{% extends 'student_templates/base.html' %}
+{% load static %}
+{% block title %}Assignments{% endblock %}
+{% block main_content %}
+<div class="container mt-3">
+  <h4>Available Assignments</h4>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Due Date</th>
+        <th>File</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for assignment in assignments %}
+        <tr>
+          <td>{{ assignment.title }}</td>
+          <td>{{ assignment.description }}</td>
+          <td>{{ assignment.due_date }}</td>
+          <td><a href="{{ assignment.file.url }}" target="_blank">Download</a></td>
+          <td>
+            {% if assignment.id in submitted_assignment_ids %}
+              <span class="badge bg-success">Submitted</span>
+            {% else %}
+              <span class="badge bg-warning">Pending</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if assignment.id not in submitted_assignment_ids %}
+              <a href="{% url 'submit_assignment' assignment.id %}" class="btn btn-sm btn-primary">Submit</a>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="text-center">No assignments available.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 from django import forms
-from schoolapp.models import Departments, SessionYearModel, Students, Class, Room, Class
+from schoolapp.models import Departments, SessionYearModel, Students, Class, Class
 
 
 class DateInput(forms.DateInput):
@@ -604,19 +604,6 @@ class EditStudentForm(forms.Form):
         label="Drug Allergies",
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
-
-
-
-class CreateRoomForm(forms.ModelForm):
-    class Meta:
-        model = Room
-        fields = ['name', 'channel_name', 'is_classroom_room', 'classroom_id']
-        widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'channel_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'is_classroom_room': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'classroom': forms.Select(attrs={'class': 'form-control'}),
-        }
 
 
 

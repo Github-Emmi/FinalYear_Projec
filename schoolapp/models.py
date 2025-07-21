@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.dispatch.dispatcher import receiver
 from django.db.models.signals import post_save
 from django.conf import settings
+from django.utils import timezone
 
 
 # Create your models here.
@@ -129,7 +130,7 @@ class Students(models.Model):
     mother_phone_num_2 = models.CharField(max_length=225)
     last_class = models.CharField(max_length=225)
     school_attended_last = models.CharField(max_length=225)
-    profile_pic = models.FileField()
+    profile_pic = models.FileField(upload_to="media/profile_pics/")
     date_of_birth = models.CharField(max_length=225)
     asthmatic = models.CharField(max_length=3, default="")
     hypertension = models.CharField(max_length=3, default="")
@@ -150,20 +151,6 @@ class Students(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
-
-
-class Room(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100, unique=True)
-    channel_name = models.CharField(max_length=100, unique=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    is_classroom_room = models.BooleanField(default=False)
-    classroom_id = models.ForeignKey(Class, on_delete=models.CASCADE, null=True, blank=True)
-    staff = models.ForeignKey(Staffs, on_delete=models.CASCADE, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.classroom_id.class_name if self.channel_name else self.name
 
 class Attendence(models.Model):
     id = models.AutoField(primary_key=True)
@@ -189,9 +176,43 @@ class StudentResults(models.Model):
     updated_at = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
 
+
+###### Assignment Model ####### 
+class Assignment(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    file = models.FileField(upload_to="assignments/")
+    class_id = models.ForeignKey(Class, on_delete=models.CASCADE)
+    department_id = models.ForeignKey(Departments, on_delete=models.CASCADE)
+    session_year = models.ForeignKey(SessionYearModel, on_delete=models.CASCADE)
+    staff = models.ForeignKey(Staffs, on_delete=models.CASCADE)
+    due_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_due(self):
+        return timezone.now() > self.due_date
+
+    def __str__(self):
+        return f"{self.title} ({self.class_id} - {self.department_id})"
+
+####### Assignment Submission Model #######
+class AssignmentSubmission(models.Model):
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    student = models.ForeignKey(Students, on_delete=models.CASCADE)
+    submitted_file = models.FileField(upload_to="submitted_assignments/")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    graded = models.BooleanField(default=False)
+    grade = models.CharField(max_length=10, null=True, blank=True)
+    feedback = models.TextField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('assignment', 'student')  # prevent multiple submissions
+
+    def __str__(self):
+        return f"{self.student.admin.username} - {self.assignment.title}"
+
+
     # creating AttendenceReport Models
-
-
 class AttendanceReport(models.Model):
     id = models.AutoField(primary_key=True)
     student_id = models.ForeignKey(Students, on_delete=models.CASCADE)

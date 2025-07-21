@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'schoolapp.apps.SchoolappConfig',
     'cloudinary',
     'cloudinary_storage',
+    'notifications',
 ]
 
 
@@ -102,6 +103,7 @@ DATABASES = {
         
     }
 }
+
 
 
 # Password validation

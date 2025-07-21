@@ -31,6 +31,10 @@ path('add-subject', AdminViews.add_subject, name='add_subject'),
 path('save-subject', AdminViews.save_subject, name='save_subject'),
 path('add-session-year', AdminViews.add_session_year, name='add_session_year'),
 path('add-session-year-save', AdminViews.add_session_year_save, name='add_session_year_save'),
+# Student assignment URLs
+path("student-assignments/", StudentViews.student_assignments, name="student_assignments"),
+path("submit-assignment/<int:assignment_id>/", StudentViews.submit_assignment, name="submit_assignment"),
+
 
 path('manage-staff', AdminViews.manage_staff, name='manage_staff'),
 path('manage-student', AdminViews.manage_student, name='manage_student'),
@@ -66,8 +70,6 @@ path('delete-class/<str:class_id>', AdminViews.delete_class, name='delete_class'
 
 path('check-email-exist', AdminViews.check_email_exist,name="check_email_exist"),
 path('check-username-exist', AdminViews.check_username_exist,name="check_username_exist"),
-path('check-name-exist', AdminViews.check_name_exist,name="check_name_exist"),
-path('check-channel-name-exist', AdminViews.check_channel_name_exist,name="check_channel_name_exist"),
 path('student-feedback-message', AdminViews.student_feedback_message,name="student_feedback_message"),
 path('student-feedback-message-replied', AdminViews.student_feedback_message_replied,name="student_feedback_message_replied"),
 path('staff-feedback-message', AdminViews.staff_feedback_message,name="staff_feedback_message"),
@@ -90,6 +92,7 @@ path('admin-get-student-result', AdminViews.admin_get_student_result,name="admin
 path('staff-home', StaffViews.staff_home, name="staff_home"),
 path('staff-profile', StaffViews.staff_profile, name="staff_profile"),
 path('staff-profile-save', StaffViews.staff_profile_save, name="staff_profile_save"),
+path('staff-add-assignment/', StaffViews.staff_add_assignment, name="staff_add_assignment"),
 path('staff-take-attendance', StaffViews.staff_take_attendance, name="take_attendance"),
 path('staff-update-attendance', StaffViews.staff_update_attendance, name="staff_update_attendance"),
 path('get-students', StaffViews.get_students, name="get_students"),

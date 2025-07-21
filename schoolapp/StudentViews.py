@@ -1,12 +1,13 @@
 import datetime
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.core.files.storage import FileSystemStorage
 from schoolapp.models import *
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.utils import timezone
 
 
 @login_required
@@ -115,6 +116,51 @@ def student_profile_save(request):
         except:
             messages.error(request, "Profile Failed to Save!")
             return HttpResponseRedirect(reverse("student_profile"))
+
+
+########## Assignment Views ##########
+@login_required
+def student_assignments(request):
+    student = Students.objects.get(admin=request.user.id)
+    session_id = request.session.get('active_student_session_id', student.session_year_id.id)
+
+    assignments = Assignment.objects.filter(
+        class_id=student.class_id,
+        department_id=student.department_id,
+        session_year_id=session_id
+    ).order_by("-created_at")
+
+    submissions = AssignmentSubmission.objects.filter(student=student)
+    submitted_assignment_ids = submissions.values_list("assignment__id", flat=True)
+
+    return render(request, "student_templates/assignment_list.html", {
+        "assignments": assignments,
+        "submitted_assignment_ids": submitted_assignment_ids
+    })
+
+@login_required
+def submit_assignment(request, assignment_id):
+    student = Students.objects.get(admin=request.user.id)
+    assignment = Assignment.objects.get(id=assignment_id)
+
+    if request.method == "POST":
+        file = request.FILES.get("file")
+        if not file:
+            messages.error(request, "Please select a file to upload.")
+            return redirect("student_assignments")
+
+        AssignmentSubmission.objects.create(
+            assignment=assignment,
+            student=student,
+            submitted_file=file  
+        )
+        messages.success(request, "Assignment submitted successfully.")
+        return redirect("student_assignments")
+
+    return render(request, "student_templates/submit_assignment.html", {
+        "assignment": assignment
+    })
+
 
 
 @login_required
@@ -236,9 +282,20 @@ def student_view_result(request):
     attendance_reports = AttendanceReport.objects.filter(
         student_id=student, attendance_id__session_year_id=session
     )
+
     total = attendance_reports.count()
     present = attendance_reports.filter(status=True).count()
     absent = attendance_reports.filter(status=False).count()
+
+    # Calculate total marks and percentage
+    total_scored = 0
+    total_possible = 0
+    for r in results:
+        if r.student_exam_result and r.student_assignment_result:
+            total_scored += r.student_exam_result + r.student_assignment_result
+            total_possible += 100  # assuming total per subject is 100
+
+    percentage = (total_scored / total_possible) * 100 if total_possible else 0
 
     return render(request, "student_templates/student_result.html", {
         'studentresult': results,
@@ -246,7 +303,10 @@ def student_view_result(request):
         'session_obj': session,
         'total_attendance': total,
         'attendance_present': present,
-        'attendance_absent': absent
+        'attendance_absent': absent,
+        'overall_percentage': round(percentage, 2),
+        'total_scored': total_scored,
+        'total_possible': total_possible
     })
 
 

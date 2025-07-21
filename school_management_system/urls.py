@@ -11,6 +11,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('schoolapp.urls')),
+    path('inbox/notifications/', include('notifications.urls', namespace='notifications')),
+
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
