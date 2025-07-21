@@ -129,7 +129,8 @@ def admin_profile_save(request):
 
 @login_required(login_url="/")
 def add_staff(request):
-    return render(request, "admin_templates/add_staff.html")
+    session_years = SessionYearModel.objects.all()
+    return render(request, "admin_templates/add_staff.html", {"session_years": session_years})
 
 
 @login_required(login_url="/")
@@ -143,6 +144,7 @@ def save_staff(request):
         email = request.POST.get("email")
         password = request.POST.get("password")
         address = request.POST.get("address")
+        session_year_id = request.POST.get("session_year")
         try:
             user = CustomUser.objects.create_user(
                 username=username,
@@ -152,12 +154,14 @@ def save_staff(request):
                 first_name=first_name,
                 user_type=2,
             )
+            session_year = SessionYearModel.objects.get(id=session_year_id)
             user.staffs.address = address
+            user.staffs.session_year = session_year
             user.save()
             messages.success(request, "Successfully Added Staff")
             return HttpResponseRedirect("/add-staff")
-        except:
-            messages.error(request, "Failed to Add Staff")
+        except Exception as e:
+            messages.error(request, f"Failed to Add Staff: {e}")
             return HttpResponseRedirect("/add-staff")
 
 
@@ -488,43 +492,51 @@ def manage_session_year(request):
 
 @login_required(login_url="/")
 def edit_staff(request, staff_id):
-    staff = Staffs.objects.get(admin=staff_id)
-    return render(
-        request, "admin_templates/edit_staff.html", {"staff": staff, "id": staff_id}
-    )
+    try:
+        staff = Staffs.objects.get(admin=staff_id)
+        session_years = SessionYearModel.objects.all()
+        return render(request, "admin_templates/edit_staff.html", {
+            "staff": staff,
+            "session_years": session_years
+        })
+    except Staffs.DoesNotExist:
+        messages.error(request, "Staff not found.")
+        return HttpResponseRedirect(reverse("manage_staff"))
 
 
 @login_required(login_url="/")
 def save_edit_staff(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
-    else:
-        staff_id = request.POST.get("staff_id")
-        first_name = request.POST.get("first_name")
-        last_name = request.POST.get("last_name")
-        email = request.POST.get("email")
-        username = request.POST.get("username")
-        address = request.POST.get("address")
-        try:
-            user = CustomUser.objects.get(id=staff_id)
-            user.first_name = first_name
-            user.last_name = last_name
-            user.email = email
-            user.username = username
-            user.save()
-            ####    quaring Staff Objects
-            staff_model = Staffs.objects.get(admin=staff_id)
-            staff_model.address = address
-            staff_model.save()
-            messages.success(request, f"Successfully Edited {user.first_name}")
-            return HttpResponseRedirect(
-                reverse("edit_staff", kwargs={"staff_id": staff_id})
-            )
-        except:
-            messages.error(request, "Failed to Edit Staff")
-            return HttpResponseRedirect(
-                reverse("edit_staff", kwargs={"staff_id": staff_id})
-            )
+    
+    staff_id = request.POST.get("staff_id")
+    first_name = request.POST.get("first_name")
+    last_name = request.POST.get("last_name")
+    email = request.POST.get("email")
+    username = request.POST.get("username")
+    session_year_id = request.POST.get("session_year")
+    address = request.POST.get("address")
+
+    try:
+        user = CustomUser.objects.get(id=staff_id)
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.username = username
+        user.save()
+
+        staff_model = Staffs.objects.get(admin=staff_id)
+        staff_model.session_year_id = SessionYearModel.objects.get(id=session_year_id)
+        staff_model.address = address
+        staff_model.save()
+
+        messages.success(request, f"Successfully Edited {user.first_name}")
+        return HttpResponseRedirect(reverse("edit_staff", kwargs={"staff_id": staff_id}))
+
+    except Exception as e:
+        messages.error(request, f"Failed to Edit Staff: {e}")
+        return HttpResponseRedirect(reverse("edit_staff", kwargs={"staff_id": staff_id}))
+
 
 @login_required(login_url="/")
 def delete_staff(request, staff_id):

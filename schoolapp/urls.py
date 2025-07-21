@@ -90,7 +90,6 @@ path('admin-get-student-result', AdminViews.admin_get_student_result,name="admin
 path('staff-home', StaffViews.staff_home, name="staff_home"),
 path('staff-profile', StaffViews.staff_profile, name="staff_profile"),
 path('staff-profile-save', StaffViews.staff_profile_save, name="staff_profile_save"),
-path('staff-chatroom/', StaffViews.staff_chatroom, name='staff_chatroom'),
 path('staff-take-attendance', StaffViews.staff_take_attendance, name="take_attendance"),
 path('staff-update-attendance', StaffViews.staff_update_attendance, name="staff_update_attendance"),
 path('get-students', StaffViews.get_students, name="get_students"),
@@ -110,6 +109,7 @@ path('save-student-result', StaffViews.save_student_result, name="save_student_r
    ####################################
 path('student-home', StudentViews.student_home, name="student_home"), 
 path('student-profile', StudentViews.student_profile, name="student_profile"),
+path("student-switch-session/", StudentViews.student_switch_session, name="student_switch_session"),
 path('staff-profile-save', StudentViews.student_profile_save, name="student_profile_save"),
 path('student-view-attendance', StudentViews.student_view_attendance, name="student_view_attendance"),
 path('student-view-attendance-post', StudentViews.student_view_attendance_post, name="student_view_attendance_post"),

@@ -69,6 +69,32 @@
               </p>
             </a>
           </li>
+          <li class="nav-item has-treeview">
+                <a href="#" class="nav-link">
+                  <i class="nav-icon fas fa-tachometer-alt"></i>
+                  <p>
+                    Select Session Year
+                    <i class="right fas fa-angle-left"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                  <li class="nav-item">
+                    <form method="post" action="{% url 'student_switch_session' %}">
+                      {% csrf_token %}
+                      <select name="session_year_id" onchange="this.form.submit()" class="form-control">
+                          {% for session in student_sessions %}
+                              <option value="{{ session.id }}" {% if session.id == request.session.active_student_session_id %}selected{% endif %}>
+                                  {{ session.session_start_year }} - {{ session.session_end_year }}
+                              </option>
+                          {% endfor %}
+                      </select>
+                    </form>
+                  </li>
+
+                </ul>
+          </li>
+                  
+
           <li class="nav-item">
             {% url 'student_make_payment' as student_make_payment %}
             <a href="{{ student_make_payment }}" class="nav-link {% if request.path == student_make_payment %} active {% endif %}">

@@ -289,9 +289,4 @@ def save_student_result(request):
     # # except:
     # #     messages.error(request, "Failed to Add Result")
     # #     return HttpResponseRedirect(reverse("staff_add_result"))
-
-
-
-
-
-
+    

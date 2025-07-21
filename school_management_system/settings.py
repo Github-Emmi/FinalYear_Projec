@@ -72,7 +72,9 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',  # Add this line
+                'django.contrib.messages.context_processors.messages',
+                # ⬇️ Add this line below
+                'schoolapp.context_processors.student_sessions_processor',
             ],
         },
     },
@@ -86,17 +88,17 @@ WSGI_APPLICATION = 'school_management_system.wsgi.application'
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': BASE_DIR / 'db.sqlite3',
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'febmexdb',
-        'USER': 'emmidev',
-        'PASSWORD': 'Aghason1999',
-        'HOST': 'localhost',
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.mysql',
+        # 'NAME': 'febmexdb',
+        # 'USER': 'emmidev',
+        # 'PASSWORD': 'Aghason1999',
+        # 'HOST': 'localhost',
+        # 'PORT': '3306',
+        # 'OPTIONS': {
+        #     'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        # },
         
     }
 }

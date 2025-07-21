@@ -49,13 +49,15 @@ class Staffs(models.Model):
     id = models.AutoField(primary_key=True)
     admin = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     address = models.TextField()
+    session_year_id = models.ForeignKey(SessionYearModel, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
+    
+    def __str__(self):
+        return self.admin.first_name + " " + self.admin.last_name
 
-    # creating a department
-
-
+# creating a department
 class Departments(models.Model):
     id = models.AutoField(primary_key=True)
     department_name = models.CharField(max_length=225)
@@ -266,7 +268,8 @@ def create_user_profile(sender, instance, created, **kwargs):
         if instance.user_type == 1:
             AdminHOD.objects.create(admin=instance)
         elif instance.user_type == 2:
-            Staffs.objects.create(admin=instance, address="")
+            session_year_obj, _ = SessionYearModel.objects.get_or_create(id=1)
+            Staffs.objects.create(admin=instance, session_year_id=session_year_obj)
         elif instance.user_type == 3:
             class_obj, _ = Class.objects.get_or_create(id=1)
             department_obj, _ = Departments.objects.get_or_create(id=1)
