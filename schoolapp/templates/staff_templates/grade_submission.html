@@ -1,0 +1,36 @@
+{% extends 'staff_templates/base.html' %}
+{% block title %}Grade Submission{% endblock %}
+{% block dashboard_title %}Grade Assignment{% endblock %}
+{% block dashboard_title1 %}Grading Submission{% endblock %}
+
+{% block main_content %}
+<section class="content container-fluid">
+    {% include 'admin_templates/verification_message.html' with user=user %}
+  <div class="card card-primary">
+    <div class="card-header">
+      <h3 class="card-title">Grade Submission: {{ submission.student.admin.get_full_name }}</h3>
+    </div>
+    <div class="card-body">
+      <p><strong>Assignment:</strong> {{ submission.assignment.title }}</p>
+      <p><strong>Submitted File:</strong>
+        <a href="{{ submission.submitted_file.url }}" class="btn btn-sm btn-secondary" download>
+          <i class="fas fa-download"></i> Download
+        </a>
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label>Grade</label>
+          <input type="text" name="grade" class="form-control" required placeholder="e.g., A, B, 85">
+        </div>
+        <div class="form-group">
+          <label>Feedback (optional)</label>
+          <textarea name="feedback" class="form-control" rows="4" placeholder="Write feedback..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-success btn-block">Submit Grade</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

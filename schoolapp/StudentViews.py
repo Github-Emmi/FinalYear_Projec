@@ -11,26 +11,32 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
 
+def get_student_sessions(student):
+    result_sessions = StudentResults.objects.filter(student_id=student).values_list('session_id', flat=True)
+    attendance_sessions = AttendanceReport.objects.filter(student_id=student).values_list('attendance_id__session_year_id', flat=True)
+    session_ids = set(result_sessions) | set(attendance_sessions)
+    return SessionYearModel.objects.filter(id__in=session_ids).order_by("-session_start_year")
+
+
 @login_required
 def student_home(request):
     student = request.user.students
     session_id = request.session.get('active_student_session_id', student.session_year_id.id)
     session = SessionYearModel.objects.get(id=session_id)
+    request.session['active_student_session_id'] = session_id
+
+    student_sessions = get_student_sessions(student)
 
     attendance_reports = AttendanceReport.objects.filter(
-        student_id=student,
-        attendance_id__session_year_id=session
+        student_id=student, attendance_id__session_year_id=session
     )
-
     total = attendance_reports.count()
     present = attendance_reports.filter(status=True).count()
     absent = attendance_reports.filter(status=False).count()
 
     subjects = Subjects.objects.filter(
-        department_id=student.department_id,
-        class_id=student.class_id
+        department_id=student.department_id, class_id=student.class_id
     )
-
     subject_count = subjects.count()
 
     sub_names, data_present, data_absent = [], [], []
@@ -45,17 +51,19 @@ def student_home(request):
         )
 
     return render(request, "student_templates/student_home.html", {
-        'total_attendance': total,
+        "students": student,
+        "session_obj": session,
+        "student_sessions": student_sessions,
+        "subjects_data": subjects,
         "subjects": subject_count,
-        'attendance_present': present,
-        'attendance_absent': absent,
-        'data_name': sub_names,
-        'data1': data_present,
-        'data2': data_absent,
-        'session_obj': session,
-        'subjects_data': subjects,
-        'students': student
+        "data_name": sub_names,
+        "data1": data_present,
+        "data2": data_absent,
+        "total_attendance": total,
+        "attendance_present": present,
+        "attendance_absent": absent,
     })
+
 
 ######## Switch Session Year ########
 @require_POST
@@ -63,12 +71,14 @@ def student_home(request):
 def student_switch_session(request):
     session_id = request.POST.get("session_year_id")
     student = request.user.students
+
+    # Validate if the selected session belongs to the student
     valid_ids = set(StudentResults.objects.filter(student_id=student).values_list('session_id', flat=True))
     valid_ids |= set(AttendanceReport.objects.filter(student_id=student).values_list('attendance_id__session_year_id', flat=True))
+
     if session_id and int(session_id) in valid_ids:
         request.session['active_student_session_id'] = int(session_id)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER') or reverse('student_home'))
-
 
 @login_required
 def student_profile(request):
@@ -122,13 +132,15 @@ def student_profile_save(request):
 ########## Assignment Views ##########
 @login_required
 def student_assignments(request):
-    student = Students.objects.get(admin=request.user.id)
+    student = request.user.students
     session_id = request.session.get('active_student_session_id', student.session_year_id.id)
+    session = SessionYearModel.objects.get(id=session_id)
+    student_sessions = get_student_sessions(student)
 
     assignments = Assignment.objects.filter(
         class_id=student.class_id,
         department_id=student.department_id,
-        session_year_id=session_id
+        session_year_id=session
     ).order_by("-created_at")
 
     submissions = AssignmentSubmission.objects.filter(student=student)
@@ -136,8 +148,11 @@ def student_assignments(request):
 
     return render(request, "student_templates/assignment_list.html", {
         "assignments": assignments,
-        "submitted_assignment_ids": submitted_assignment_ids
+        "submitted_assignment_ids": submitted_assignment_ids,
+        "student_sessions": student_sessions,
+        "session_obj": session,
     })
+
 
 @login_required
 def submit_assignment(request, assignment_id):
@@ -167,44 +182,75 @@ def assignment_detail(request, assignment_id):
     assignment = get_object_or_404(Assignment, id=assignment_id)
     student = Students.objects.get(admin=request.user)
 
-    if request.method == "POST":
+    # Check if already submitted
+    submission = AssignmentSubmission.objects.filter(assignment=assignment, student=student).first()
+
+    if request.method == "POST" and not submission:
         submitted_file = request.FILES.get("submitted_file")
         if not submitted_file:
             messages.error(request, "Please select a file to upload.")
-            return redirect("student_assignment_detail", assignment_id=assignment.id)
-
-        try:
-            AssignmentSubmission.objects.create(
-                assignment=assignment,
-                student=student,
-                submitted_file=submitted_file
-            )
-            messages.success(request, "Assignment submitted successfully.")
-        except Exception as e:
-            messages.error(request, f"Error: {e}")
-
-        return redirect("student_assignment_detail", assignment_id=assignment.id)
-
-    submission = AssignmentSubmission.objects.filter(assignment=assignment, student=student).first()
+        else:
+            try:
+                AssignmentSubmission.objects.create(
+                    assignment=assignment,
+                    student=student,
+                    submitted_file=submitted_file
+                )
+                messages.success(request, "Assignment submitted successfully.")
+                return redirect("student_assignment_detail", assignment_id=assignment.id)
+            except Exception as e:
+                messages.error(request, f"Error: {e}")
 
     return render(request, "student_templates/assignment_detail.html", {
         "assignment": assignment,
         "submission": submission
     })
 
+@login_required
+def student_submission_feedback(request, submission_id):
+    student = request.user.students
+    submission = get_object_or_404(
+        AssignmentSubmission,
+        id=submission_id,
+        student=student,
+        graded=True  # ensure only graded ones can be viewed
+    )
+    
+    return render(request, "student_templates/submission_feedback.html", {
+        "submission": submission
+    })
+
+@login_required
+def student_submissions(request):
+    student = request.user.students
+    submissions = AssignmentSubmission.objects.filter(student=student).select_related('assignment', 'assignment__staff')
+
+    return render(request, "student_templates/student_submission_list.html", {
+        "submissions": submissions
+    })
+
+
 
 @login_required
 def student_view_attendance(request):
-    user = CustomUser.objects.get(id=request.user.id)
-    students = Students.objects.get(admin=user)
-    department = students.department_id
-    classes = students.class_id
-    subjects = Subjects.objects.filter(department_id=department, class_id=classes)
+    student = request.user.students
+    session_id = request.session.get('active_student_session_id', student.session_year_id.id)
+    session = SessionYearModel.objects.get(id=session_id)
+    student_sessions = get_student_sessions(student)
+
+    subjects = Subjects.objects.filter(
+        department_id=student.department_id,
+        class_id=student.class_id
+    )
 
     return render(request, "student_templates/student_view_attendance.html", {
         "subjects": subjects,
-        'students': students
+        "students": student,
+        "session_obj": session,
+        "student_sessions": student_sessions,
     })
+
+
 
 
 @login_required
@@ -307,6 +353,7 @@ def student_view_result(request):
     student = request.user.students
     session_id = request.session.get('active_student_session_id', student.session_year_id.id)
     session = SessionYearModel.objects.get(id=session_id)
+    student_sessions = get_student_sessions(student)
 
     results = StudentResults.objects.filter(student_id=student, session_id=session)
     attendance_reports = AttendanceReport.objects.filter(
@@ -317,27 +364,64 @@ def student_view_result(request):
     present = attendance_reports.filter(status=True).count()
     absent = attendance_reports.filter(status=False).count()
 
-    # Calculate total marks and percentage
     total_scored = 0
     total_possible = 0
     for r in results:
         if r.student_exam_result and r.student_assignment_result:
             total_scored += r.student_exam_result + r.student_assignment_result
-            total_possible += 100  # assuming total per subject is 100
+            total_possible += 100
 
     percentage = (total_scored / total_possible) * 100 if total_possible else 0
 
     return render(request, "student_templates/student_result.html", {
-        'studentresult': results,
-        'students': student,
-        'session_obj': session,
-        'total_attendance': total,
-        'attendance_present': present,
-        'attendance_absent': absent,
-        'overall_percentage': round(percentage, 2),
-        'total_scored': total_scored,
-        'total_possible': total_possible
+        "studentresult": results,
+        "students": student,
+        "session_obj": session,
+        "total_attendance": total,
+        "attendance_present": present,
+        "attendance_absent": absent,
+        "overall_percentage": round(percentage, 2),
+        "total_scored": total_scored,
+        "total_possible": total_possible,
+        "student_sessions": student_sessions,
     })
+
+######## Timetable Views ########
+@login_required
+def student_timetable(request):
+    student = request.user.students
+    session_id = request.session.get("active_student_session_id", student.session_year_id.id)
+    session = SessionYearModel.objects.get(id=session_id)
+
+    timetable_entries = TimeTable.objects.filter(
+        class_id=student.class_id,
+        department_id=student.department_id,
+        session_year=session
+    ).select_related("subject", "teacher").order_by("day", "start_time")
+
+    # Organize by day for template
+    from collections import defaultdict
+    week = defaultdict(list)
+    for entry in timetable_entries:
+        week[entry.get_day_display()].append(entry)
+
+    return render(request, "student_templates/timetable_view.html", {
+        "week": dict(week),
+        "student": student,
+        "session_obj": session,
+    })
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @login_required

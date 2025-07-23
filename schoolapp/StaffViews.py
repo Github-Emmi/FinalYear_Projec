@@ -8,6 +8,7 @@ from django.urls import reverse
 from schoolapp.models import *
 from django.contrib.auth.decorators import login_required
 from notifications.signals import notify
+from django.shortcuts import get_object_or_404, render
 
 
 @login_required
@@ -96,8 +97,9 @@ def staff_profile_save(request):
 @login_required
 def staff_add_assignment(request):
     staff = Staffs.objects.get(admin=request.user.id)
-    classes = Class.objects.all()
-    departments = Departments.objects.all()
+    assigned_subjects = Subjects.objects.filter(staff_id=staff.admin.id)
+    assigned_classes = Class.objects.filter(id__in=assigned_subjects.values_list('class_id', flat=True).distinct())
+    assigned_departments = Departments.objects.filter(id__in=assigned_subjects.values_list('department_id', flat=True).distinct())
     sessions = SessionYearModel.objects.all()
 
     if request.method == "POST":
@@ -106,12 +108,14 @@ def staff_add_assignment(request):
         file = request.FILES.get("file")
         class_id = request.POST.get("class_id")
         department_id = request.POST.get("department_id")
+        subject_id = request.POST.get("subject_id")
         session_year = request.POST.get("session_year")
         due_date = request.POST.get("due_date")
 
         try:
             class_obj = Class.objects.get(id=class_id)
             department_obj = Departments.objects.get(id=department_id)
+            subject_obj = Subjects.objects.get(id=subject_id)
             session_obj = SessionYearModel.objects.get(id=session_year)
 
             assignment = Assignment.objects.create(
@@ -120,23 +124,26 @@ def staff_add_assignment(request):
                 file=file,
                 class_id=class_obj,
                 department_id=department_obj,
+                subject=subject_obj,
                 session_year=session_obj,
                 staff=staff,
                 due_date=due_date
             )
 
-            # 🔔 Send notifications to all students in that class/department
-            students = Students.objects.filter(class_id=assignment.class_id,
-                                               department_id=assignment.department_id,
-                                               session_year_id=assignment.session_year)
+            students = Students.objects.filter(
+                class_id=class_obj,
+                department_id=department_obj,
+                session_year_id=session_obj
+            )
             for student in students:
                 notify.send(
-                sender=request.user,
-                recipient=student.admin,
-                verb=f"New assignment posted: {assignment.title}",
-                description=assignment.description,
-                target=assignment  # This links to get_absolute_url() of the Assignment model
-      )
+                    sender=request.user,
+                    recipient=student.admin,
+                    verb=f"New assignment posted: {assignment.title}",
+                    description=assignment.description,
+                    target=assignment
+                )
+
             messages.success(request, "Assignment uploaded successfully and notifications sent.")
         except Exception as e:
             messages.error(request, f"Error: {e}")
@@ -144,10 +151,12 @@ def staff_add_assignment(request):
         return redirect("staff_add_assignment")
 
     return render(request, "staff_templates/add_assignment.html", {
-        "classes": classes,
-        "departments": departments,
+        "subjects": assigned_subjects,
+        "classes": assigned_classes,
+        "departments": assigned_departments,
         "sessions": sessions
     })
+
 
 
 ######## Attendance Views #######
@@ -174,30 +183,53 @@ def get_students(request):
 
 @csrf_exempt
 def save_attendance_data(request):
-    student_ids=request.POST.get("student_ids")
-    subject_id=request.POST.get("subject_id")
-    attendance_date=request.POST.get("attendance_date")
-    session_year_id=request.POST.get("session_year_id")
+    student_ids = request.POST.get("student_ids")
+    subject_id = request.POST.get("subject_id")
+    attendance_date = request.POST.get("attendance_date")
+    session_year_id = request.POST.get("session_year_id")
 
-    subject_model=Subjects.objects.get(id=subject_id)
-    session_model=SessionYearModel.objects.get(id=session_year_id)
-    json_sstudent=json.loads(student_ids)
-    #print(data[0]['id'])
-
+    subject_model = Subjects.objects.get(id=subject_id)
+    session_model = SessionYearModel.objects.get(id=session_year_id)
+    json_students = json.loads(student_ids)
 
     try:
-        attendance=Attendence(subject_id=subject_model,attendance_date=attendance_date,session_year_id=session_model)
-        attendance.save()
+        # Check if attendance already exists
+        attendance, created = Attendence.objects.get_or_create(
+            subject_id=subject_model,
+            attendance_date=attendance_date,
+            session_year_id=session_model
+        )
 
-        for stud in json_sstudent:
-             student=Students.objects.get(admin=stud['id'])
-             attendance_report=AttendanceReport(student_id=student,attendance_id=attendance,status=stud['status'])
-             attendance_report.save()
-        return HttpResponse("OK")
-    except:
+        # If updating, delete old records
+        if not created:
+            AttendanceReport.objects.filter(attendance_id=attendance).delete()
+
+        for student_data in json_students:
+            student = Students.objects.get(admin=student_data['id'])
+            AttendanceReport.objects.create(
+                student_id=student,
+                attendance_id=attendance,
+                status=student_data['status']
+            )
+
+            # Notify each student
+            # Send notification (no target to avoid link)
+            message = "Attendance Created" if created else "Attendance Updated"
+
+            notify.send(
+                sender=request.user,
+                recipient=student.admin,
+                verb=message,
+                description="Your attendance record has been updated.",
+            )
+
+        return HttpResponse("CREATED" if created else "UPDATED")
+
+    except Exception as e:
+        print("Error saving attendance:", e)
         return HttpResponse("ERR")
 
-@login_required   
+@login_required
 def staff_update_attendance(request):
     subjects=Subjects.objects.filter(staff_id=request.user.id)
     session_year_id=SessionYearModel.objects.all()
@@ -341,5 +373,102 @@ def save_student_result(request):
     # #     messages.error(request, "Failed to Add Result")
     # #     return HttpResponseRedirect(reverse("staff_add_result"))
 
+from django.core.paginator import Paginator
 
-    
+@login_required
+def submission_list(request):
+    staff = Staffs.objects.get(admin=request.user)
+    qs = AssignmentSubmission.objects.filter(
+        assignment__staff=staff,
+        graded=False
+    ).select_related('student__admin', 'assignment', 'assignment__class_id', 'assignment__session_year')
+
+    # Filtering
+    assignment_id = request.GET.get('assignment')
+    session_id = request.GET.get('session')
+    cls_id = request.GET.get('class')
+    if assignment_id:
+        qs = qs.filter(assignment_id=assignment_id)
+    if session_id:
+        qs = qs.filter(assignment__session_year_id=session_id)
+    if cls_id:
+        qs = qs.filter(assignment__class_id_id=cls_id)
+
+    # Django Paginator
+    paginator = Paginator(qs.order_by('-submitted_at'), 10)
+    page = request.GET.get('page')
+    submissions = paginator.get_page(page)
+
+    # For filters dropdown
+    assignments = Assignment.objects.filter(staff=staff)
+    sessions = SessionYearModel.objects.all()
+    classes = Class.objects.all()
+
+    context = {
+        'submissions': submissions,
+        'assignments': assignments,
+        'sessions': sessions,
+        'classes': classes,
+    }
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'staff_templates/submission_list_ajax.html', context)
+    return render(request, 'staff_templates/submission_list.html', context)
+
+
+
+@login_required
+def staff_view_submissions(request, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id)
+    submissions = AssignmentSubmission.objects.filter(assignment=assignment).select_related('student__admin')
+
+    return render(request, "staff_templates/assignment_submissions.html", {
+        "assignment": assignment,
+        "submissions": submissions
+    })
+
+@login_required
+def staff_grade_submission(request, submission_id):
+    submission = get_object_or_404(AssignmentSubmission, id=submission_id)
+
+    if request.method == "POST":
+        grade = request.POST.get("grade")
+        feedback = request.POST.get("feedback")
+
+        submission.grade = grade
+        submission.feedback = feedback
+        submission.graded = True
+        submission.save()
+
+        # 🔔 Notify student
+        notify.send(
+            sender=request.user,
+            recipient=submission.student.admin,
+            verb=f"Your assignment '{submission.assignment.title}' has been graded.",
+            description=f"Grade: {grade}. Feedback: {feedback or 'No additional feedback.'}",
+            target=submission.assignment
+        )
+
+        messages.success(request, "Submission graded successfully and student notified.")
+        return redirect("staff_view_submissions", assignment_id=submission.assignment.id)
+
+    return render(request, "staff_templates/grade_submission.html", {
+        "submission": submission
+    })
+
+
+@login_required
+def staff_timetable_view(request):
+    staff = Staffs.objects.get(admin=request.user)
+
+    # Fetch timetable entries assigned to this staff
+    timetable_entries = TimeTable.objects.filter(teacher=staff).select_related(
+        'subject', 'class_id', 'department_id', 'session_year'
+    ).order_by('day', 'start_time')
+
+    days = dict(TimeTable.DAY_CHOICES)
+
+    return render(request, "staff_templates/staff_timetable.html", {
+        "timetable": timetable_entries,
+        "days": days
+    })

@@ -1,0 +1,67 @@
+{% extends 'staff_templates/base.html' %}
+{% load static %}
+{% block title %}Submissions – {{ assignment.title }}{% endblock %}
+{% block dashboard_title %}Submissions{% endblock %}
+{% block dashboard_title1 %}Assignment: {{ assignment.title }}{% endblock %}
+
+{% block main_content %}
+<section class="content container-fluid">
+  <div class="card">
+    {% include 'admin_templates/verification_message.html' with user=user %}
+    <div class="card-header">
+      <h3 class="card-title">Submissions for "{{ assignment.title }}"</h3>
+      <a href="{% url 'staff_submission_list' %}" class="btn btn-sm btn-primary float-right">Back</a>
+    </div>
+    <div class="card-body table-responsive">
+      {% if submissions %}
+      <table class="table table-hover text-nowrap">
+        <thead class="thead-light">
+          <tr>
+            <th>#</th>
+            <th>Student</th>
+            <th>Submitted At</th>
+            <th>Download File</th>
+            <th>Status</th>
+            <th>Grade</th>
+            <th>Feedback</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sub in submissions %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ sub.student.admin.get_full_name }}</td>
+            <td>{{ sub.submitted_at|date:"Y-m-d H:i" }}</td>
+            <td>
+              <a href="{{ sub.submitted_file.url }}" class="btn btn-sm btn-secondary" download>
+                <i class="fas fa-download"></i> Download
+              </a>
+            </td>
+            <td>
+              {% if sub.graded %}
+                <span class="badge badge-success">Graded</span>
+              {% else %}
+                <span class="badge badge-warning">Pending</span>
+              {% endif %}
+            </td>
+            <td>{{ sub.grade|default:"–" }}</td>
+            <td>{{ sub.feedback|default:"–" }}</td>
+            <td>
+              {% if not sub.graded %}
+              <a href="{% url 'staff_grade_submission' sub.id %}" class="btn btn-sm btn-info">
+                <i class="fas fa-pen"></i> Grade
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="text-muted p-3">No submissions yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

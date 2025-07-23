@@ -6,6 +6,8 @@ from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
+from schoolapp.storages import RawMediaCloudinaryStorage  # adjust path if needed
 
 
 
@@ -165,6 +167,12 @@ class Attendence(models.Model):
     updated_at = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
 
+    def __str__(self):
+        return f"{self.subject_id.subject_name} - {self.attendance_date}"
+
+    def get_absolute_url(self):
+        return reverse("save_updateattendance_data") + f"?date={self.attendance_date}&subject_id={self.subject_id.id}&session_id={self.session_year_id.id}"
+
 
 class StudentResults(models.Model):
     id = models.AutoField(primary_key=True)
@@ -188,6 +196,7 @@ class Assignment(models.Model):
     file = models.FileField(upload_to="assignments/")
     class_id = models.ForeignKey(Class, on_delete=models.CASCADE)
     department_id = models.ForeignKey(Departments, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subjects, default="", on_delete=models.CASCADE)
     session_year = models.ForeignKey(SessionYearModel, on_delete=models.CASCADE)
     staff = models.ForeignKey(Staffs, on_delete=models.CASCADE)
     due_date = models.DateTimeField()
@@ -205,19 +214,26 @@ class Assignment(models.Model):
 
 ####### Assignment Submission Model #######
 class AssignmentSubmission(models.Model):
-    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
-    student = models.ForeignKey(Students, on_delete=models.CASCADE)
-    submitted_file = models.FileField(upload_to="submitted_assignments/")
+    assignment = models.ForeignKey('Assignment', on_delete=models.CASCADE)
+    student = models.ForeignKey('Students', on_delete=models.CASCADE)
+    submitted_file = models.FileField(
+        upload_to="submitted_assignments/",
+        storage=RawMediaCloudinaryStorage()
+    )
     submitted_at = models.DateTimeField(auto_now_add=True)
     graded = models.BooleanField(default=False)
     grade = models.CharField(max_length=10, null=True, blank=True)
+    graded_at = models.DateTimeField(null=True, blank=True)
     feedback = models.TextField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('assignment', 'student')  # prevent multiple submissions
-
+        unique_together = ('assignment', 'student')
     def __str__(self):
         return f"{self.student.admin.username} - {self.assignment.title}"
+    def get_absolute_url(self):
+        return reverse('student_assignments')
+    def get_absolute_url(self):
+        return reverse("student_submission_feedback", args=[self.id])
 
 
     # creating AttendenceReport Models
@@ -298,6 +314,36 @@ class NotificationStaffs(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
+
+
+class TimeTable(models.Model):
+    DAY_CHOICES = [
+        ('MON', 'Monday'),
+        ('TUE', 'Tuesday'),
+        ('WED', 'Wednesday'),
+        ('THU', 'Thursday'),
+        ('FRI', 'Friday'),
+        ('SAT', 'Saturday'),
+    ]
+
+    subject = models.ForeignKey(Subjects, on_delete=models.CASCADE)
+    teacher = models.ForeignKey(Staffs, on_delete=models.SET_NULL, null=True, blank=True)
+    class_id = models.ForeignKey(Class, on_delete=models.CASCADE)
+    department_id = models.ForeignKey(Departments, on_delete=models.CASCADE)
+    session_year = models.ForeignKey(SessionYearModel, on_delete=models.CASCADE)
+    day = models.CharField(max_length=3, choices=DAY_CHOICES)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    classroom = models.CharField(max_length=100, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['day', 'start_time']
+
+    def __str__(self):
+        return f"{self.subject.subject_name} - {self.day} {self.start_time}-{self.end_time}"
+
 
 
 @receiver(post_save, sender=CustomUser)

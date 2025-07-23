@@ -1,23 +1,78 @@
-{% extends 'student_templates/base.html' %}
+{% extends 'student_templates/base.html' %}{% load static %}
 {% load humanize %}
-{% load static %}
-{% block title %}Notifications{% endblock %}
 
-{% block main_content %}
-<div class="container mt-4">
-    <h4>Notifications</h4>
-    <a href="{% url 'notifications_mark_all_read' %}" class="btn btn-sm btn-outline-success mb-3">Mark all as read</a>
-    <ul class="list-group">
-        {% for note in notifications %}
-        <li class="list-group-item {% if note.unread %}list-group-item-warning{% endif %}">
-            <a href="{% url 'notification_read' note.pk %}">
-                <strong>{{ note.verb }}</strong> - {{ note.description }}<br>
-                <small>{{ note.timestamp|naturaltime }}</small>
-            </a>
-        </li>
-        {% empty %}
-        <li class="list-group-item">No notifications.</li>
-        {% endfor %}
-    </ul>
+{% block title %} Student |All Notifications {% endblock %}
+ {% block dashboard_title %} All Notifications {% endblock dashboard_title %}
+ {% block dashboard_title1 %}All Notifications{% endblock dashboard_title1 %}
+   
+ {% block main_content %}
+<div class="col-md-10">
+  <div class="input-group mb-3">
+    <input type="text" id="notification-search" value="{{ query }}" placeholder="Search Mail" class="form-control">
+    <div class="input-group-append">
+      <button id="search-btn" class="btn btn-primary"><i class="fas fa-search"></i></button>
+    </div>
+  </div>
+
+  <div class="card card-primary card-outline">
+    <div class="card-header">
+      <button id="select-all" class="btn btn-default btn-sm"><i class="far fa-square"></i></button>
+      <button id="delete-selected" class="btn btn-default btn-sm"><i class="far fa-trash-alt"></i></button>
+      <a href="{% url 'notifications_mark_all_read' %}" class="btn btn-sm btn-success ml-2">Mark All as Read</a>
+    </div>
+
+    <div class="card-body p-0">
+      <div id="notification-table-wrapper">
+        {% include 'notifications/_notification_rows.html' %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
+
+{% block custom_js %}
+<script>
+$(function(){
+  function loadPage(page=1, q='') {
+    $.get("{% url 'notifications_list' %}", {page, q}, function(html){
+      $("#notification-table-wrapper").html(html);
+    });
+  }
+
+  $("#search-btn").click(function(){
+    const q = $("#notification-search").val().trim();
+    loadPage(1, q);
+  });
+
+  $("#notification-table-wrapper").on("click", ".pagination a", function(e){
+    e.preventDefault();
+    const url = new URL($(this).attr('href'), window.location.href);
+    const page = url.searchParams.get("page");
+    loadPage(page, $("#notification-search").val().trim());
+  });
+
+  $("#select-all").click(function(){
+    const checkboxes = $("#notification-table-wrapper").find("tbody input[type=checkbox]");
+    const all = !$(this).data('all');
+    checkboxes.prop('checked', all);
+    $(this).find("i").toggleClass('fa-square fa-check-square');
+    $(this).data('all', all);
+  });
+
+  $("#delete-selected").click(function(){
+    const ids = $("#notification-table-wrapper").find("tbody input:checkbox:checked").map(function(){
+      return $(this).val();
+    }).get();
+    if (!ids.length) return alert("No notifications selected.");
+    if (!confirm("Delete selected notifications?")) return;
+
+    $.post("{% url 'notifications_delete_selected' %}", {
+      csrfmiddlewaretoken: "{{ csrf_token }}",
+      'selected_ids[]': ids
+    }, function(resp){
+      if (resp.status === 'success') loadPage($("#notification-table-wrapper .pagination .active a").text());
+    });
+  });
+});
+</script>
+{% endblock custom_js %}

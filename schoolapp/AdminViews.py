@@ -13,6 +13,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 from .generic_views import generic_paginated_list
 from django.template.loader import render_to_string
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.admin.views.decorators import staff_member_required
 
 
@@ -1158,3 +1159,104 @@ def admin_get_student_result(request):
     return JsonResponse(
         json.dumps(list_data), content_type="application/json", safe=False
     )
+
+# Days of the week
+DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+# LIST TIMETABLE
+@login_required
+def admin_timetable_list(request):
+    timetable = TimeTable.objects.select_related(
+        'subject', 'class_id', 'department_id', 'session_year', 'teacher'
+    ).order_by('day', 'start_time')
+
+    return render(request, "admin_templates/timetable_list.html", {
+        "timetable": timetable
+    })
+
+
+@login_required
+def admin_add_timetable(request):
+    if request.method == "POST":
+        subject_id = request.POST.get("subject_id")
+        class_id = request.POST.get("class_id")
+        department_id = request.POST.get("department_id")
+        session_year_id = request.POST.get("session_year_id")
+        day_of_week = request.POST.get("day_of_week")
+        start_time = request.POST.get("start_time")
+        end_time = request.POST.get("end_time")
+        classroom = request.POST.get("classroom")
+        staff_id = request.POST.get("staff_id") or None
+
+        try:
+            timetable = TimeTable.objects.create(
+                subject=Subjects.objects.get(id=subject_id),
+                class_id=Class.objects.get(id=class_id),
+                department_id=Departments.objects.get(id=department_id),
+                session_year=SessionYearModel.objects.get(id=session_year_id),
+                day=day_of_week,
+                start_time=start_time,
+                end_time=end_time,
+                classroom=classroom,
+                teacher=Staffs.objects.get(id=staff_id) if staff_id else None
+            )
+            messages.success(request, "Timetable entry added successfully.")
+            return redirect("admin_timetable_list")
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
+            return redirect("admin_add_timetable")
+
+    return render(request, "admin_templates/timetable_form.html", {
+        "subjects": Subjects.objects.all(),
+        "classes": Class.objects.all(),
+        "departments": Departments.objects.all(),
+        "sessions": SessionYearModel.objects.all(),
+        "staffs": Staffs.objects.select_related('admin').all(),
+        "days": TimeTable.DAY_CHOICES
+    })
+
+
+@login_required
+def admin_edit_timetable(request, pk):
+    timetable = get_object_or_404(TimeTable, pk=pk)
+    if request.method == "POST":
+        timetable.subject = Subjects.objects.get(id=request.POST.get("subject_id"))
+        timetable.class_id = Class.objects.get(id=request.POST.get("class_id"))
+        timetable.department_id = Departments.objects.get(id=request.POST.get("department_id"))
+        timetable.session_year = SessionYearModel.objects.get(id=request.POST.get("session_year_id"))
+        timetable.day = request.POST.get("day_of_week")
+        timetable.start_time = request.POST.get("start_time")
+        timetable.end_time = request.POST.get("end_time")
+        timetable.classroom = request.POST.get("classroom")
+        staff_id = request.POST.get("staff_id") or None
+        timetable.teacher = Staffs.objects.get(id=staff_id) if staff_id else None
+
+        try:
+            timetable.save()
+            messages.success(request, "Timetable updated successfully.")
+            return redirect("admin_timetable_list")
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
+            return redirect("admin_edit_timetable", pk=pk)
+
+    return render(request, "admin_templates/timetable_form.html", {
+        "subjects": Subjects.objects.all(),
+        "classes": Class.objects.all(),
+        "departments": Departments.objects.all(),
+        "sessions": SessionYearModel.objects.all(),
+        "staffs": Staffs.objects.select_related('admin').all(),
+        "days": TimeTable.DAY_CHOICES,  # ✅ correct source
+        "timetable": timetable
+    })
+
+
+# DELETE TIMETABLE ENTRY
+@login_required
+def admin_delete_timetable(request, pk):
+    timetable = get_object_or_404(TimeTable, pk=pk)
+    try:
+        timetable.delete()
+        messages.success(request, "TimeTable entry deleted successfully.")
+    except Exception as e:
+        messages.error(request, f"Error: {e}")
+    return redirect("admin_timetable_list")

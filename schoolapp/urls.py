@@ -86,6 +86,11 @@ path('admin-get-attendance-dates', AdminViews.admin_get_attendance_dates,name="a
 path('admin-get-attendance-student', AdminViews.admin_get_attendance_student,name="admin_get_attendance_student"),
 path('admin-get-student-result', AdminViews.admin_get_student_result,name="admin_get_student_result"),
 
+path("admin-timetable/", AdminViews.admin_timetable_list, name="admin_timetable_list"),
+path("admin-timetable/add/", AdminViews.admin_add_timetable, name="admin_add_timetable"),
+path("admin-timetable/edit/<int:pk>/", AdminViews.admin_edit_timetable, name="admin_edit_timetable"),
+path("admin-timetable/delete/<int:pk>/", AdminViews.admin_delete_timetable, name="admin_delete_timetable"),
+
    ####################################
            # Staff Views #
    ####################################
@@ -106,10 +111,12 @@ path('staff-feedback', StaffViews.staff_feedback, name="staff_feedback"),
 path('staff-feedback-save', StaffViews.staff_feedback_save, name="staff_feedback_save"),
 path('staff-add-result', StaffViews.staff_add_result, name="staff_add_result"),
 path('save-student-result', StaffViews.save_student_result, name="save_student_result"),
-path('notifications/', views.notifications_all, name='notifications_all'),
-path('notifications/mark-all-read/', views.mark_all_read, name='notifications_mark_all_read'),
-path('notifications/<int:pk>/read/', views.notification_read, name='notification_read'),
-path('assignment/<int:assignment_id>/', StudentViews.assignment_detail, name='student_assignment_detail'),
+path("staff-timetable/", StaffViews.staff_timetable_view, name="staff_timetable"),
+path('staff-submissions/', StaffViews.submission_list, name='staff_submission_list'),
+path('staff-assignments/<int:assignment_id>/submissions/', StaffViews.staff_view_submissions, name='staff_view_submissions'),
+path('staff-submissions/<int:submission_id>/grade/', StaffViews.staff_grade_submission, name='staff_grade_submission'),
+
+
 
 
 
@@ -118,8 +125,8 @@ path('assignment/<int:assignment_id>/', StudentViews.assignment_detail, name='st
    ####################################
 path('student-home', StudentViews.student_home, name="student_home"), 
 path('student-profile', StudentViews.student_profile, name="student_profile"),
-path("student-switch-session/", StudentViews.student_switch_session, name="student_switch_session"),
-path('staff-profile-save', StudentViews.student_profile_save, name="student_profile_save"),
+path('student-switch-session/', StudentViews.student_switch_session, name="student_switch_session"),
+path('student-profile-save', StudentViews.student_profile_save, name="student_profile_save"),
 path('student-view-attendance', StudentViews.student_view_attendance, name="student_view_attendance"),
 path('student-view-attendance-post', StudentViews.student_view_attendance_post, name="student_view_attendance_post"),
 path('student-apply-leave', StudentViews.student_apply_leave, name="student_apply_leave"),
@@ -128,6 +135,15 @@ path('student-feedback', StudentViews.student_feedback, name="student_feedback")
 path('student-feedback-save', StudentViews.student_feedback_save, name="student_feedback_save"),
 path('student-view-result',StudentViews.student_view_result,name="student_view_result"),
 path('student-make-payment',StudentViews.student_make_payment,name="student_make_payment"),
+###### Notifications ######
+path('notifications/', views.notifications_list, name='notifications_list'),
+path('notifications/delete-selected/', views.delete_selected_notifications, name='notifications_delete_selected'),
+path('notifications/mark-all-read/', views.mark_all_read, name='notifications_mark_all_read'),
+path('notifications/<int:pk>/read/', views.notification_read, name='notification_read'),
+path('assignment/<int:assignment_id>/', StudentViews.assignment_detail, name='student_assignment_detail'),
+path("student-submission/<int:submission_id>/feedback/", StudentViews.student_submission_feedback, name="student_submission_feedback"),
+path("student-submissions/", StudentViews.student_submissions, name="student_submissions"),
+path("student/timetable/", StudentViews.student_timetable, name="student_timetable"),
 ]
 
 

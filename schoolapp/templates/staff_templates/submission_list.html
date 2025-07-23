@@ -1,0 +1,62 @@
+{% extends 'staff_templates/base.html' %}
+{% load static %}
+{% block title %}Staff | Submission List{% endblock %}
+{% block dashboard_title %}Submission List{% endblock %}
+{% block dashboard_title1 %}Submissions{% endblock %}
+
+{% block main_content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+        <div class="card">
+          <div class="card-body">
+
+            <div class="filters mb-4 d-flex justify-content-between flex-wrap gap-2">
+              <select id="filter-assignment" class="form-control col-md-3 mb-2">
+                <option value="">Filter by Assignment</option>
+                <!-- Load dynamically if needed -->
+              </select>
+              <select id="filter-session" class="form-control col-md-3 mb-2">
+                <option value="">Filter by Session</option>
+              </select>
+              <select id="filter-class" class="form-control col-md-3 mb-2">
+                <option value="">Filter by Class</option>
+              </select>
+            </div>
+
+            <div id="submission-list-container">
+              {% include 'staff_templates/submission_list_ajax.html' %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block custom_js %}
+<script>
+function loadPage(page) {
+  const params = {
+    assignment: $('#filter-assignment').val(),
+    session: $('#filter-session').val(),
+    class: $('#filter-class').val(),
+    page: page
+  };
+  $.get("{% url 'staff_submission_list' %}", params, function(data){
+    $('#submission-list-container').html(data);
+  });
+}
+
+$('#filter-assignment, #filter-session, #filter-class').on('change', () => loadPage(1));
+
+$(document).on('click', '.pagination a', function(e){
+  e.preventDefault();
+  const page = $(this).data('page');
+  loadPage(page);
+});
+</script>
+{% endblock %}

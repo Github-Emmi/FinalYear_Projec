@@ -1,15 +1,15 @@
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.contrib.auth import login,logout
 from django.urls import reverse
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
 from .models import RememberToken
 import secrets
 from django.shortcuts import render, get_object_or_404, redirect
 from notifications.models import Notification
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from .models import NotificationStudent
 
 from schoolapp.EmailBackEnd import EmailBackEnd
 
@@ -74,12 +74,38 @@ def user_logout(request):
     logout(request)
     return HttpResponseRedirect('/')      
 
+@login_required
+def notifications_list(request):
+    query = request.GET.get('q', '')
+    page = request.GET.get('page', 1)
+
+    notes = request.user.notifications.all()
+    if query:
+        notes = notes.filter(verb__icontains=query)
+
+    paginator = Paginator(notes.order_by('-timestamp'), 10)
+    try:
+        page_obj = paginator.get_page(page)
+    except:
+        page_obj = paginator.get_page(1)
+
+    context = {
+        'page_obj': page_obj,
+        'query': query,
+    }
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'notifications/_notification_rows.html', context)
+    return render(request, 'notifications/notifications_list.html', context)
 
 @login_required
-def notifications_all(request):
-    """Show all notifications for the current user."""
-    notifications = Notification.objects.filter(recipient=request.user).order_by('-timestamp')
-    return render(request, 'notifications/notifications_list.html', {'notifications': notifications})
+def delete_selected_notifications(request):
+    if request.method == 'POST':
+        ids = request.POST.getlist('selected_ids[]')
+        if ids:
+            request.user.notifications.filter(id__in=ids).delete()
+            return JsonResponse({'status': 'success'})
+    return HttpResponseBadRequest()
 
 
 @login_required
@@ -95,6 +121,6 @@ def notification_read(request, pk):
     notification = get_object_or_404(Notification, pk=pk, recipient=request.user)
     notification.unread = False
     notification.save()
-    return redirect(notification.target.get_absolute_url() if notification.target else 'notifications_all')
+    return redirect(notification.target.get_absolute_url() if notification.target else 'notifications_list')
 
 

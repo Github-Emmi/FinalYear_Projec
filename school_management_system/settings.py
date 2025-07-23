@@ -45,6 +45,11 @@ CLOUDINARY_STORAGE = {
     'CLOUD_NAME': 'dmkcqgan1',          # Replace with your Cloud Name
     'API_KEY': '716231591674135',      # Replace with your API Key
     'API_SECRET': 'lVtlknqZrOUITzpCqmQjWNMUvkQ',  # Replace with your API Secret
+    'DEFAULT_RESOURCE_TYPE': 'raw',  # Set to 'raw' for non-image files
+    'OPTIONS': {
+        'resource_type': 'raw',
+        'type': 'upload'
+    }
 }
 
 
@@ -76,7 +81,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 # ⬇️ Add this line below
-                'schoolapp.context_processors.student_sessions_processor',
+                'schoolapp.context_processors.student_sessions_context',  # ✅ Add this line
             ],
         },
     },
@@ -150,7 +155,8 @@ STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
 # Media files configuration
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
 
 # Static root (for Heroku)
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')

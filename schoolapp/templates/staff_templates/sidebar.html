@@ -52,6 +52,15 @@
             </a>
           </li>
           <li class="nav-item">
+            {% url 'staff_timetable' as staff_timetable %}
+            <a href="{{ staff_timetable }}" class="nav-link {% if request.path == staff_timetable %} active {% endif %}">
+              <i class="nav-icon fas fa-table"></i>
+              <p>
+                Time Table
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
             {% url 'staff_add_result' as staff_add_result %}
             <a href="{{ staff_add_result }}" class="nav-link {% if request.path == staff_add_result %} active {% endif %}">
               <i class="nav-icon fas fa-copy"></i>
@@ -66,6 +75,15 @@
               <i class="nav-icon fas fa-th"></i>
               <p>
                 Upload Assignment
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            {% url 'staff_submission_list' as staff_submission_list %}
+            <a href="{{ staff_submission_list }}" class="nav-link {% if request.path == staff_submission_list %} active {% endif %}">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                Submitted Assignment
               </p>
             </a>
           </li>

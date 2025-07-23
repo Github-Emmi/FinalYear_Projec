@@ -1,0 +1,41 @@
+{% extends 'student_templates/base.html' %}
+{% load static %}
+{% block title %}My Timetable{% endblock %}
+{% block dashboard_title %}Timetable{% endblock %}
+{% block dashboard_title1 %}My Weekly Schedule{% endblock %}
+
+{% block main_content %}
+<div class="container-fluid">
+  {% for day, entries in week.items %}
+    <div class="card card-outline card-info mb-4">
+      <div class="card-header bg-info">
+        <h4 class="card-title">{{ day }}</h4>
+      </div>
+      <div class="card-body p-2">
+        <table class="table table-sm table-bordered">
+          <thead class="thead-light">
+            <tr>
+              <th>Time</th>
+              <th>Subject</th>
+              <th>Classroom</th>
+              <th>Teacher</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in entries %}
+              <tr>
+                <td>{{ entry.start_time|time:"H:i" }} - {{ entry.end_time|time:"H:i" }}</td>
+                <td><span class="badge badge-primary">{{ entry.subject.subject_name }}</span></td>
+                <td>{{ entry.classroom }}</td>
+                <td>{{ entry.teacher.admin.get_full_name|default:"-" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% empty %}
+    <div class="alert alert-warning">No timetable available for this session.</div>
+  {% endfor %}
+</div>
+{% endblock %}

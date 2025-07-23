@@ -1,0 +1,50 @@
+{% extends 'staff_templates/base.html' %}
+{% load static %}
+
+{% block title %}Staff | My Timetable{% endblock %}
+{% block dashboard_title %}My Teaching Timetable{% endblock %}
+{% block dashboard_title1 %}Weekly Teaching Schedule{% endblock %}
+
+{% block main_content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="card card-primary card-outline">
+      <div class="card-header">
+        <h3 class="card-title">Weekly Schedule</h3>
+      </div>
+      <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap">
+          <thead class="thead-dark">
+            <tr>
+              <th>Day</th>
+              <th>Time</th>
+              <th>Subject</th>
+              <th>Class</th>
+              <th>Department</th>
+              <th>Classroom</th>
+              <th>Session</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in timetable %}
+              <tr>
+                <td>{{ entry.get_day_display }}</td>
+                <td>{{ entry.start_time|time:"H:i" }} - {{ entry.end_time|time:"H:i" }}</td>
+                <td>{{ entry.subject.subject_name }}</td>
+                <td>{{ entry.class_id.class_name }}</td>
+                <td>{{ entry.department_id.department_name }}</td>
+                <td>{{ entry.classroom }}</td>
+                <td>{{ entry.session_year.session_name }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7" class="text-center">No timetable entries found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,17 +1,58 @@
-{% if submission %}
-    <div class="alert alert-success">
-        <strong>Status:</strong> Submitted on {{ submission.submitted_at }}
-        {% if submission.submitted_file %}
-            <br><a href="{{ submission.submitted_file.url }}" target="_blank">View Uploaded File</a>
+{% extends 'student_templates/base.html' %}
+{% load static %}
+
+{% block title %}Assignment Detail{% endblock %}
+{% block dashboard_title %}Assignment Detail{% endblock dashboard_title %}
+{% block dashboard_title1 %}assignment detail{% endblock dashboard_title1 %}
+
+{% block main_content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">{{ assignment.title }}</h3>
+      </div>
+      <div class="card-body">
+        <p><strong>Description:</strong></p>
+        <p>{{ assignment.description }}</p>
+
+        {% if assignment.file %}
+        <p>
+          <strong>Attached File:</strong><br>
+          <a href="{{ assignment.file.url }}" class="btn btn-info" download>Download File</a>
+        </p>
         {% endif %}
+
+        <p><strong>Due Date:</strong> {{ assignment.due_date }}</p>
+        <p><strong>Class:</strong> {{ assignment.class_id }}</p>
+        <p><strong>Department:</strong> {{ assignment.department_id }}</p>
+        <p><strong>Session:</strong> {{ assignment.session_year }}</p>
+      </div>
     </div>
-{% else %}
-    <form method="POST" enctype="multipart/form-data">
+
+    {% if submission %}
+    <div class="alert alert-success mt-3">
+      You submitted this assignment on <strong>{{ submission.submitted_at }}</strong>.<br>
+    </div>
+    {% else %}
+    <div class="card card-info mt-3">
+      <div class="card-header">
+        <h3 class="card-title">Submit Assignment</h3>
+      </div>
+      <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-        <div class="form-group">
-            <label for="submitted_file">Upload Your Submission (PDF, DOCX, etc):</label>
-            <input type="file" name="submitted_file" class="form-control-file" required>
+        <div class="card-body">
+          <div class="form-group">
+            <label for="submitted_file">Upload Your File</label>
+            <input type="file" class="form-control" name="submitted_file" required>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary">Submit Assignment</button>
-    </form>
-{% endif %}
+        <div class="card-footer">
+          <button type="submit" class="btn btn-success">Submit</button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

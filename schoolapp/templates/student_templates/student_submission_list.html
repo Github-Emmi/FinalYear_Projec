@@ -1,0 +1,63 @@
+{% extends 'student_templates/base.html' %}
+{% load static %}
+{% block title %}Student | Submissions{% endblock %}
+{% block dashboard_title %}My Submitted Assignments{% endblock %}
+{% block dashboard_title1 %}Submission History{% endblock %}
+
+{% block main_content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">All Your Submissions</h3>
+      </div>
+      <div class="card-body table-responsive">
+        {% if submissions %}
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Assignment Title</th>
+              <th>Submitted On</th>
+              <th>Status</th>
+              <th>Grade</th>
+              <th>Feedback</th>
+              <th>Download</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sub in submissions %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ sub.assignment.title }}</td>
+              <td>{{ sub.submitted_at|date:"Y-m-d H:i" }}</td>
+              <td>
+                {% if sub.graded %}
+                  <span class="badge badge-success">Graded</span>
+                {% else %}
+                  <span class="badge badge-warning">Pending</span>
+                {% endif %}
+              </td>
+              <td>{{ sub.grade|default:"–" }}</td>
+              <td>{{ sub.feedback|default:"–" }}</td>
+              <td>
+                {% if sub.submitted_file %}
+                <a href="{{ sub.submitted_file.url }}" class="btn btn-sm btn-info" download>
+                  <i class="fas fa-download"></i> File
+                </a>
+                {% else %}
+                <span class="text-muted">No File</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+          <p class="text-muted">You have not submitted any assignments yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
