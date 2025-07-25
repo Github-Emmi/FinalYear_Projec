@@ -38,3 +38,17 @@ A powerful, full-stack Django-based Learning Management System (LMS) designed fo
 
 ## 🏗️ Project Structure
 
+school-management-lms/
+│
+├── schoolapp/ # Main Django app
+│ ├── views/ # All views (student, staff, admin)
+│ ├── models.py # Data models
+│ ├── urls.py
+│ ├── templates/
+│
+├── static/ # CSS, JS, images
+├── media/ # Uploaded files
+├── api/ # Optional API (DRF)
+│
+├── manage.py
+└── requirements.txt
