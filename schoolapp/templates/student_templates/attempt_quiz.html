@@ -1,0 +1,84 @@
+{% extends "student_templates/base.html" %}
+{% load question_extras %}
+{% block title %}Start Quiz – {{ quiz.title }}{% endblock %}
+{% block dashboard_title %} Take Quize {% endblock dashboard_title %}
+{% block dashboard_title1 %}take quize {% endblock dashboard_title1 %}
+
+{% block notitfication %} {% endblock notitfication %}
+{% block sidebar %}  {% endblock sidebar %}
+
+{% block main_content %}
+<div class="container mt-4">
+  <div class="alert alert-info text-center">
+    <strong>⏳ Time Left: <span id="timer"></span></strong>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    {% for q in questions %}
+      <div class="card mb-3">
+        <div class="card-header"><strong>Q{{ forloop.counter }}:</strong> {{ q.question_text }}</div>
+        <div class="card-body">
+          {% for opt in 'ABCD' %}
+            <div class="form-check">
+              <input type="radio" class="form-check-input" name="question_{{ q.id }}"
+                     value="{{ opt }}" id="q{{ q.id }}{{ opt }}"
+                     {% if answers.q.id|stringformat:"s" == opt %}checked{% endif %}>
+              <label class="form-check-label" for="q{{ q.id }}{{ opt }}">
+                {{ opt }}. {{ q|get_option_display:opt }}
+              </label>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+
+    <div class="d-flex justify-content-between">
+      {% if page > 1 %}
+        <button name="prev" class="btn btn-secondary">← Previous</button>
+      {% endif %}
+      {% if page < total_pages %}
+        <button name="next" class="btn btn-primary">Next →</button>
+      {% else %}
+        <button name="submit" class="btn btn-success">Submit Quiz</button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block custom_js %}
+<script>
+  let duration = {{ seconds_remaining }};
+  let timer = setInterval(() => {
+    let minutes = Math.floor(duration / 60);
+    let seconds = duration % 60;
+    document.getElementById('timer').innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    if (--duration < 0) {
+      clearInterval(timer);
+      window.onbeforeunload = null; // prevent prompt on auto-submit
+      alert("⏱️ Time's up! Submitting your quiz.");
+      document.querySelector('form').submit();
+    }
+  }, 1000);
+
+  // Track if the quiz is being submitted manually
+  let isNavigating = false;
+
+  document.querySelectorAll("button[name='next'], button[name='prev'], button[name='submit']")
+    .forEach(btn => {
+      btn.addEventListener("click", () => {
+        isNavigating = true;
+        window.onbeforeunload = null;  // suppress prompt
+      });
+    });
+
+  // Warn if user tries to leave page manually
+  window.onbeforeunload = function (e) {
+    if (!isNavigating) {
+      e.preventDefault();
+      e.returnValue = "⚠️ Leaving this page will submit your quiz!";
+    }
+  };
+</script>
+{% endblock custom_js %}

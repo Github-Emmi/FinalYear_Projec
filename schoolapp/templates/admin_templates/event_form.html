@@ -1,0 +1,60 @@
+{% extends 'admin_templates/base.html' %}
+{% block title %}Create Academic Event{% endblock %}
+{% block main_content %}
+<div class="container mt-4">
+  <form method="post">
+    {% csrf_token %}
+    <div class="card card-primary">
+      <div class="card-header">
+        <h4><i class="fas fa-calendar-plus"></i> Add New Academic Event</h4>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label>Event Title</label>
+          <input type="text" name="title" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" class="form-control" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Event Date & Time</label>
+          <input type="datetime-local" name="event_datetime" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Session Year</label>
+          <select name="session_year" class="form-control" required>
+            {% for s in sessions %}
+              <option value="{{ s.id }}">{{ s.session_start_year }} to {{ s.session_end_year }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Event Type</label>
+          <select name="event_type" class="form-control" required>
+            <option value="EVENT">Event</option>
+            <option value="EXAM">Exam</option>
+            <option value="HOLIDAY">Holiday</option>
+            <option value="RESULT">Result Release</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Target Audience</label>
+          <select name="target_audience" class="form-control" required>
+            <option value="ALL">All Users</option>
+            <option value="STUDENTS">Students Only</option>
+            <option value="STAFFS">Staff Only</option>
+          </select>
+        </div>
+      </div>
+      {% include 'admin_templates/verification_message.html' with user=user %}
+      <div class="card-footer">
+        <button type="submit" class="btn btn-success btn-block">
+          <i class="fas fa-plus-circle"></i> Create Event
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

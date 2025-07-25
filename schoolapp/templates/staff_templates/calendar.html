@@ -1,0 +1,84 @@
+
+<div class="col-lg-6">
+   <div class="card bg-gradient-success">
+              <div class="card-header border-0 ui-sortable-handle">
+
+                <h3 class="card-title">
+                  <i class="far fa-calendar-alt"></i>
+                  Event Calendar
+                </h3>
+                <!-- tools card -->
+                <div class="card-tools">
+                  <!-- button with a dropdown -->
+                  <button type="button" class="btn btn-success btn-sm" data-card-widget="collapse">
+                    <i class="fas fa-minus"></i>
+                  </button>
+                  <button type="button" class="btn btn-success btn-sm" data-card-widget="remove">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+                <!-- /. tools -->
+              </div>
+              <!-- /.card-header -->
+              <div class="card-body pt-0">
+                <!--The calendar -->
+                <div id="studentScheduleCalendar" style="width: 100%"></div>
+              </div>
+              <!-- /.card-body -->
+            </div>
+      <!-- Modal for Event Detail -->
+<div class="modal fade" id="eventModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-left-primary">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="eventTitle">Event Title</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="eventDescription">Event description...</p>
+        <hr>
+        <small id="eventTime" class="text-muted"></small>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+{% block custom_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const calendarEl = document.getElementById('studentScheduleCalendar');
+  
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    themeSystem: 'bootstrap',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,'
+    },
+    height: 400,
+    events: 'staff-academy-json/', // Django URL to provide student events as JSON
+    eventColor: '#28a745',
+
+    eventClick: function(info) {
+      info.jsEvent.preventDefault();
+      const title = info.event.title;
+      const description = info.event.extendedProps.description || "No description provided.";
+      const time = new Date(info.event.start).toLocaleString();
+      // Populate modal
+      document.getElementById("eventTitle").textContent = title;
+      document.getElementById("eventDescription").textContent = description;
+      document.getElementById("eventTime").textContent = "Scheduled on: " + time;
+      // Show Bootstrap modal
+      $('#eventModal').modal('show');
+    }
+  });
+
+  calendar.render();
+});
+</script>
+{% endblock custom_js %}

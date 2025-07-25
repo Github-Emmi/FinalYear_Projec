@@ -308,13 +308,43 @@ class NotificationStudent(models.Model):
 
 
 class NotificationStaffs(models.Model):
-    id = models.AutoField(primary_key=True)
-    staff_id = models.ForeignKey(Staffs, on_delete=models.CASCADE)
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now_add=True)
-    objects = models.Manager()
+    recipient = models.ForeignKey(
+        User, default="",
+        on_delete=models.CASCADE,
+        related_name='notification_staff'  # <--- unique related name here
+    )
+    verb = models.CharField(max_length=255, default="")
+    description = models.TextField(blank=True)
+    link = models.URLField(blank=True)
+    read = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-timestamp']
+
+class Event(models.Model):
+    EVENT_TYPES = [
+        ('EVENT', 'Event'),
+        ('EXAM', 'Exam'),
+        ('HOLIDAY', 'Holiday'),
+        ('RESULT', 'Result Release'),
+        ('OTHER', 'Other'),
+    ]
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    event_type = models.CharField(max_length=20, choices=EVENT_TYPES, default='EVENT')
+    event_datetime = models.DateTimeField()
+    related_session = models.ForeignKey(SessionYearModel, on_delete=models.SET_NULL, null=True, blank=True)
+    target_audience = models.CharField(max_length=20, choices=[('ALL', 'All'), ('STUDENTS', 'Students'), ('STAFFS', 'Staffs')])
+    created_at = models.DateTimeField(auto_now_add=True)
+    def get_event_color(self):
+        return {
+            'EXAM': '#007bff',
+            'HOLIDAY': '#dc3545',
+            'RESULT': '#ffc107',
+            'GENERAL': '#28a745',
+            'ASSIGNMENT': '#6610f2'
+        }.get(self.event_type, '#6c757d')  # Default grey
 
 class TimeTable(models.Model):
     DAY_CHOICES = [
@@ -325,7 +355,6 @@ class TimeTable(models.Model):
         ('FRI', 'Friday'),
         ('SAT', 'Saturday'),
     ]
-
     subject = models.ForeignKey(Subjects, on_delete=models.CASCADE)
     teacher = models.ForeignKey(Staffs, on_delete=models.SET_NULL, null=True, blank=True)
     class_id = models.ForeignKey(Class, on_delete=models.CASCADE)
@@ -335,15 +364,64 @@ class TimeTable(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     classroom = models.CharField(max_length=100, blank=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
-
     class Meta:
         ordering = ['day', 'start_time']
-
     def __str__(self):
         return f"{self.subject.subject_name} - {self.day} {self.start_time}-{self.end_time}"
 
+class Quiz(models.Model):
+    STATUS_CHOICES = [
+        ('DRAFT', 'Draft'),
+        ('PUBLISHED', 'Published'),
+    ]
+
+    title = models.CharField(max_length=255)
+    instructions = models.TextField()
+    subject = models.ForeignKey(Subjects, on_delete=models.CASCADE)
+    class_id = models.ForeignKey(Class, on_delete=models.CASCADE)
+    department_id = models.ForeignKey(Departments, on_delete=models.CASCADE)
+    session_year = models.ForeignKey(SessionYearModel, on_delete=models.CASCADE)
+    staff = models.ForeignKey(Staffs, on_delete=models.CASCADE)
+    deadline = models.DateTimeField() ##### notify students for the quiz deadline
+    duration_minutes = models.PositiveIntegerField(default=30)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='DRAFT') ## make it accessible once published
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"{self.title} - {self.subject.subject_name}"
+
+class Question(models.Model):
+    quiz = models.ForeignKey('Quiz', related_name="questions", on_delete=models.CASCADE)
+    question_text = models.TextField()
+    option_a = models.CharField(max_length=255)
+    option_b = models.CharField(max_length=255)
+    option_c = models.CharField(max_length=255)
+    option_d = models.CharField(max_length=255)
+    correct_answer = models.CharField(
+        max_length=1,
+        choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')]
+    )
+    def __str__(self):
+        return f"Q: {self.question_text[:50]}"
+
+class StudentQuizSubmission(models.Model):
+    student = models.ForeignKey('Students', on_delete=models.CASCADE)
+    quiz = models.ForeignKey('Quiz', on_delete=models.CASCADE)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    total_score = models.FloatField(default=0.0)
+    is_graded = models.BooleanField(default=False)
+    def __str__(self):
+        return f"{self.student.admin.get_full_name()} - {self.quiz.title}"
+
+class StudentAnswer(models.Model):
+    submission = models.ForeignKey(StudentQuizSubmission, related_name='answers', on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    selected_option = models.CharField(max_length=1, choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')])
+    is_correct = models.BooleanField(default=False)
+    def __str__(self):
+        return f"{self.submission.student.admin.get_full_name()} - QID: {self.question.id}"
 
 
 @receiver(post_save, sender=CustomUser)

@@ -456,7 +456,6 @@ def staff_grade_submission(request, submission_id):
         "submission": submission
     })
 
-
 @login_required
 def staff_timetable_view(request):
     staff = Staffs.objects.get(admin=request.user)
@@ -472,3 +471,119 @@ def staff_timetable_view(request):
         "timetable": timetable_entries,
         "days": days
     })
+
+@login_required
+def staff_add_quiz(request):
+    staff = Staffs.objects.get(admin=request.user)
+    # Filter subjects assigned to this staff
+    assigned_subjects = Subjects.objects.filter(staff_id=staff.admin.id)
+    assigned_classes = Class.objects.filter(id__in=assigned_subjects.values_list('class_id', flat=True))
+    assigned_departments = Departments.objects.filter(id__in=assigned_subjects.values_list('department_id', flat=True))
+    sessions = SessionYearModel.objects.all()
+    if request.method == "POST":
+        title = request.POST.get("title")
+        instructions = request.POST.get("instructions")
+        subject_id = request.POST.get("subject_id")
+        class_id = request.POST.get("class_id")
+        department_id = request.POST.get("department_id")
+        session_year_id = request.POST.get("session_year")
+        deadline = request.POST.get("deadline")
+        start_time = request.POST.get("start_time")
+        end_time = request.POST.get("end_time")
+        try:
+            quiz = Quiz.objects.create(
+                title=title,
+                instructions=instructions,
+                subject=Subjects.objects.get(id=subject_id),
+                class_id=Class.objects.get(id=class_id),
+                department_id=Departments.objects.get(id=department_id),
+                session_year=SessionYearModel.objects.get(id=session_year_id),
+                deadline=deadline,
+                start_time=start_time,
+                end_time=end_time,
+                staff=staff
+            )
+            messages.success(request, "Quiz created successfully.")
+            return redirect("staff_add_quiz")
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
+
+    return render(request, "staff_templates/add_quiz.html", {
+        "subjects": assigned_subjects,
+        "classes": assigned_classes,
+        "departments": assigned_departments,
+        "sessions": sessions,
+    })
+
+@login_required
+def staff_quiz_list(request):
+    staff = Staffs.objects.get(admin=request.user)
+    quizzes = Quiz.objects.filter(staff=staff).select_related("subject", "class_id", "department_id", "session_year")
+
+    return render(request, "staff_templates/quiz_list.html", {
+        "quizzes": quizzes
+    })
+
+@login_required
+def staff_add_question_to_quiz(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id, staff__admin=request.user)
+
+    if request.method == "POST":
+        question_text = request.POST.get("question_text")
+        option_a = request.POST.get("option_a")
+        option_b = request.POST.get("option_b")
+        option_c = request.POST.get("option_c")
+        option_d = request.POST.get("option_d")
+        correct_answer = request.POST.get("correct_answer")
+
+        try:
+            Question.objects.create(
+                quiz=quiz,
+                question_text=question_text,
+                option_a=option_a,
+                option_b=option_b,
+                option_c=option_c,
+                option_d=option_d,
+                correct_answer=correct_answer
+            )
+            messages.success(request, "Question added successfully.")
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
+
+        return redirect("staff_add_question_to_quiz", quiz_id=quiz.id)
+
+    return render(request, "staff_templates/quiz_add_question.html", {
+        "quiz": quiz
+    })
+
+@login_required
+def staff_view_quiz_questions(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id, staff__admin=request.user)
+    questions = quiz.questions.all()
+
+    return render(request, "staff_templates/quiz_question_list.html", {
+        "quiz": quiz,
+        "questions": questions
+    })
+
+@login_required
+def staff_delete_question(request, question_id):
+    question = get_object_or_404(Question, id=question_id, quiz__staff__admin=request.user)
+    quiz_id = question.quiz.id
+    question.delete()
+    messages.success(request, "Question deleted.")
+    return redirect("staff_view_quiz_questions", quiz_id=quiz_id)
+
+@login_required
+def toggle_quiz_status(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id, staff__admin=request.user)
+
+    if quiz.status == "DRAFT":
+        quiz.status = "PUBLISHED"
+        messages.success(request, f"✅ Quiz '{quiz.title}' is now Published.")
+    else:
+        quiz.status = "DRAFT"
+        messages.info(request, f"⏸️ Quiz '{quiz.title}' is now in Draft mode.")
+
+    quiz.save()
+    return redirect("staff_quiz_list")

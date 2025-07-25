@@ -88,6 +88,24 @@
             </a>
           </li>
           <li class="nav-item">
+            {% url 'staff_add_quiz' as staff_add_quiz %}
+            <a href="{{ staff_add_quiz }}" class="nav-link {% if request.path == staff_add_quiz %} active {% endif %}">
+              <i class="nav-icon fas fa-question"></i>
+              <p>
+                Add Quiz
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            {% url 'staff_quiz_list' as staff_quiz_list %}
+            <a href="{{ staff_quiz_list }}" class="nav-link {% if request.path == staff_quiz_list %} active {% endif %}">
+              <i class="nav-icon fas fa-eye"></i>
+              <p>
+                Quiz List
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
             {% url 'staff_apply_leave' as staff_apply_leave %}
             <a href="{{ staff_apply_leave }}" class="nav-link {% if request.path == staff_apply_leave %} active {% endif %}">
               <i class="nav-icon fas fa-walking"></i>

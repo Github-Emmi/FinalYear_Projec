@@ -14,7 +14,7 @@ from django.core.paginator import Paginator
 from .generic_views import generic_paginated_list
 from django.template.loader import render_to_string
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.admin.views.decorators import staff_member_required
+from notifications.signals import notify
 
 
 @login_required(login_url="/")
@@ -1174,7 +1174,6 @@ def admin_timetable_list(request):
         "timetable": timetable
     })
 
-
 @login_required
 def admin_add_timetable(request):
     if request.method == "POST":
@@ -1187,7 +1186,6 @@ def admin_add_timetable(request):
         end_time = request.POST.get("end_time")
         classroom = request.POST.get("classroom")
         staff_id = request.POST.get("staff_id") or None
-
         try:
             timetable = TimeTable.objects.create(
                 subject=Subjects.objects.get(id=subject_id),
@@ -1205,7 +1203,6 @@ def admin_add_timetable(request):
         except Exception as e:
             messages.error(request, f"Error: {e}")
             return redirect("admin_add_timetable")
-
     return render(request, "admin_templates/timetable_form.html", {
         "subjects": Subjects.objects.all(),
         "classes": Class.objects.all(),
@@ -1214,7 +1211,6 @@ def admin_add_timetable(request):
         "staffs": Staffs.objects.select_related('admin').all(),
         "days": TimeTable.DAY_CHOICES
     })
-
 
 @login_required
 def admin_edit_timetable(request, pk):
@@ -1230,7 +1226,6 @@ def admin_edit_timetable(request, pk):
         timetable.classroom = request.POST.get("classroom")
         staff_id = request.POST.get("staff_id") or None
         timetable.teacher = Staffs.objects.get(id=staff_id) if staff_id else None
-
         try:
             timetable.save()
             messages.success(request, "Timetable updated successfully.")
@@ -1238,7 +1233,6 @@ def admin_edit_timetable(request, pk):
         except Exception as e:
             messages.error(request, f"Error: {e}")
             return redirect("admin_edit_timetable", pk=pk)
-
     return render(request, "admin_templates/timetable_form.html", {
         "subjects": Subjects.objects.all(),
         "classes": Class.objects.all(),
@@ -1249,8 +1243,6 @@ def admin_edit_timetable(request, pk):
         "timetable": timetable
     })
 
-
-# DELETE TIMETABLE ENTRY
 @login_required
 def admin_delete_timetable(request, pk):
     timetable = get_object_or_404(TimeTable, pk=pk)
@@ -1260,3 +1252,45 @@ def admin_delete_timetable(request, pk):
     except Exception as e:
         messages.error(request, f"Error: {e}")
     return redirect("admin_timetable_list")
+
+@login_required
+def admin_create_event(request):
+    if request.method == "POST":
+        title = request.POST.get("title")
+        description = request.POST.get("description")
+        event_datetime = request.POST.get("event_datetime")
+        session_id = request.POST.get("session_year")
+        target = request.POST.get("target_audience")
+        event_type = request.POST.get("event_type") or "EVENT"
+        try:
+            session = SessionYearModel.objects.get(id=session_id)
+            event = Event.objects.create(
+                title=title,
+                description=description,
+                event_datetime=event_datetime,
+                related_session=session,
+                target_audience=target,
+                event_type=event_type
+            )
+            from schoolapp.models import CustomUser
+            if target == 'ALL':
+                recipients = CustomUser.objects.filter(Q(user_type='2') | Q(user_type='3'))
+            elif target == 'STUDENTS':
+                recipients = CustomUser.objects.filter(user_type='3')
+            elif target == 'STAFFS':
+                recipients = CustomUser.objects.filter(user_type='2')
+            for user in recipients:
+                notify.send(
+                    sender=request.user,
+                    recipient=user,
+                    verb=f"📅 Upcoming {event.get_event_type_display()}: {title}",
+                    description=description,
+                    target=event
+                )
+            messages.success(request, "✅ Event created and notifications sent.")
+        except Exception as e:
+            messages.error(request, f"❌ Error: {e}")
+        return redirect("admin_create_event")
+    return render(request, "admin_templates/event_form.html", {
+        "sessions": SessionYearModel.objects.all()
+    })

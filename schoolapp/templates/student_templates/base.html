@@ -44,12 +44,12 @@
     </ul>
 
     <!-- Right navbar links -->
-     {% include 'student_templates/notification.html' %}
+    {% block notitfication %} {% include 'student_templates/notification.html' %} {% endblock notitfication %}
   </nav>
   <!-- /.navbar -->
 
   <!-- Main Sidebar Container -->
-     {% include 'student_templates/sidebar.html' with user=user %}
+    {% block sidebar %} {% include 'student_templates/sidebar.html' with user=user %} {% endblock sidebar %}
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">

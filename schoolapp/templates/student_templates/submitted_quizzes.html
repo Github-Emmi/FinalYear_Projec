@@ -1,0 +1,29 @@
+{% extends 'student_templates/base.html' %}
+{% block title %}Submitted Quizzes{% endblock %}
+{% block main_content %}
+<div class="container mt-4">
+  <h4>📋 Your Quiz Submissions</h4>
+  <table class="table table-bordered table-hover mt-3">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Quiz Title</th>
+        <th>Score (%)</th>
+        <th>Submitted On</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for submission in submissions %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ submission.quiz.title }}</td>
+          <td>{{ submission.total_score|floatformat:2 }}</td>
+          <td>{{ submission.submitted_at|date:"Y-m-d H:i" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="text-center">No quizzes attempted yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

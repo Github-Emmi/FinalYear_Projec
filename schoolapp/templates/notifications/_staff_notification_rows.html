@@ -1,0 +1,43 @@
+{% load humanize %}
+
+<table class="table table-hover table-striped">
+  <tbody>
+    {% for note in page_obj %}
+    <tr class="{% if note.unread %}table-primary{% else %}table-secondary{% endif %}">
+      <td>
+        <input type="checkbox" value="{{ note.id }}">
+      </td>
+      <td>
+        <a href="{% url 'notification_read' note.id %}">
+          <b>{{ note.verb }}</b>
+        </a><br>
+        <small>{{ note.timestamp|naturaltime }}</small>
+      </td>
+      <td class="mailbox-date">{{ note.timestamp|naturaltime }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="3" class="text-center">No notifications found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="card-footer p-0">
+  <div class="float-right p-2">
+    {{ page_obj.paginator.count }} total
+  </div>
+  <div class="pagination pagination-sm m-2">
+    {% if page_obj.has_previous %}
+      <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">&laquo;</a>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}
+        <span class="page-link active">{{ num }}</span>
+      {% else %}
+        <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+      <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">&raquo;</a>
+    {% endif %}
+  </div>
+</div>

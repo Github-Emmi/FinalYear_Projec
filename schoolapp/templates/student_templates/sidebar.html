@@ -70,6 +70,24 @@
             </a>
           </li>
           <li class="nav-item">
+            {% url 'student_quiz_list' as student_quiz_list %}
+            <a href="{{ student_quiz_list }}" class="nav-link {% if request.path == student_quiz_list %} active {% endif %}">
+              <i class="nav-icon fas fa-book-open"></i>
+              <p>
+                Take Quiz
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            {% url 'student_submitted_quiz_list' as student_submitted_quiz_list %}
+            <a href="{{ student_submitted_quiz_list }}" class="nav-link {% if request.path == student_submitted_quiz_list %} active {% endif %}">
+              <i class="nav-icon fas fa-book"></i>
+              <p>
+                Submitted Quiz
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
             {% url 'student_view_result' as student_view_result %}
             <a href="{{ student_view_result }}" class="nav-link {% if request.path == student_view_result %} active {% endif %}">
               <i class="nav-icon fas fa-copy"></i>

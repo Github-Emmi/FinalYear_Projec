@@ -1,0 +1,52 @@
+{% load humanize %}
+<div class="table-responsive">
+  <table class="table table-hover table-striped">
+    <thead class="thead-dark">
+      <!-- headers same as before -->
+    </thead>
+    <tbody>
+      {% for assignment in assignments %}
+      <tr>
+        <td>{{ assignment.title }}</td>
+        <td class="text-muted">{{ assignment.description|truncatewords:10 }}</td>
+        <td>{{ assignment.due_date|naturaltime }}</td>
+        <td><a href="{{ assignment.file.url }}" target="_blank"><i class="fas fa-download"></i></a></td>
+        <td>
+          {% if assignment.id in submitted_assignment_ids %}
+            <span class="badge badge-success">Submitted</span>
+          {% else %}
+            <span class="badge badge-warning">Pending</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if assignment.id not in submitted_assignment_ids %}
+            <a href="{% url 'submit_assignment' assignment.id %}" class="btn btn-sm btn-primary">
+              <i class="fas fa-upload"></i> Submit
+            </a>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-center text-muted">No assignments found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if assignments.has_other_pages %}
+<nav>
+  <ul class="pagination pagination-sm float-right">
+    {% if assignments.has_previous %}
+      <li class="page-item"><a class="page-link page-nav" href="#" data-page="{{ assignments.previous_page_number }}">&laquo;</a></li>
+    {% endif %}
+    {% for p in assignments.paginator.page_range %}
+      <li class="page-item {% if assignments.number == p %}active{% endif %}">
+        <a class="page-link page-nav" href="#" data-page="{{ p }}">{{ p }}</a>
+      </li>
+    {% endfor %}
+    {% if assignments.has_next %}
+      <li class="page-item"><a class="page-link page-nav" href="#" data-page="{{ assignments.next_page_number }}">&raquo;</a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}

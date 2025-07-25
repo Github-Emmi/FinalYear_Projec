@@ -90,6 +90,8 @@ path("admin-timetable/", AdminViews.admin_timetable_list, name="admin_timetable_
 path("admin-timetable/add/", AdminViews.admin_add_timetable, name="admin_add_timetable"),
 path("admin-timetable/edit/<int:pk>/", AdminViews.admin_edit_timetable, name="admin_edit_timetable"),
 path("admin-timetable/delete/<int:pk>/", AdminViews.admin_delete_timetable, name="admin_delete_timetable"),
+path("admin-create-event/", AdminViews.admin_create_event, name="admin_create_event"),
+
 
    ####################################
            # Staff Views #
@@ -115,6 +117,15 @@ path("staff-timetable/", StaffViews.staff_timetable_view, name="staff_timetable"
 path('staff-submissions/', StaffViews.submission_list, name='staff_submission_list'),
 path('staff-assignments/<int:assignment_id>/submissions/', StaffViews.staff_view_submissions, name='staff_view_submissions'),
 path('staff-submissions/<int:submission_id>/grade/', StaffViews.staff_grade_submission, name='staff_grade_submission'),
+path('notifications/', views.staff_notifications_list, name='staff_notifications_list'),
+path('staff-add-quiz/', StaffViews.staff_add_quiz, name='staff_add_quiz'),
+path("staff-quizzes/", StaffViews.staff_quiz_list, name="staff_quiz_list"),
+path("staff-quiz/<int:quiz_id>/add-question/", StaffViews.staff_add_question_to_quiz, name="staff_add_question_to_quiz"),
+path("staff-quiz/<int:quiz_id>/questions/", StaffViews.staff_view_quiz_questions, name="staff_view_quiz_questions"),
+path("staff-quiz/question/<int:question_id>/delete/", StaffViews.staff_delete_question, name="staff_delete_question"),
+path("staff-quiz/<int:quiz_id>/toggle-status/", StaffViews.toggle_quiz_status, name="toggle_quiz_status"),
+
+
 
 
 
@@ -134,16 +145,28 @@ path('student-apply-leave-save', StudentViews.student_apply_leave_save, name="st
 path('student-feedback', StudentViews.student_feedback, name="student_feedback"),
 path('student-feedback-save', StudentViews.student_feedback_save, name="student_feedback_save"),
 path('student-view-result',StudentViews.student_view_result,name="student_view_result"),
-path('student-make-payment',StudentViews.student_make_payment,name="student_make_payment"),
-###### Notifications ######
-path('notifications/', views.notifications_list, name='notifications_list'),
-path('notifications/delete-selected/', views.delete_selected_notifications, name='notifications_delete_selected'),
-path('notifications/mark-all-read/', views.mark_all_read, name='notifications_mark_all_read'),
-path('notifications/<int:pk>/read/', views.notification_read, name='notification_read'),
 path('assignment/<int:assignment_id>/', StudentViews.assignment_detail, name='student_assignment_detail'),
 path("student-submission/<int:submission_id>/feedback/", StudentViews.student_submission_feedback, name="student_submission_feedback"),
 path("student-submissions/", StudentViews.student_submissions, name="student_submissions"),
 path("student/timetable/", StudentViews.student_timetable, name="student_timetable"),
+path('student-schedule-json/', StudentViews.student_schedule_json, name='student_schedule_json'),
+path('student-make-payment',StudentViews.student_make_payment,name="student_make_payment"),
+path("student-quizzes/", StudentViews.student_quiz_list, name="student_quiz_list"),
+path("student-quiz-start/<int:quiz_id>/", StudentViews.quiz_start, name="student_quiz_start"),
+path("student-quiz-attempt/<int:quiz_id>/<int:page>/", StudentViews.student_quiz_attempt, name="student_quiz_attempt"),
+path("student-submitted-quizzes/", StudentViews.submitted_quiz_list, name="student_submitted_quiz_list"),
+
+
+
+####################################
+           # Notifications #
+####################################
+path('notifications/', views.notifications_list, name='notifications_list'),
+path('notifications/delete-selected/', views.delete_selected_notifications, name='notifications_delete_selected'),
+path('notifications/mark-all-read/', views.mark_all_read, name='notifications_mark_all_read'),
+path('notifications/<int:pk>/read/', views.notification_read, name='notification_read'),
+path("student-academy-json/", views.calendar_events_json, name="calendar_events_json"),
+path("staff-academy-json/", views.calendar_events_json, name="calendar_events_json"),
 ]
 
 

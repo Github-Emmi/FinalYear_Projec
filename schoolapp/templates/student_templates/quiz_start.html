@@ -1,0 +1,51 @@
+{% extends "student_templates/base.html" %}
+{% block title %}Start Quiz – {{ quiz.title }}{% endblock %}
+{% block dashboard_title %} Take Quize {% endblock dashboard_title %}
+{% block dashboard_title1 %}take quize {% endblock dashboard_title1 %}
+
+{% block notitfication %} {% endblock notitfication %}
+{% block sidebar %}  {% endblock sidebar %}
+
+{% block main_content %}
+<div class="container mt-5">
+  <div class="card card-warning mx-auto" style="max-width: 600px;">
+    <div class="card-header">
+      <h3 class="card-title"><i class="fas fa-question-circle"></i> {{ quiz.title }}</h3>
+    </div>
+    <div class="card-body">
+      <p>{{ quiz.instructions }}</p>
+      <p><strong>Time limit:</strong> {{ quiz.duration_minutes }} minutes</p>
+      <button id="startQuizBtn" class="btn btn-success btn-block">Start Quiz</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="confirmStartModal" tabindex="-1" aria-labelledby="confirmStartLabel" aria-hidden="true">
+ <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-content">
+   <div class="modal-header">
+     <h5 class="modal-title" id="confirmStartLabel">Ready to Start?</h5>
+     <button type="button" class="close" data-dismiss="modal">&times;</button>
+   </div>
+   <div class="modal-body">
+     <p>Once started, closing or leaving the page will automatically submit your quiz.
+        The timer will control automatic submission.</p>
+   </div>
+   <div class="modal-footer">
+     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+     <button id="confirmStart" type="button" class="btn btn-success">Yes, start quiz</button>
+   </div>
+  </div>
+ </div>
+</div>
+
+<script>
+  document.getElementById('startQuizBtn').onclick = () => {
+    $('#confirmStartModal').modal('show');
+  };
+  document.getElementById('confirmStart').onclick = () => {
+    window.location.href = "{% url 'student_quiz_attempt' quiz.id 1 %}";
+  };
+</script>
+{% endblock %}

@@ -116,8 +116,8 @@
                   </a>
                 </li>
                 </ul>
-              </li>   
-
+              </li>    
+              
               <li class="nav-item has-treeview">
                 <a href="#" class="nav-link">
                   <i class="nav-icon fas fa-tachometer-alt"></i>
@@ -199,7 +199,17 @@
                   </a>
                 </li>
                 </ul>
-              </li>   
+              </li>
+
+          <li class="nav-item">
+            {% url 'admin_create_event' as admin_create_event %}
+           <a href="{% url 'admin_create_event' %}" class="nav-link {% if request.path == admin_create_event %} active {% endif %}">
+             <i class="nav-icon fas fa-calendar-alt"></i>
+             <p>
+              Academic Event
+             </p>
+           </a>
+         </li>
               
            
           <li class="nav-item">

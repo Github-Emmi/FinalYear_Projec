@@ -1,6 +1,6 @@
 import datetime
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.core.files.storage import FileSystemStorage
@@ -9,6 +9,12 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from notifications.signals import notify
+from django.core.paginator import Paginator
+from django.template.loader import render_to_string
+from django.utils.timezone import now
+from django.utils.dateparse import parse_datetime
+
 
 
 def get_student_sessions(student):
@@ -137,21 +143,38 @@ def student_assignments(request):
     session = SessionYearModel.objects.get(id=session_id)
     student_sessions = get_student_sessions(student)
 
-    assignments = Assignment.objects.filter(
+    qs = Assignment.objects.filter(
         class_id=student.class_id,
         department_id=student.department_id,
         session_year_id=session
     ).order_by("-created_at")
 
-    submissions = AssignmentSubmission.objects.filter(student=student)
-    submitted_assignment_ids = submissions.values_list("assignment__id", flat=True)
+    # Live search
+    query = request.GET.get("q", "")
+    if query:
+        qs = qs.filter(title__icontains=query) | qs.filter(description__icontains=query)
 
-    return render(request, "student_templates/assignment_list.html", {
+    paginator = Paginator(qs, 10)
+    page_no = request.GET.get("page")
+    assignments = paginator.get_page(page_no)
+
+    submitted_assignment_ids = AssignmentSubmission.objects.filter(
+        student=student
+    ).values_list("assignment_id", flat=True)
+
+    context = {
         "assignments": assignments,
         "submitted_assignment_ids": submitted_assignment_ids,
         "student_sessions": student_sessions,
         "session_obj": session,
-    })
+        "query": query,
+    }
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        html = render_to_string("student_templates/_assignments_table.html", context, request=request)
+        return JsonResponse({"html": html})
+
+    return render(request, "student_templates/assignment_list.html", context)
 
 
 @login_required
@@ -195,6 +218,13 @@ def assignment_detail(request, assignment_id):
                     assignment=assignment,
                     student=student,
                     submitted_file=submitted_file
+                )
+                notify.send(
+                    sender=request.user,
+                    recipient=assignment.staff.admin,
+                    verb="New assignment submission received",
+                    description=f"{student.admin.get_full_name()} submitted for '{assignment.title}'",
+                    target=submission
                 )
                 messages.success(request, "Assignment submitted successfully.")
                 return redirect("student_assignment_detail", assignment_id=assignment.id)
@@ -249,8 +279,6 @@ def student_view_attendance(request):
         "session_obj": session,
         "student_sessions": student_sessions,
     })
-
-
 
 
 @login_required
@@ -411,8 +439,133 @@ def student_timetable(request):
         "session_obj": session,
     })
 
+@login_required
+def student_schedule_json(request):
+    student = request.user.students
+    session_id = request.session.get('active_student_session_id', student.session_year_id.id)
+    session = SessionYearModel.objects.get(id=session_id)
 
+    # Monday = 0, Sunday = 6 (we want Mon–Fri only)
+    valid_days = ['MON', 'TUE', 'WED', 'THU', 'FRI']
 
+    timetable_entries = TimeTable.objects.filter(
+        class_id=student.class_id,
+        department_id=student.department_id,
+        session_year=session,
+        day__in=valid_days
+    )
+
+    events = []
+
+    day_map = {
+        'NONE': 0,  # If no day is set, default to Monday
+        'MON': 1,
+        'TUE': 2,
+        'WED': 3,
+        'THU': 4,
+        'FRI': 5,
+        'SAT': 6,
+        'SUN': 7,
+    }
+
+    # We'll render entries as recurring weekly events (every week, same day/time)
+    for entry in timetable_entries:
+        events.append({
+            "title": f"{entry.subject.subject_name} ({entry.classroom})",
+            "daysOfWeek": [day_map[entry.day]],  # e.g. [0] = Monday
+            "startTime": str(entry.start_time),
+            "endTime": str(entry.end_time),
+            "color": "#007bff",  # Optional: subject color
+        })
+
+    return JsonResponse(events, safe=False)
+
+@login_required
+def quiz_start(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id, status='PUBLISHED')
+    # Store quiz start time for countdown
+    request.session['quiz_start_time'] = str(datetime.datetime.now())
+    request.session['quiz_id'] = quiz.id
+    return render(request, "student_templates/quiz_start.html", {
+        "quiz": quiz,
+    })
+
+@login_required
+def student_quiz_list(request):
+    student = request.user.students
+    session = student.session_year_id
+
+    quizzes = Quiz.objects.filter(
+        class_id=student.class_id,
+        department_id=student.department_id,
+        session_year=session,
+        status="PUBLISHED",
+    ).order_by("-created_at")
+
+    submissions = StudentQuizSubmission.objects.filter(student=student)
+    attempted_ids = submissions.values_list("quiz_id", flat=True)
+
+    return render(request, "student_templates/quiz_list.html", {
+        "quizzes": quizzes,
+        "attempted_ids": attempted_ids,
+    })
+
+@login_required
+def student_quiz_attempt(request, quiz_id, page):
+    student = request.user.students
+    quiz = get_object_or_404(Quiz, id=quiz_id, status='PUBLISHED')
+    questions = quiz.questions.all().order_by('id')
+
+    paginator = Paginator(questions, 10)
+    current_page = paginator.get_page(page)
+
+    session_key = f"quiz_{quiz_id}_answers"
+    timer_key = f"quiz_{quiz_id}_start_time"
+
+    if session_key not in request.session:
+        request.session[session_key] = {}
+
+    if timer_key not in request.session:
+        request.session[timer_key] = now().isoformat()
+
+    # Timer logic
+    quiz_start_time = parse_datetime(request.session[timer_key])
+    elapsed = (now() - quiz_start_time).total_seconds()
+    remaining = max((quiz.duration_minutes * 60) - int(elapsed), 0)
+
+    if request.method == "POST":
+        answers = request.session.get(session_key, {})
+        for question in current_page:
+            ans = request.POST.get(f"question_{question.id}")
+            if ans:
+                answers[str(question.id)] = ans
+        request.session[session_key] = answers
+        request.session.modified = True
+
+        if 'next' in request.POST and current_page.has_next():
+            return redirect("student_quiz_attempt", quiz_id=quiz_id, page=page + 1)
+        elif 'prev' in request.POST and current_page.has_previous():
+            return redirect("student_quiz_attempt", quiz_id=quiz_id, page=page - 1)
+        elif 'submit' in request.POST:
+            return redirect("student_quiz_submit", quiz_id=quiz_id)
+
+    context = {
+        "quiz": quiz,
+        "questions": current_page,
+        "page": page,
+        "total_pages": paginator.num_pages,
+        "answers": request.session.get(session_key, {}),
+        "seconds_remaining": remaining,
+    }
+    return render(request, "student_templates/attempt_quiz.html", context)
+
+@login_required
+def submitted_quiz_list(request):
+    student = request.user.students
+    submissions = StudentQuizSubmission.objects.filter(student=student).select_related('quiz')
+    return render(request, "student_templates/submitted_quizzes.html", {
+        "submissions": submissions
+    })
 
 
 

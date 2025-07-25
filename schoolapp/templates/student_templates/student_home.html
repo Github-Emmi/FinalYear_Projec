@@ -115,6 +115,26 @@ Student Panel | {{students.admin.first_name}} {{students.admin.last_name}} {% en
   <!-- /.card -->
     </div>
     {% include 'student_templates/calendar.html' %}
+    <div class="col-lg-6">
+        <div class="card card-success">
+            <div class="card-header">
+              <h3 class="card-title">Weekly Timetable Calendar</h3>
+
+              <div class="card-tools">
+                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                </button>
+                <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
+              </div>
+            </div>
+            <div class="card-body">
+               <!--The calendar -->
+                <div id="Calendar" style="width: 100%"></div>
+              </div>
+            </div>
+            <!-- /.card-body -->
+          </div>
+  <!-- /.card -->
+    </div>
 
 </div>
 </div>
@@ -207,6 +227,33 @@ Student Panel | {{students.admin.first_name}} {{students.admin.last_name}} {% en
             options: barChartOptions
           })
   })
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var calendarEl = document.getElementById('Calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'timeGridWeek',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'timeGridWeek,timeGridDay'
+      },
+      slotMinTime: "07:00:00",
+      slotMaxTime: "18:00:00",
+      allDaySlot: false,
+      weekends: false,  // Hide Saturday/Sunday
+      events: '/student-schedule-json/',  // Django endpoint
+      height: 400,
+      nowIndicator: true,
+      themeSystem: 'bootstrap',
+      eventTimeFormat: {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }
+    });
+    calendar.render();
+  });
 </script>
 
  {% endblock custom_js%}
