@@ -175,3 +175,7 @@ def calendar_events_json(request):
 
     return JsonResponse(data, safe=False)
 
+@login_required
+def event_detail(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    return render(request, "notifications/event_detail.html", {"event": event})

@@ -345,6 +345,8 @@ class Event(models.Model):
             'GENERAL': '#28a745',
             'ASSIGNMENT': '#6610f2'
         }.get(self.event_type, '#6c757d')  # Default grey
+    def get_absolute_url(self):
+        return reverse('event_detail', kwargs={'event_id': self.id})
 
 class TimeTable(models.Model):
     DAY_CHOICES = [
@@ -369,6 +371,7 @@ class TimeTable(models.Model):
         ordering = ['day', 'start_time']
     def __str__(self):
         return f"{self.subject.subject_name} - {self.day} {self.start_time}-{self.end_time}"
+    
 
 class Quiz(models.Model):
     STATUS_CHOICES = [

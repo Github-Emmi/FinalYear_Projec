@@ -154,7 +154,9 @@ path('student-make-payment',StudentViews.student_make_payment,name="student_make
 path("student-quizzes/", StudentViews.student_quiz_list, name="student_quiz_list"),
 path("student-quiz-start/<int:quiz_id>/", StudentViews.quiz_start, name="student_quiz_start"),
 path("student-quiz-attempt/<int:quiz_id>/<int:page>/", StudentViews.student_quiz_attempt, name="student_quiz_attempt"),
-path("student-submitted-quizzes/", StudentViews.submitted_quiz_list, name="student_submitted_quiz_list"),
+path("student-quiz-submit/<int:quiz_id>/", StudentViews.student_quiz_submit, name="student_quiz_submit"),
+path("student-quiz-taken/", StudentViews.student_quiz_taken_list, name="student_quiz_taken_list"),
+
 
 
 
@@ -167,6 +169,8 @@ path('notifications/mark-all-read/', views.mark_all_read, name='notifications_ma
 path('notifications/<int:pk>/read/', views.notification_read, name='notification_read'),
 path("student-academy-json/", views.calendar_events_json, name="calendar_events_json"),
 path("staff-academy-json/", views.calendar_events_json, name="calendar_events_json"),
+path('event/<int:event_id>/', views.event_detail, name='event_detail'),
+
 ]
 
 

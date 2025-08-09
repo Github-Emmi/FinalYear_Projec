@@ -560,20 +560,60 @@ def student_quiz_attempt(request, quiz_id, page):
     return render(request, "student_templates/attempt_quiz.html", context)
 
 @login_required
-def submitted_quiz_list(request):
+def student_quiz_submit(request, quiz_id):
     student = request.user.students
-    submissions = StudentQuizSubmission.objects.filter(student=student).select_related('quiz')
-    return render(request, "student_templates/submitted_quizzes.html", {
-        "submissions": submissions
+    quiz = get_object_or_404(Quiz, id=quiz_id, status='PUBLISHED')
+
+    session_key = f"quiz_{quiz_id}_answers"
+    answers = request.session.get(session_key, {})
+
+    total_questions = quiz.questions.count()
+    correct = 0
+
+    # Create submission
+    submission = StudentQuizSubmission.objects.create(student=student, quiz=quiz)
+
+    for question in quiz.questions.all():
+        selected = answers.get(str(question.id))
+        is_correct = selected == question.correct_answer
+        if is_correct:
+            correct += 1
+
+        StudentAnswer.objects.create(
+            submission=submission,
+            question=question,
+            selected_option=selected or '',
+            is_correct=is_correct
+        )
+
+    score = (correct / total_questions) * 100
+    submission.total_score = score
+    submission.is_graded = True
+    submission.save()
+
+    # Clean up session
+    if session_key in request.session:
+        del request.session[session_key]
+
+    timer_key = f"quiz_{quiz_id}_start_time"
+    if timer_key in request.session:
+        del request.session[timer_key]
+
+    return render(request, "student_templates/quiz_result.html", {
+        "quiz": quiz,
+        "submission": submission,
+        "correct": correct,
+        "total": total_questions,
+        "score": round(score, 2),
     })
 
-
-
-
-
-
-
-
+@login_required
+def student_quiz_taken_list(request):
+    student = request.user.students
+    submissions = StudentQuizSubmission.objects.filter(student=student).select_related('quiz').order_by('-submitted_at')
+    return render(request, "student_templates/quiz_taken_list.html", {
+        "submissions": submissions
+    })
 
 
 

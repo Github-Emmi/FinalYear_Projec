@@ -1,0 +1,47 @@
+{% extends "student_templates/base.html" %}
+
+{% block title %}Taken Quizzes{% endblock %}
+{% block dashboard_title %}Taken Quizzes{% endblock dashboard_title %}
+
+{% block main_content %}
+<div class="container mt-4">
+  <h3 class="mb-3">📝 Quizzes You've Taken</h3>
+
+  {% if submissions %}
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Quiz Title</th>
+            <th>Subject</th>
+            <th>Score (%)</th>
+            <th>Submitted At</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for submission in submissions %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ submission.quiz.title }}</td>
+            <td>{{ submission.quiz.subject.subject_name }}</td>
+            <td>{{ submission.total_score|floatformat:2 }}</td>
+            <td>{{ submission.submitted_at|date:"d M Y, H:i A" }}</td>
+            <td>
+              {% if submission.is_graded %}
+                <span class="badge bg-success">Graded</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info">You haven't taken any quizzes yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

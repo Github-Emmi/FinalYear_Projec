@@ -79,8 +79,8 @@
             </a>
           </li>
           <li class="nav-item">
-            {% url 'student_submitted_quiz_list' as student_submitted_quiz_list %}
-            <a href="{{ student_submitted_quiz_list }}" class="nav-link {% if request.path == student_submitted_quiz_list %} active {% endif %}">
+            {% url 'student_quiz_taken_list' as student_quiz_taken_list %}
+            <a href="{{ student_quiz_taken_list }}" class="nav-link {% if request.path == student_quiz_taken_list %} active {% endif %}">
               <i class="nav-icon fas fa-book"></i>
               <p>
                 Submitted Quiz

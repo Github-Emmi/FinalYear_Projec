@@ -1,0 +1,53 @@
+{% extends "student_templates/base.html" %}
+{% block title %}Quiz Result – {{ quiz.title }}{% endblock %}
+{% block dashboard_title %} Quiz Result {% endblock dashboard_title %}
+{% block dashboard_title1 %} Result Summary {% endblock dashboard_title1 %}
+
+{% block main_content %}
+<div class="container mt-4">
+  <div class="card shadow">
+    <div class="card-header text-center bg-success text-white">
+      <h4>🎉 Quiz Completed: {{ quiz.title }}</h4>
+    </div>
+    <div class="card-body">
+
+      <div class="row mb-4 text-center">
+        <div class="col-md-4">
+          <h5>Total Questions</h5>
+          <p class="lead">{{ total_questions }}</p>
+        </div>
+        <div class="col-md-4">
+          <h5>Correct Answers</h5>
+          <p class="lead text-success">{{ correct_answers }}</p>
+        </div>
+        <div class="col-md-4">
+          <h5>Your Score</h5>
+          <p class="lead font-weight-bold">{{ score }}%</p>
+        </div>
+      </div>
+
+      <div class="alert alert-info text-center">
+        🕒 Time Taken: {{ time_taken }} minutes
+      </div>
+
+      <hr>
+
+      {% if show_answers %}
+        <h5 class="text-primary">Review Answers</h5>
+        <ol>
+          {% for q, selected, correct in review_data %}
+            <li class="mb-3">
+              <strong>{{ q.question_text }}</strong><br>
+              Your Answer: 
+              <span class="{% if selected == correct %}text-success{% else %}text-danger{% endif %}">
+                {{ selected|default:"No Answer" }}
+              </span><br>
+              Correct Answer: <strong class="text-primary">{{ correct }}</strong>
+            </li>
+          {% endfor %}
+        </ol>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
