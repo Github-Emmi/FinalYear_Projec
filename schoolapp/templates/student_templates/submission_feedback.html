@@ -7,7 +7,7 @@
 {% block main_content %}
 <section class="content">
   <div class="container-fluid">
-    <div class="card card-success shadow">
+    <div class="card card-info shadow">
       <div class="card-header">
         <h3 class="card-title">{{ submission.assignment.title }}</h3>
       </div>
@@ -18,7 +18,7 @@
         <hr>
         <p><strong>Grade:</strong> {{ submission.grade }} / 100</p>
         <p><strong>Feedback:</strong></p>
-        <div class="alert alert-info">{{ submission.feedback|linebreaks }}</div>
+        <div class="alert alert-success">{{ submission.feedback|linebreaks }}</div>
         <p><strong>Graded On:</strong> {{ submission.graded_at }}</p>
       </div>
     </div>

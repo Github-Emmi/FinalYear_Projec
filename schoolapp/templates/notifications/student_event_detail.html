@@ -1,20 +1,26 @@
+{% extends 'student_templates/base.html' %}
+{% load static %}
+{% load humanize %}
 
-{% block title %}Event Details - {{ event.title }}{% endblock %}
+{% block title %} Student | All Notifications {% endblock %}
+ {% block dashboard_title %} Event Details - {{ event.title }} {% endblock dashboard_title %}
+ {% block dashboard_title1 %} Event Details - {{ event.title }} {% endblock dashboard_title1 %}
+   
+ {% block main_content %}
 
-{% block content %}
 <div class="container mt-5">
   <div class="card shadow-sm border-0">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
       <h5 class="mb-0">
-        <i class="bi bi-calendar-event me-2"></i> Event Details
+        <i class="bi bi-calendar-event me-2"></i> Notification Details
       </h5>
       <span class="badge bg-light text-dark">{{ event.get_event_type_display }}</span>
     </div>
     <div class="card-body">
-      <h3 class="card-title">{{ event.title }}</h3>
+      <h3 class="card-title">{{ event.title }} </h3>
       <p class="text-muted">
         <i class="bi bi-clock me-1"></i> 
-        {{ event.event_datetime|date:"D, d M Y" }} at {{ event.event_datetime|time:"h:i A" }}
+        <br> {{ event.event_datetime|date:"D, d M Y" }} at {{ event.event_datetime|time:"h:i A" }}
       </p>
       <hr>
       <p class="card-text">
@@ -23,16 +29,16 @@
       <div class="mt-4">
         <p><strong>Audience:</strong> {{ event.get_target_audience_display }}</p>
         {% if event.related_session %}
-        <p><strong>Session:</strong> {{ event.related_session }}</p>
+        <p><strong>Session:</strong> {{ event.related_session }} - {{ event.related_session.session_name }}</p>
         {% endif %}
         <p><strong>Created on:</strong> {{ event.created_at|date:"d M Y" }}</p>
       </div>
     </div>
     <div class="card-footer text-end">
-      <a href="{% url 'notifications_list' %}" class="btn btn-outline-secondary">
+      <a href="{% url 'student_notifications_list' %}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left"></i> Back to Notifications
       </a>
     </div>
   </div>
 </div>
-{% endblock %}
+{% endblock main_content %}

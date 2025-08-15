@@ -52,6 +52,8 @@
               <a href="{% url 'staff_grade_submission' sub.id %}" class="btn btn-sm btn-info">
                 <i class="fas fa-pen"></i> Grade
               </a>
+              {% else %}
+                Edit
               {% endif %}
             </td>
           </tr>

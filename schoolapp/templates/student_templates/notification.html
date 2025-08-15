@@ -1,35 +1,96 @@
 {% load static %}
+{% block Stylesheet %}
+<style>
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    white-space: normal;
+    padding: 8px 12px;
+    max-width: 280px;
+    box-sizing: border-box;
+}
+
+.notification-icon {
+    flex-shrink: 0;
+    color: #007bff;
+    font-size: 1.2rem;
+    margin-top: 2px;
+}
+
+.notification-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow: hidden;
+}
+
+.notification-text {
+    line-height: 1.4;
+    margin-bottom: 4px;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notification-time {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+@media (max-width: 576px) {
+    .dropdown-menu-lg {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 90% !important;
+        max-width: 400px !important;
+        z-index: 1050;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+}
+</style>
+{% endblock Stylesheet %}
+
 <ul class="navbar-nav ml-auto">
-    
     <li class="nav-item dropdown">
-    <a class="nav-link" data-toggle="dropdown" href="#">
-        <i class="far fa-bell"></i>
-        {% with user.notifications.unread.count as unread_count %}
-            {% if unread_count > 0 %}
-                <span class="badge badge-danger navbar-badge">{{ unread_count }}</span>
-            {% endif %}
-        {% endwith %}
-    </a>
-    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-        <span class="dropdown-item dropdown-header">
-            {{ user.notifications.unread.count }} New Notification{{ user.notifications.unread.count|pluralize }}
-        </span>
-        <div class="dropdown-divider"></div>
-
-        {% for note in user.notifications.all|slice:":5" %}
-        <a href="{% url 'notification_read' note.pk %}" class="dropdown-item">
-            <i class="fas fa-info-circle mr-2"></i> {{ note.verb }}
-            <span class="float-right text-muted text-sm">{{ note.timestamp|timesince }} ago</span>
+        <a class="nav-link" data-toggle="dropdown" href="#">
+            <i class="far fa-bell"></i>
+            {% with user.notifications.unread.count as unread_count %}
+                {% if unread_count > 0 %}
+                    <span class="badge badge-danger navbar-badge">{{ unread_count }}</span>
+                {% endif %}
+            {% endwith %}
         </a>
-        <div class="dropdown-divider"></div>
-        {% endfor %}
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+            <span class="dropdown-item dropdown-header">
+                {{ user.notifications.unread.count }} New Notification{{ user.notifications.unread.count|pluralize }}
+            </span>
+            <div class="dropdown-divider"></div>
 
-        <a href="{% url 'notifications_list' %}" class="dropdown-item dropdown-footer">See All Notifications</a>
-    </div>
-</li>
+            {% for note in user.notifications.all|slice:":5" %}
+                {% if note.target and note.target.get_absolute_url %}
+                    <a href="{{ note.target.get_absolute_url }}" class="dropdown-item notification-item">
+                {% else %}
+                    <a href="{% url 'student_notification_read' note.pk %}" class="dropdown-item notification-item">
+                {% endif %}
+                        <i class="fas fa-info-circle mr-2 notification-icon"></i>
+                        <div class="notification-content">
+                            <span class="notification-text">{{ note.verb }}</span>
+                            <span class="notification-time">{{ note.timestamp|timesince }} ago</span>
+                        </div>
+                    </a>
+                <div class="dropdown-divider"></div>
+            {% endfor %}
+
+            <a href="{% url 'student_notifications_list' %}" class="dropdown-item dropdown-footer">See All Notifications</a>
+        </div>
+    </li>
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'notifications_mark_all_read' %}">
+        <a class="nav-link" href="{% url 'student_notifications_mark_all_read' %}">
             <i class="fas fa-check"></i> Mark all as read
         </a>
     </li>
-  </ul> 
+</ul>

@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 from django.urls import reverse
 from schoolapp.models import *
+from django.utils.timezone import localtime
 from django.contrib.auth.decorators import login_required
 from notifications.signals import notify
 from django.shortcuts import get_object_or_404, render
@@ -304,29 +305,61 @@ def staff_apply_leave_save(request):
         except:
             messages.error(request, "Failed To Apply for Leave")
             return HttpResponseRedirect(reverse("staff_apply_leave"))
-        
-@login_required       
+
+@login_required
 def staff_feedback(request):
-    staff_id=Staffs.objects.get(admin=request.user.id)
-    feedback_data=FeedBackStaffs.objects.filter(staff_id=staff_id)
-    return render(request,"staff_templates/staff_feedback.html",{"feedback_data":feedback_data})
+    staff = Staffs.objects.select_related("admin").get(admin=request.user)
+    feedback_messages = FeedBackStaffs.objects.filter(
+        staff_id=staff
+    ).order_by("created_at")
+
+    # Fallback avatar paths if you don't store profile pics
+    staff_avatar_url = "/static/assets/images/avatar5.png"
+    admin_avatar_url = "/static/assets/images/avatar3.png"
+
+    return render(
+        request,
+        "staff_templates/staff_feedback_chat.html",
+        {
+            "feedback_messages": feedback_messages,
+            "staff": staff,
+            "staff_avatar_url": staff_avatar_url,
+            "admin_avatar_url": admin_avatar_url,
+        },
+    )
+
 
 @login_required
 def staff_feedback_save(request):
-    if request.method!="POST":
-        return HttpResponseRedirect(reverse("staff_feedback_save"))
-    else:
-        feedback_msg=request.POST.get("feedback_msg")
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+    feedback_msg = (request.POST.get("feedback_msg") or "").strip()
+    if not feedback_msg:
+        return JsonResponse({"status": "error", "message": "Message cannot be empty"}, status=400)
 
-        staff_obj=Staffs.objects.get(admin=request.user.id)
-        try:
-            feedback=FeedBackStaffs(staff_id=staff_obj,feedback=feedback_msg,feedback_reply="")
-            feedback.save()
-            messages.success(request, "Successfully Sent Feedback")
-            return HttpResponseRedirect(reverse("staff_feedback"))
-        except:
-            messages.error(request, "Failed To Send Feedback")
-            return HttpResponseRedirect(reverse("staff_feedback"))
+    staff_obj = Staffs.objects.select_related("admin").get(admin=request.user)
+    
+    fb = FeedBackStaffs.objects.create(
+        staff_id=staff_obj,
+        feedback=feedback_msg,
+        feedback_reply=""
+    )
+    ###### notify Admin
+    AdminUser = get_user_model()
+    admin_user = AdminUser.objects.filter(is_superuser=True, is_active=True)
+    if admin_user:
+        notify.send(
+            sender=request.user,
+            recipient=admin_user,
+            verb=f"New feedback from {staff_obj.admin.get_full_name() or staff_obj.admin.username}",
+            description=feedback_msg[:200],
+            target=staff_obj,  # <- admin opens chats with a unique staff
+        )
+    return JsonResponse({
+        "status": "success",
+        "message": fb.feedback,
+        "time": localtime(fb.created_at).strftime("%b %d, %I:%M %p"),
+    })
 
 @login_required
 def staff_add_result(request):
@@ -428,6 +461,15 @@ def staff_view_submissions(request, assignment_id):
     })
 
 @login_required
+def staff_view_submission_detail(request, submission_id):
+    """Staff view for a single assignment submission."""
+    submission = get_object_or_404(AssignmentSubmission, id=submission_id)
+
+    return render(request, "staff_templates/submission_detail.html", {
+        "submission": submission
+    })
+
+@login_required
 def staff_grade_submission(request, submission_id):
     submission = get_object_or_404(AssignmentSubmission, id=submission_id)
 
@@ -438,15 +480,16 @@ def staff_grade_submission(request, submission_id):
         submission.grade = grade
         submission.feedback = feedback
         submission.graded = True
+        submission.graded_at = timezone.now()
         submission.save()
 
-        # 🔔 Notify student
+        # 🔔 Notify student with correct link
         notify.send(
             sender=request.user,
             recipient=submission.student.admin,
             verb=f"Your assignment '{submission.assignment.title}' has been graded.",
             description=f"Grade: {grade}. Feedback: {feedback or 'No additional feedback.'}",
-            target=submission.assignment
+            target=submission
         )
 
         messages.success(request, "Submission graded successfully and student notified.")
@@ -471,6 +514,44 @@ def staff_timetable_view(request):
         "timetable": timetable_entries,
         "days": days
     })
+
+@login_required
+def staff_schedule_json(request):
+    staff = Staffs.objects.get(admin=request.user)
+    session_id = request.session.get('active_staff_session_id', staff.session_year_id.id)
+    session = SessionYearModel.objects.get(id=session_id)
+
+    # Monday = 0, Sunday = 6 (we want Mon–Fri only)
+    valid_days = ['MON', 'TUE', 'WED', 'THU', 'FRI']
+
+    timetable_entries = TimeTable.objects.filter(teacher=staff).select_related(
+        'subject', 'class_id', 'department_id', 'session_year'
+        ).order_by('day', 'start_time')
+
+    events = []
+
+    day_map = {
+        'NONE': 0,  # If no day is set, default to Monday
+        'MON': 1,
+        'TUE': 2,
+        'WED': 3,
+        'THU': 4,
+        'FRI': 5,
+        'SAT': 6,
+        'SUN': 7,
+    }
+
+    # We'll render entries as recurring weekly events (every week, same day/time)
+    for entry in timetable_entries:
+        events.append({
+            "title": f"{entry.subject.subject_name} ({entry.classroom})",
+            "daysOfWeek": [day_map[entry.day]],  # e.g. [0] = Monday
+            "startTime": str(entry.start_time),
+            "endTime": str(entry.end_time),
+            "color": "#007bff",  # Optional: subject color
+        })
+
+    return JsonResponse(events, safe=False)
 
 @login_required
 def staff_add_quiz(request):

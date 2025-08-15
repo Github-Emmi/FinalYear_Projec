@@ -1,0 +1,147 @@
+{% extends 'staff_templates/base.html' %}
+{% load static %}
+{% block title %}Staff Feedback{% endblock %}
+
+{% block Stylesheet %}
+<style>
+#chat-body{max-height:60vh;overflow-y:auto;background:#f8f9fa;padding:1rem}
+.chat-bubble{position:relative;padding:10px 14px;border-radius:22px;max-width:75%;line-height:1.45;word-break:break-word}
+.chat-bubble-right{background:#0d6efd;color:#fff;border-bottom-right-radius:8px}
+.chat-bubble-right::after{content:"";position:absolute;right:-10px;top:16px;border-width:10px 0 10px 10px;border-style:solid;border-color:transparent transparent transparent #0d6efd}
+.chat-bubble-left{background:#eef1f6;color:#0b1e39;border-bottom-left-radius:8px}
+.chat-bubble-left::after{content:"";position:absolute;left:-10px;top:16px;border-width:10px 10px 10px 0;border-style:solid;border-color:transparent #eef1f6 transparent transparent}
+.chat-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover}
+.chat-time{font-size:.75rem;color:#6c757d}
+#composer .input-group>.form-control{border-top-left-radius:999px;border-bottom-left-radius:999px}
+#composer .input-group-append .btn{border-top-right-radius:999px;border-bottom-right-radius:999px}
+</style>
+{% endblock Stylesheet %}
+
+{% block dashboard_title %}Staff Feedback{% endblock %}
+{% block dashboard_title1 %}Chat with Admin{% endblock %}
+
+{% block main_content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Chat -->
+      <div class="col-lg-8 col-md-7">
+        <div class="card card-primary card-outline">
+          <div class="card-header"><h3 class="card-title mb-0">Conversation with Admin</h3></div>
+
+          <div id="chat-body" class="card-body">
+            {% for msg in feedback_messages %}
+              {% if msg.feedback %}
+              <div class="d-flex justify-content-end mb-3">
+                <div class="text-right">
+                  <div class="chat-time mb-1">{{ msg.created_at|date:"M d, g:i a" }}</div>
+                  <div class="d-flex align-items-end">
+                    <div class="chat-bubble chat-bubble-right mr-2">{{ msg.feedback }}</div>
+                    <img class="chat-avatar" src="{{ staff_avatar_url }}" alt="You">
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+
+              {% if msg.feedback_reply %}
+              <div class="d-flex justify-content-start mb-3">
+                <img class="chat-avatar mr-2" src="{{ admin_avatar_url }}" alt="Admin">
+                <div>
+                  <div class="chat-time mb-1">{{ msg.updated_at|date:"M d, g:i a" }}</div>
+                  <div class="chat-bubble chat-bubble-left">{{ msg.feedback_reply }}</div>
+                </div>
+              </div>
+              {% endif %}
+            {% empty %}
+              <p class="text-muted text-center my-4">No messages yet. Start a conversation below.</p>
+            {% endfor %}
+          </div>
+
+          <div class="card-footer" id="composer">
+            <form id="send-form" action="{% url 'staff_feedback_save' %}" method="post" autocomplete="off">
+              {% csrf_token %}
+              <div class="input-group">
+                <input id="msg-input" name="feedback_msg" type="text" class="form-control" placeholder="Type your message…" maxlength="1000">
+                <div class="input-group-append">
+                  <button id="send-btn" class="btn btn-primary" type="submit">
+                    <i class="fas fa-paper-plane"></i> Send
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Staff info -->
+      <div class="col-lg-4 col-md-5">
+        <div class="card card-info">
+          <div class="card-header"><h3 class="card-title mb-0">Your Info</h3></div>
+          <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+              <img class="chat-avatar mr-3" src="{{ staff_avatar_url }}" alt="You" />
+              <div>
+                <div class="font-weight-bold">{{ staff.admin.username }}</div>
+                <div class="text-muted small">{{ staff.admin.email }}</div>
+              </div>
+            </div>
+            <div class="small text-muted">This conversation is between you and the school admin. Share your feedback or concerns here.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block custom_js %}
+<script>
+function getCookie(name){const v=`; ${document.cookie}`.split(`; ${name}=`);if(v.length===2)return decodeURIComponent(v.pop().split(';').shift());}
+function escapeHtml(s){return s.replace(/[&<>"'`=\/]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;","/":"&#x2F;","`":"&#x60;","=":"&#x3D;"}[c]));}
+function scrollToBottom(){const el=document.getElementById('chat-body');el.scrollTop=el.scrollHeight;}
+scrollToBottom();
+
+const form=document.getElementById('send-form');
+const input=document.getElementById('msg-input');
+const btn=document.getElementById('send-btn');
+const chat=document.getElementById('chat-body');
+const csrf=getCookie('csrftoken');
+
+form.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const msg=(input.value||'').trim(); if(!msg) return;
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';
+
+  try{
+    const res=await fetch(form.action,{
+      method:'POST',
+      headers:{'X-CSRFToken':csrf},
+      body:new URLSearchParams({feedback_msg:msg})
+    });
+    const data=await res.json();
+    if(data.status==='success'){
+      const html = `
+        <div class="d-flex justify-content-end mb-3">
+          <div class="text-right">
+            <div class="chat-time mb-1">${data.time}</div>
+            <div class="d-flex align-items-end">
+              <div class="chat-bubble chat-bubble-right mr-2">${escapeHtml(data.message)}</div>
+              <img class="chat-avatar" src="{{ staff_avatar_url }}" alt="You" />
+            </div>
+          </div>
+        </div>`;
+      chat.insertAdjacentHTML('beforeend', html);
+      input.value=''; scrollToBottom();
+    }else{
+      alert(data.message||'Failed to send message.');
+    }
+  }catch(err){
+    console.error(err); alert('Network error. Please try again.');
+  }finally{
+    btn.disabled=false; btn.innerHTML='<i class="fas fa-paper-plane"></i> Send'; input.focus();
+  }
+});
+</script>
+{% endblock %}

@@ -213,18 +213,18 @@
               
            
           <li class="nav-item">
-            {% url 'student_feedback_message' as student_feedback_message %}
-           <a href="{% url 'student_feedback_message' %}" class="nav-link {% if request.path == student_feedback_message %} active {% endif %}">
-             <i class="nav-icon fas fa-bell"></i>
+            {% url 'student_feedback_list' as student_feedback_list %}
+           <a href="{% url 'student_feedback_list' %}" class="nav-link {% if request.path == student_feedback_list %} active {% endif %}">
+             <i class="nav-icon fas fa-comment"></i>
              <p>
                Student Feedback
              </p>
            </a>
          </li>
           <li class="nav-item">
-              {% url 'staff_feedback_message' as staff_feedback_message %}
-           <a href="{% url 'staff_feedback_message' %}" class="nav-link {% if request.path == staff_feedback_message %} active {% endif %}">
-             <i class="nav-icon fas fa-bell"></i>
+              {% url 'staff_feedback_list' as staff_feedback_list %}
+           <a href="{% url 'staff_feedback_list' %}" class="nav-link {% if request.path == staff_feedback_list %} active {% endif %}">
+             <i class="nav-icon fas fa-comment"></i>
              <p>
                Staff Feedback
              </p>

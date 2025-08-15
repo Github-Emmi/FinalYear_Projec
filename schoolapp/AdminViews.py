@@ -15,6 +15,7 @@ from .generic_views import generic_paginated_list
 from django.template.loader import render_to_string
 from django.shortcuts import render, get_object_or_404, redirect
 from notifications.signals import notify
+from django.db.models import Q
 
 
 @login_required(login_url="/")
@@ -986,48 +987,128 @@ def check_username_exist(request):
     else:
         return HttpResponse(False)
     
+from django.http import JsonResponse
+
+@login_required
+def student_feedback_message(request, sender_id=None):
+    student_list = Students.objects.filter(
+        feedbackstudent__isnull=False
+    ).distinct()
+
+    messages_qs = []
+    selected_student = None
+    no_feedback_message = None
+
+    if not student_list.exists():
+        no_feedback_message = "No Recent feedback from Students"
+    else:
+        if not sender_id:
+            sender_id = student_list.first().id
+
+        selected_student = get_object_or_404(Students, id=sender_id)
+        messages_qs = FeedBackStudent.objects.filter(
+            student_id=selected_student
+        ).order_by("created_at")
+
+    # Count of unread feedback (no reply yet)
+    unread_student_count = FeedBackStudent.objects.filter(
+        Q(feedback_reply__isnull=True) | Q(feedback_reply="")
+    ).count()
+
+    return render(request, "admin_templates/student_feedback_chat.html", {
+        "student_list": student_list,
+        "messages": messages_qs,
+        "selected_student": selected_student,
+        "no_feedback_message": no_feedback_message,
+        "unread_student_count": unread_student_count
+    })
 
 
-def staff_feedback_message(request):
-    feedbacks = FeedBackStaffs.objects.all()
-    return render(
-        request, "admin_templates/staff_feedback.html", {"feedbacks": feedbacks}
-    )
+@login_required
+def staff_feedback_message(request, sender_id=None):
+    staff_list = Staffs.objects.filter(
+        feedbackstaffs__isnull=False
+    ).distinct()
+
+    messages_qs = []
+    selected_staff = None
+    no_feedback_message = None
+
+    if not staff_list.exists():
+        no_feedback_message = "No Recent feedback from Staff"
+    else:
+        if not sender_id:
+            sender_id = staff_list.first().id
+
+        selected_staff = get_object_or_404(Staffs, id=sender_id)
+        messages_qs = FeedBackStaffs.objects.filter(
+            staff_id=selected_staff
+        ).order_by("created_at")
+
+    unread_staff_count = FeedBackStaffs.objects.filter(
+        Q(feedback_reply__isnull=True) | Q(feedback_reply="")
+    ).count()
+
+    return render(request, "admin_templates/staff_feedback_chat.html", {
+        "staff_list": staff_list,
+        "messages": messages_qs,
+        "selected_staff": selected_staff,
+        "no_feedback_message": no_feedback_message,
+        "unread_staff_count": unread_staff_count
+    })
 
 
-def student_feedback_message(request):
-    feedbacks = FeedBackStudent.objects.all()
-    return render(
-        request, "admin_templates/student_feedback.html", {"feedbacks": feedbacks}
-    )
+@login_required
+def student_feedback_reply_ajax(request):
+    """Handles reply to student feedback via AJAX"""
+    if request.method == "POST":
+        student_id = request.POST.get("student_id")
+        message = request.POST.get("message")
+
+        if not message.strip():
+            return JsonResponse({"status": "error", "msg": "Message cannot be empty"})
+
+        student = get_object_or_404(Students, id=student_id)
+
+        # Create a reply (or update latest message)
+        feedback = FeedBackStudent.objects.create(
+            student_id=student,
+            feedback="",
+            feedback_reply=message
+        )
+        return JsonResponse({
+            "status": "success",
+            "msg": "Reply sent",
+            "created_at": feedback.created_at.strftime("%b %d, %H:%M")
+        })
+
+    return JsonResponse({"status": "error", "msg": "Invalid request"})
 
 
-@csrf_exempt
-def student_feedback_message_replied(request):
-    feedback_id = request.POST.get("id")
-    feedback_message = request.POST.get("message")
+@login_required
+def staff_feedback_reply_ajax(request):
+    """Handles reply to staff feedback via AJAX"""
+    if request.method == "POST":
+        staff_id = request.POST.get("staff_id")
+        message = request.POST.get("message")
 
-    try:
-        feedback = FeedBackStudent.objects.get(id=feedback_id)
-        feedback.feedback_reply = feedback_message
-        feedback.save()
-        return HttpResponse("True")
-    except:
-        return HttpResponse("False")
+        if not message.strip():
+            return JsonResponse({"status": "error", "msg": "Message cannot be empty"})
 
+        staff = get_object_or_404(Staffs, id=staff_id)
 
-@csrf_exempt
-def staff_feedback_message_replied(request):
-    feedback_id = request.POST.get("id")
-    feedback_message = request.POST.get("message")
+        feedback = FeedBackStaffs.objects.create(
+            staff_id=staff,
+            feedback="",
+            feedback_reply=message
+        )
+        return JsonResponse({
+            "status": "success",
+            "msg": "Reply sent",
+            "created_at": feedback.created_at.strftime("%b %d, %H:%M")
+        })
 
-    try:
-        feedback = FeedBackStaffs.objects.get(id=feedback_id)
-        feedback.feedback_reply = feedback_message
-        feedback.save()
-        return HttpResponse("True")
-    except:
-        return HttpResponse("False")
+    return JsonResponse({"status": "error", "msg": "Invalid request"})
 
 
 def staff_leave_view(request):
@@ -1164,14 +1245,24 @@ def admin_get_student_result(request):
 DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
 # LIST TIMETABLE
+from collections import defaultdict
+
 @login_required
 def admin_timetable_list(request):
-    timetable = TimeTable.objects.select_related(
+    timetables = TimeTable.objects.select_related(
         'subject', 'class_id', 'department_id', 'session_year', 'teacher'
     ).order_by('day', 'start_time')
 
+    # Map short codes to full names
+    day_map = dict(TimeTable.DAY_CHOICES)
+
+    # Group timetables by full day name
+    grouped_timetable = {}
+    for code, name in TimeTable.DAY_CHOICES:
+        grouped_timetable[name] = timetables.filter(day=code)
+
     return render(request, "admin_templates/timetable_list.html", {
-        "timetable": timetable
+        "grouped_timetable": grouped_timetable
     })
 
 @login_required

@@ -74,8 +74,10 @@ def user_logout(request):
     logout(request)
     return HttpResponseRedirect('/')      
 
+
+##################### notification views ############
 @login_required
-def notifications_list(request):
+def admin_notification_list(request):
     query = request.GET.get('q', '')
     page = request.GET.get('page', 1)
 
@@ -95,8 +97,32 @@ def notifications_list(request):
     }
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, 'notifications/_notification_rows.html', context)
-    return render(request, 'notifications/notifications_list.html', context)
+        return render(request, 'notifications/_admin_notification_rows.html', context)
+    return render(request, 'notifications/admin_notifications_list.html', context)
+
+@login_required
+def student_notifications_list(request):
+    query = request.GET.get('q', '')
+    page = request.GET.get('page', 1)
+
+    notes = request.user.notifications.all()
+    if query:
+        notes = notes.filter(verb__icontains=query)
+
+    paginator = Paginator(notes.order_by('-timestamp'), 10)
+    try:
+        page_obj = paginator.get_page(page)
+    except:
+        page_obj = paginator.get_page(1)
+
+    context = {
+        'page_obj': page_obj,
+        'query': query,
+    }
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'notifications/_student_notification_rows.html', context)
+    return render(request, 'notifications/student_notifications_list.html', context)
 
 @login_required
 def staff_notifications_list(request):
@@ -132,21 +158,62 @@ def delete_selected_notifications(request):
             return JsonResponse({'status': 'success'})
     return HttpResponseBadRequest()
 
-
 @login_required
-def mark_all_read(request):
+def admin_mark_all_read(request):
     """Mark all notifications as read for the current user."""
     Notification.objects.filter(recipient=request.user, unread=True).update(unread=False)
-    return redirect('notifications_list')
+    return redirect('admin_notifications_list')
+
+@login_required
+def admin_notification_read(request, pk):
+    """Mark student notification as read and open the target page."""
+    notification = get_object_or_404(Notification, pk=pk, recipient=request.user)
+    notification.unread = False
+    notification.save()
+
+    if notification.target:
+        return redirect(notification.target.get_absolute_url())
+    else:
+        return redirect("student_notifications_list")
+
+@login_required
+def student_mark_all_read(request):
+    """Mark all notifications as read for the current user."""
+    Notification.objects.filter(recipient=request.user, unread=True).update(unread=False)
+    return redirect('student_notifications_list')
+
+@login_required
+def student_notification_read(request, pk):
+    """Mark student notification as read and open the target page."""
+    notification = get_object_or_404(Notification, pk=pk, recipient=request.user)
+    notification.unread = False
+    notification.save()
+
+    if notification.target:
+        return redirect(notification.target.get_absolute_url())
+    else:
+        return redirect("student_notifications_list")
+
+@login_required
+def staff_mark_all_read(request):
+    """Mark all notifications as read for the current user."""
+    Notification.objects.filter(recipient=request.user, unread=True).update(unread=False)
+    return redirect('student_notifications_list')
 
 
 @login_required
-def notification_read(request, pk):
+def staff_notification_read(request, pk):
     """Mark a single notification as read and redirect to its target (if any)."""
     notification = get_object_or_404(Notification, pk=pk, recipient=request.user)
     notification.unread = False
     notification.save()
-    return redirect(notification.target.get_absolute_url() if notification.target else 'notifications_list')
+
+    # ✅ Use target if available, otherwise send to staff notifications list
+    if notification.target:
+        return redirect(notification.target.get_absolute_url())
+    else:
+        return redirect("staff_notifications_list")
+
 
 @login_required
 def calendar_events_json(request):
@@ -176,6 +243,11 @@ def calendar_events_json(request):
     return JsonResponse(data, safe=False)
 
 @login_required
-def event_detail(request, event_id):
+def student_event_detail(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-    return render(request, "notifications/event_detail.html", {"event": event})
+    return render(request, "notifications/student_event_detail.html", {"event": event})
+
+@login_required
+def staff_event_detail(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    return render(request, "notifications/student_event_detail.html", {"event": event})
