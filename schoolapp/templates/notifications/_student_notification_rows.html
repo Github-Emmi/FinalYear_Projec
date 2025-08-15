@@ -8,7 +8,7 @@
         <input type="checkbox" value="{{ note.id }}">
       </td>
       <td>
-        <a href="{% url 'staff_notification_read' note.id %}">
+        <a href="{% url 'student_notification_read' note.id %}">
           <b>{{ note.verb }}</b>
         </a><br>
         <small>{{ note.timestamp|naturaltime }}</small>

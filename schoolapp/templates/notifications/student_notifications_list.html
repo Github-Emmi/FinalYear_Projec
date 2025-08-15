@@ -1,7 +1,8 @@
-{% extends 'student_templates/base.html' %}{% load static %}
+{% extends 'student_templates/base.html' %}
+{% load static %}
 {% load humanize %}
 
-{% block title %} Student |All Notifications {% endblock %}
+{% block title %} Student | All Notifications {% endblock %}
  {% block dashboard_title %} All Notifications {% endblock dashboard_title %}
  {% block dashboard_title1 %}All Notifications{% endblock dashboard_title1 %}
    
@@ -18,12 +19,12 @@
     <div class="card-header">
       <button id="select-all" class="btn btn-default btn-sm"><i class="far fa-square"></i></button>
       <button id="delete-selected" class="btn btn-default btn-sm"><i class="far fa-trash-alt"></i></button>
-      <a href="{% url 'notifications_mark_all_read' %}" class="btn btn-sm btn-success ml-2">Mark All as Read</a>
+      <a href="{% url 'student_notifications_mark_all_read' %}" class="btn btn-sm btn-success ml-2">Mark All as Read</a>
     </div>
 
     <div class="card-body p-0">
       <div id="notification-table-wrapper">
-        {% include 'notifications/_notification_rows.html' %}
+        {% include 'notifications/_student_notification_rows.html' %}
       </div>
     </div>
   </div>
@@ -34,7 +35,7 @@
 <script>
 $(function(){
   function loadPage(page=1, q='') {
-    $.get("{% url 'notifications_list' %}", {page, q}, function(html){
+    $.get("{% url 'student_notifications_list' %}", {page, q}, function(html){
       $("#notification-table-wrapper").html(html);
     });
   }

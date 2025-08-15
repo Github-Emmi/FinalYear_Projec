@@ -31,10 +31,6 @@ path('add-subject', AdminViews.add_subject, name='add_subject'),
 path('save-subject', AdminViews.save_subject, name='save_subject'),
 path('add-session-year', AdminViews.add_session_year, name='add_session_year'),
 path('add-session-year-save', AdminViews.add_session_year_save, name='add_session_year_save'),
-# Student assignment URLs
-path("student-assignments/", StudentViews.student_assignments, name="student_assignments"),
-path("submit-assignment/<int:assignment_id>/", StudentViews.submit_assignment, name="submit_assignment"),
-
 
 path('manage-staff', AdminViews.manage_staff, name='manage_staff'),
 path('manage-student', AdminViews.manage_student, name='manage_student'),
@@ -70,10 +66,16 @@ path('delete-class/<str:class_id>', AdminViews.delete_class, name='delete_class'
 
 path('check-email-exist', AdminViews.check_email_exist,name="check_email_exist"),
 path('check-username-exist', AdminViews.check_username_exist,name="check_username_exist"),
-path('student-feedback-message', AdminViews.student_feedback_message,name="student_feedback_message"),
-path('student-feedback-message-replied', AdminViews.student_feedback_message_replied,name="student_feedback_message_replied"),
-path('staff-feedback-message', AdminViews.staff_feedback_message,name="staff_feedback_message"),
-path('staff-feedback-message-replied', AdminViews.staff_feedback_message_replied,name="staff_feedback_message_replied"),
+path("staff-feedback/", AdminViews.staff_feedback_message, name="staff_feedback_list"),
+path("staff-feedback/<int:sender_id>/", AdminViews.staff_feedback_message, name="staff_feedback_chat"),
+path("student-feedback/", AdminViews.student_feedback_message, name="student_feedback_list"),
+path("student-feedback/<int:sender_id>/", AdminViews.student_feedback_message, name="student_feedback_chat"),
+path("student-feedback-reply-ajax/", AdminViews.student_feedback_reply_ajax, name="student_feedback_reply_ajax"),
+path("staff-feedback-reply-ajax/", AdminViews.staff_feedback_reply_ajax, name="staff_feedback_reply_ajax"),
+
+
+
+
 path('student-leave-view', AdminViews.student_leave_view,name="student_leave_view"),
 path('staff-leave-view', AdminViews.staff_leave_view,name="staff_leave_view"),
 path('student-approve-leave/<str:leave_id>', AdminViews.student_approve_leave,name="student_approve_leave"),
@@ -114,22 +116,17 @@ path('staff-feedback-save', StaffViews.staff_feedback_save, name="staff_feedback
 path('staff-add-result', StaffViews.staff_add_result, name="staff_add_result"),
 path('save-student-result', StaffViews.save_student_result, name="save_student_result"),
 path("staff-timetable/", StaffViews.staff_timetable_view, name="staff_timetable"),
+path('staff-schedule-json/', StaffViews.staff_schedule_json, name='student_schedule_json'),
 path('staff-submissions/', StaffViews.submission_list, name='staff_submission_list'),
 path('staff-assignments/<int:assignment_id>/submissions/', StaffViews.staff_view_submissions, name='staff_view_submissions'),
+path("staff-submission/<int:submission_id>/", StaffViews.staff_view_submission_detail, name="staff_view_submission_detail"),
 path('staff-submissions/<int:submission_id>/grade/', StaffViews.staff_grade_submission, name='staff_grade_submission'),
-path('notifications/', views.staff_notifications_list, name='staff_notifications_list'),
 path('staff-add-quiz/', StaffViews.staff_add_quiz, name='staff_add_quiz'),
 path("staff-quizzes/", StaffViews.staff_quiz_list, name="staff_quiz_list"),
 path("staff-quiz/<int:quiz_id>/add-question/", StaffViews.staff_add_question_to_quiz, name="staff_add_question_to_quiz"),
 path("staff-quiz/<int:quiz_id>/questions/", StaffViews.staff_view_quiz_questions, name="staff_view_quiz_questions"),
 path("staff-quiz/question/<int:question_id>/delete/", StaffViews.staff_delete_question, name="staff_delete_question"),
 path("staff-quiz/<int:quiz_id>/toggle-status/", StaffViews.toggle_quiz_status, name="toggle_quiz_status"),
-
-
-
-
-
-
 
    ####################################
            # Student Views #
@@ -145,6 +142,8 @@ path('student-apply-leave-save', StudentViews.student_apply_leave_save, name="st
 path('student-feedback', StudentViews.student_feedback, name="student_feedback"),
 path('student-feedback-save', StudentViews.student_feedback_save, name="student_feedback_save"),
 path('student-view-result',StudentViews.student_view_result,name="student_view_result"),
+# Student assignment URLs
+path("student-assignments/", StudentViews.student_assignments, name="student_assignments"),
 path('assignment/<int:assignment_id>/', StudentViews.assignment_detail, name='student_assignment_detail'),
 path("student-submission/<int:submission_id>/feedback/", StudentViews.student_submission_feedback, name="student_submission_feedback"),
 path("student-submissions/", StudentViews.student_submissions, name="student_submissions"),
@@ -163,13 +162,22 @@ path("student-quiz-taken/", StudentViews.student_quiz_taken_list, name="student_
 ####################################
            # Notifications #
 ####################################
-path('notifications/', views.notifications_list, name='notifications_list'),
+path("admin-notifications/", views.admin_notification_list, name="admin_notification_list"),
+path('student-notifications/', views.student_notifications_list, name='student_notifications_list'),
+path('staff-notifications/', views.staff_notifications_list, name='staff_notifications_list'),
 path('notifications/delete-selected/', views.delete_selected_notifications, name='notifications_delete_selected'),
-path('notifications/mark-all-read/', views.mark_all_read, name='notifications_mark_all_read'),
-path('notifications/<int:pk>/read/', views.notification_read, name='notification_read'),
+
+path('admin-notifications/mark-all-read/', views.admin_mark_all_read, name='admin_notifications_mark_all_read'),
+path('notifications/<int:pk>/read/', views.admin_notification_read, name='admin_notification_read'),
+path('student-notifications/mark-all-read/', views.student_mark_all_read, name='student_notifications_mark_all_read'),
+path('notifications/<int:pk>/read/', views.student_notification_read, name='student_notification_read'),
+path('notifications/mark-all-read/', views.staff_mark_all_read, name='staff_notifications_mark_all_read'),
+path('staff-notifications/<int:pk>/read/', views.staff_notification_read, name='staff_notification_read'),
+
 path("student-academy-json/", views.calendar_events_json, name="calendar_events_json"),
 path("staff-academy-json/", views.calendar_events_json, name="calendar_events_json"),
-path('event/<int:event_id>/', views.event_detail, name='event_detail'),
+path('event/<int:event_id>/', views.student_event_detail, name='event_detail'),
+path('event/<int:event_id>/', views.student_event_detail, name='event_detail'),
 
 ]
 

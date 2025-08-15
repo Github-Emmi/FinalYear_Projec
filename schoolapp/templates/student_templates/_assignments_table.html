@@ -20,7 +20,7 @@
         </td>
         <td>
           {% if assignment.id not in submitted_assignment_ids %}
-            <a href="{% url 'submit_assignment' assignment.id %}" class="btn btn-sm btn-primary">
+            <a href="{% url 'student_assignment_detail' assignment.id %}" class="btn btn-sm btn-primary">
               <i class="fas fa-upload"></i> Submit
             </a>
           {% endif %}

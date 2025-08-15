@@ -8,11 +8,13 @@ from schoolapp.models import *
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.utils.timezone import localtime
 from django.shortcuts import get_object_or_404
 from notifications.signals import notify
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.utils.timezone import now
+from django.views.decorators.csrf import csrf_exempt
 from django.utils.dateparse import parse_datetime
 
 
@@ -178,29 +180,6 @@ def student_assignments(request):
 
 
 @login_required
-def submit_assignment(request, assignment_id):
-    student = Students.objects.get(admin=request.user.id)
-    assignment = Assignment.objects.get(id=assignment_id)
-
-    if request.method == "POST":
-        file = request.FILES.get("file")
-        if not file:
-            messages.error(request, "Please select a file to upload.")
-            return redirect("student_assignments")
-
-        AssignmentSubmission.objects.create(
-            assignment=assignment,
-            student=student,
-            submitted_file=file  
-        )
-        messages.success(request, "Assignment submitted successfully.")
-        return redirect("student_assignments")
-
-    return render(request, "student_templates/submit_assignment.html", {
-        "assignment": assignment
-    })
-
-@login_required
 def assignment_detail(request, assignment_id):
     assignment = get_object_or_404(Assignment, id=assignment_id)
     student = Students.objects.get(admin=request.user)
@@ -214,11 +193,14 @@ def assignment_detail(request, assignment_id):
             messages.error(request, "Please select a file to upload.")
         else:
             try:
-                AssignmentSubmission.objects.create(
+                # ✅ Save submission and keep a reference
+                submission = AssignmentSubmission.objects.create(
                     assignment=assignment,
                     student=student,
                     submitted_file=submitted_file
                 )
+
+                # ✅ Notify staff with correct target
                 notify.send(
                     sender=request.user,
                     recipient=assignment.staff.admin,
@@ -226,6 +208,7 @@ def assignment_detail(request, assignment_id):
                     description=f"{student.admin.get_full_name()} submitted for '{assignment.title}'",
                     target=submission
                 )
+
                 messages.success(request, "Assignment submitted successfully.")
                 return redirect("student_assignment_detail", assignment_id=assignment.id)
             except Exception as e:
@@ -235,6 +218,7 @@ def assignment_detail(request, assignment_id):
         "assignment": assignment,
         "submission": submission
     })
+
 
 @login_required
 def student_submission_feedback(request, submission_id):
@@ -346,35 +330,57 @@ def student_apply_leave_save(request):
 
 @login_required
 def student_feedback(request):
-    students = Students.objects.get(admin=request.user)
-    feedback_data = FeedBackStudent.objects.filter(student_id=students)
+    student = Students.objects.select_related("admin").get(admin=request.user)
+    feedback_messages = FeedBackStudent.objects.filter(
+        student_id=student
+    ).order_by("created_at")
 
-    return render(request, "student_templates/student_feedback.html", {
-        "feedback_data": feedback_data,
-        "students": students
-    })
+    # Fallback avatar paths if you don't store profile pics
+    admin_avatar_url = "/static/assets/images/avatar3.png"
 
+    return render(
+        request,
+        "student_templates/student_feedback_chat.html",
+        {
+            "feedback_messages": feedback_messages,
+            "student": student,
+            "admin_avatar_url": admin_avatar_url,
+        },
+    )
 
 @login_required
 def student_feedback_save(request):
     if request.method != "POST":
-        return HttpResponseRedirect(reverse("student_feedback"))
-    else:
-        feedback_msg = request.POST.get("feedback_msg")
-        student_obj = Students.objects.get(admin=request.user.id)
+        return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
 
-        try:
-            feedback = FeedBackStudent(
-                student_id=student_obj,
-                feedback=feedback_msg,
-                feedback_reply=""
-            )
-            feedback.save()
-            messages.success(request, "Successfully Sent Feedback")
-        except:
-            messages.error(request, "Failed to Send Feedback")
-        return HttpResponseRedirect(reverse("student_feedback"))
+    feedback_msg = (request.POST.get("feedback_msg") or "").strip()
+    if not feedback_msg:
+        return JsonResponse({"status": "error", "message": "Message cannot be empty"}, status=400)
 
+    student_obj = Students.objects.select_related("admin").get(admin=request.user)
+
+    fb = FeedBackStudent.objects.create(
+        student_id=student_obj,
+        feedback=feedback_msg,
+        feedback_reply="",
+    )
+
+    # ✅ notify all admin
+    admin_users = User.objects.filter(is_superuser=True, is_active=True)
+    if admin_users.exists():
+        notify.send(
+            sender=request.user,
+            recipient=admin_users,  # can be a queryset/list
+            verb="New feedback received",
+            description=f"{student_obj.admin.get_full_name() or student_obj.admin.username} sent a new message",
+            target=student_obj,  # 🔗 this is why get_absolute_url() on Students matters
+        )
+
+    return JsonResponse({
+        "status": "success",
+        "message": fb.feedback,
+        "time": localtime(fb.created_at).strftime("%b %d, %I:%M %p"),
+    })
 
 @login_required
 def student_view_result(request):

@@ -123,10 +123,31 @@
             <div class="card-body">
                <!--The calendar -->
                 <div id="Calendar" style="width: 100%"></div>
-              </div>
             </div>
+        </div>
             <!-- /.card-body -->
-          </div>
+    </div>
+
+    <div class="modal fade" id="eventModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-left-primary">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="eventTitle">Event Title</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="eventDescription">Event description...</p>
+        <hr>
+        <small id="eventTime" class="text-muted"></small>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
   <!-- /.card -->
     </div>
 
@@ -229,7 +250,22 @@ $(document).ready(function(){
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
-      }
+      },
+      eventClick: function(info) {
+      info.jsEvent.preventDefault();
+      const title = info.event.title;
+      const description = info.event.extendedProps.description || "No description provided.";
+      const start_time = new Date(info.event.start).toLocaleString();
+
+      // Populate modal
+      document.getElementById("eventTitle").textContent = title;
+      document.getElementById("eventDescription").textContent = "Scheduled on: " + start_time
+      // Show Bootstrap modal
+      $('#eventModal').modal('show');
+    }
+
+
+
     });
     calendar.render();
   });

@@ -1,4 +1,62 @@
 {% load static %}
+{% block Stylesheet %}
+<style>
+/* Notification dropdown styling */
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    white-space: normal;
+    padding: 8px 12px;
+    max-width: 280px; /* keeps things from stretching */
+    box-sizing: border-box;
+}
+
+.notification-icon {
+    flex-shrink: 0;
+    color: #007bff;
+    font-size: 1.2rem;
+    margin-top: 2px;
+}
+
+.notification-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow: hidden;
+}
+
+.notification-text {
+    line-height: 1.4;
+    margin-bottom: 4px;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Limit to 3 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notification-time {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+/* Center dropdown on mobile */
+@media (max-width: 576px) {
+    .dropdown-menu-lg {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 90% !important;
+        max-width: 400px !important;
+        z-index: 1050;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+}
+</style>
+{% endblock Stylesheet %}
+
+
 <ul class="navbar-nav ml-auto">
     
     <li class="nav-item dropdown">
@@ -17,10 +75,15 @@
         <div class="dropdown-divider"></div>
 
         {% for note in user.notifications.all|slice:":5" %}
-        <a href="{% url 'notification_read' note.pk %}" class="dropdown-item">
-            <i class="fas fa-info-circle mr-2"></i> {{ note.verb }}
-            <span class="float-right text-muted text-sm">{{ note.timestamp|timesince }} ago</span>
+        <a href="{% url 'staff_notification_read' note.pk %}" class="dropdown-item notification-item">
+          <i class="fas fa-info-circle mr-2 notification-icon"></i>
+            <div class="notification-content">
+              <span class="notification-text">{{ note.verb }}</span>
+              <span class="notification-time">{{ note.timestamp|timesince }} ago</span>
+            </div>
         </a>
+
+
         <div class="dropdown-divider"></div>
         {% endfor %}
 
@@ -28,8 +91,10 @@
     </div>
 </li>
     <li class="nav-item">
-        <a class="nav-link" href="{% url 'notifications_mark_all_read' %}">
+        <a class="nav-link" href="{% url 'staff_notifications_mark_all_read' %}">
             <i class="fas fa-check"></i> Mark all as read
         </a>
     </li>
   </ul> 
+
+

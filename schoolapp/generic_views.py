@@ -46,7 +46,7 @@ def generic_paginated_list(request, model, related_fields, template_name, table_
                 Q(admin__username__icontains=query)
             )
 
-    paginator = Paginator(objects, 2)
+    paginator = Paginator(objects, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 

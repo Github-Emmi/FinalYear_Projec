@@ -9,9 +9,6 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from schoolapp.storages import RawMediaCloudinaryStorage  # adjust path if needed
 
-
-
-
 # Create your models here.
 
 
@@ -63,6 +60,9 @@ class Staffs(models.Model):
     
     def __str__(self):
         return self.admin.first_name + " " + self.admin.last_name
+    def get_absolute_url(self):
+        # Opens the admin’s staff chat focused on this staff member
+        return reverse("staff_feedback_chat", args=[self.id])
 
 # creating a department
 class Departments(models.Model):
@@ -157,6 +157,8 @@ class Students(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
+    def get_absolute_url(self):
+        return reverse("student_feedback_chat", args=[self.id])
 
 class Attendence(models.Model):
     id = models.AutoField(primary_key=True)
@@ -234,6 +236,11 @@ class AssignmentSubmission(models.Model):
         return reverse('student_assignments')
     def get_absolute_url(self):
         return reverse("student_submission_feedback", args=[self.id])
+    def get_absolute_url(self):
+        return reverse("staff_view_submission_detail", args=[self.id])
+    def get_absolute_url(self):
+        return reverse("student_submission_feedback", args=[self.id])
+
 
 
     # creating AttendenceReport Models
@@ -277,6 +284,9 @@ class FeedBackStudent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
     objects = models.Manager()
+    def get_absolute_url(self):
+        # STUDENT (recipient of admin’s message) to open their chat page.
+        return reverse("student_feedback")
 
 
 class FeedBackStaffs(models.Model):
