@@ -1,14 +1,15 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">  
+<html lang="en">
 <head>
-   <meta charset="utf-8" http-equiv="encoding"> 
+   <meta charset="utf-8" http-equiv="encoding">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="description" content="{% block meta_description %} If quality education is your passion for your children, Febmex International Group of Schools is conceived to provide sound International education.{% endblock %}"> 
-	<meta name="Author" content="Aghason"> 
-    <meta name="keywords" content="{% block meta_keywords %}best schools in NNPC Ejigbo Lagos.{% endblock %}">
-
-    <title>{% block title%}FEBMEX International Group Of Schools{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %} If quality education is your passion for your children, Febmex International Group of Schools is conceived to provide sound International education.{% endblock %}">
+	<meta name="Author" content="Aghason">
+    <meta name="keywords" content="{% block meta_keywords %}best schools in NNPC Ejigbo Lagos school lms, [School Name], online learning, student portal, education platform".{% endblock %}">
+    <title>{% block title%}FEBMEX International Group Of Schools - Developing bright leaders for the Nation. {% endblock %}</title>
+    <!-- Ionicons -->
+    <link rel="icon" href="/static/assets/images/febmex-logo.png" type="image/x-icon">
     <link rel="stylesheet" href="{% static 'assets/css/normalize.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/font-awesome/css/font-awesome.min.css' %}" />
@@ -22,10 +23,50 @@
     <link rel="stylesheet" href="{% static 'assets/css/animate.css' %}">
     <link rel="stylesheet" href="{% static 'assets/elegant_font/style.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+    <script src="{% static 'assets/js/html5shiv.min.js' %}"></script>
+    <script src="{% static 'assets/js/respond.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'assets/js/selectivizr.js' %}"></script>
+    <meta name="robots" content="index, follow">
 
-            <script src="{% static 'assets/js/html5shiv.min.js' %}"></script>
-        <script src="{% static 'assets/js/respond.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'assets/js/selectivizr.js' %}"></script>
+    <!-- Open Graph (Social Sharing) -->
+   <meta property="og:title" content="{% block og:title%} FEBMEX International Group Of Schools - Developing bright leaders for the Nation.{% endblock %}">
+   <meta property="og:description" content="{% block og:meta_description %}If quality education is your passion for your children, Febmex International Group of Schools is conceived to provide sound International education.{% endblock %}">
+   <meta property="og:image" content="https://www.febmexinternationalschools.com/static/assets/images/febmex-logo.png">
+   <meta property="og:url" content="https://www.febmexinternationalschools.com">
+   <meta property="og:type" content="website">
+
+
+   <meta name="twitter:card" content="summary_large_image">
+   <meta name="twitter:title" content="FEBMEX International Group Of Schools - Developing bright leaders for the Nation.">
+   <meta name="twitter:description" content="If quality education is your passion for your children, Febmex International Group of Schools is conceived to provide sound International education.">
+   <meta name="twitter:image" content="https://www.febmexinternationalschools.com/static/assets/images/febmex-logo.png">
+
+   <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "FEBMEX International Group Of Schools - Developing bright leaders for the Nation.",
+  "url": "https://www.febmexinternationalschools.com",
+  "logo": "https://www.febmexinternationalschools.com/static/assets/images/febmex-logo.png",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "(+234) 703-489-9625",
+    "contactType": "Customer service"
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "17, Ramoni Jimoh Street, Ejigbo, Lagos",
+    "addressLocality": "Lagos",
+    "addressRegion": "Lagos",
+    "postalCode": "1000216",
+    "addressCountry": "Nigeria"
+  },
+}
+</script>
+
+
+
+
     </head>
 
     <body>
@@ -33,16 +74,16 @@
         <div class="preloader">
             <div class="status"></div>
         </div>
-     
+
         <!-- Header End -->
         <header>
             <!-- Navigation Menu start-->
-            
+
         <nav id="topNav" class="navbar navbar-default main-menu">
         <div class="container">
             <button class="navbar-toggler hidden-md-up pull-right" type="button" data-toggle="collapse" data-target="#collapsingNavbar">
-                ☰ 
-            </button> 
+                ☰
+            </button>
              <a class="navbar-brand page-scroll" href="#slider"><img class="logo" id="logo" src="{% static 'assets/images/febmex-logo.png' %}" alt="logo"></a>
             <div class="collapse navbar-toggleable-sm" id="collapsingNavbar">
                 <ul class="nav navbar-nav">
@@ -58,7 +99,7 @@
                             <li>
                                 <a href="{% url 'academics' %}">ACADEMICS</a>
                             </li>
-                           
+
                             <li>
                                 <a href="{% url 'gallery' %}">GALLARY</a>
                             </li>
@@ -68,18 +109,18 @@
                             <li>
                                 <a href="{% url 'login' %}">LOGIN</a>
                             </li>
-                </ul> 
+                </ul>
             </div>
         </div>
     </nav>
-    
-            
+
+
         </header>
-        <!-- Header End --> 
+        <!-- Header End -->
 
 {% block content %}
 
-{% endblock %} 
+{% endblock %}
 
 <!-- Footer Section Start -->
 <section class="footer-container">
@@ -105,7 +146,7 @@
                         <li><i class="fa fa-home"></i>17, Ramoni Jimoh Street, Ejigbo, Lagos</li>
                         <li><i class="fa fa-phone"></i>(+234) 703-489-9625, (+234) 708-426-0613</li>
                         <li><i class="fa fa-envelope-o"></i>febmex@yahoo.co.uk</li>
-                    </ul> 
+                    </ul>
             </div>
         </div>
     </div>
@@ -143,7 +184,7 @@
 <script src="{% static 'assets/js/jquery.easing.1.3.js' %}"></script>
 <script src="{% static 'assets/js/jquery.scrollUp.min.js' %}"></script>
 <script src="{% static 'assets/js/jquery.easypiechart.js' %}"></script>
-{% block extern_js %}  {% endblock extern_js %} 
+{% block extern_js %}  {% endblock extern_js %}
 <script src="{% static 'assets/js/isotope.pkgd.min.js' %}"></script>
 <script src="{% static 'assets/js/jquery.fitvids.js' %}"></script>
 <script src="{% static 'assets/js/jquery.stellar.min.js' %}"></script>
@@ -158,4 +199,4 @@
 <script src="{% static 'assets/js/custom.js' %}"></script>
 
 </body>
-</html> 
+</html>
