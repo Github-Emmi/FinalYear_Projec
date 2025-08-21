@@ -16,7 +16,7 @@ SECRET_KEY = SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['www.febmexinternationalschools.com', 'febmexinternationalschools.com']
 
 # Application definition
 AUTH_USER_MODEL = "schoolapp.CustomUser"
@@ -94,7 +94,6 @@ WSGI_APPLICATION = 'school_management_system.wsgi.application'
 
 DATABASES = {
     'default': {
-<<<<<<< HEAD
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': BASE_DIR / 'db.sqlite3',
         'ENGINE': 'django.db.backends.mysql',
