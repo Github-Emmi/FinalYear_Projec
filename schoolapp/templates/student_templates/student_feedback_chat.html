@@ -104,7 +104,7 @@
                     </div>
                     <img
                       class="chat-avatar"
-                      src="{{ student.profile_pic |default:'/static/assets/images/student_avatar.png' }}"
+                      src="{{ student_avatar_url }}"
                       alt="You"
                     />
                   </div>
@@ -155,7 +155,7 @@
           </div>
           <div class="card-body">
             <div class="d-flex align-items-center mb-3">
-              <img class="chat-avatar mr-3" src="{{ student.profile_pic|default:'/static/assets/images/student_avatar.png' }}" alt="You" />
+              <img class="chat-avatar mr-3" src="{{ student_avatar_url }}" alt="You" />
               <div>
                 <div class="font-weight-bold">{{ student.admin.get_full_name|default:student.admin.username }}</div>
                 <div class="text-muted small">{{ student.admin.email }}</div>
@@ -229,7 +229,7 @@ form.addEventListener('submit', async (e) => {
             <div class="d-flex align-items-end">
               <div class="chat-bubble chat-bubble-right mr-2">${escapeHtml(data.message)}</div>
               <img class="chat-avatar"
-                   src="{{ student.profile_pic|default:'/static/assets/images/student_avatar.png' }}"
+                   src="{{ student_avatar_url }}"
                    alt="You" />
             </div>
           </div>

@@ -337,6 +337,7 @@ def student_feedback(request):
 
     # Fallback avatar paths if you don't store profile pics
     admin_avatar_url = "/static/assets/images/avatar3.png"
+    student_avatar_url = student.profile_pic
 
     return render(
         request,
@@ -345,6 +346,7 @@ def student_feedback(request):
             "feedback_messages": feedback_messages,
             "student": student,
             "admin_avatar_url": admin_avatar_url,
+            "student_avatar_url": student_avatar_url
         },
     )
 

@@ -71,6 +71,7 @@ path("staff-feedback/<int:sender_id>/", AdminViews.staff_feedback_message, name=
 path("student-feedback/", AdminViews.student_feedback_message, name="student_feedback_list"),
 path("student-feedback/<int:sender_id>/", AdminViews.student_feedback_message, name="student_feedback_chat"),
 path("student-feedback-reply-ajax/", AdminViews.student_feedback_reply_ajax, name="student_feedback_reply_ajax"),
+path("student-feedback/chat/<int:student_id>/", AdminViews.student_feedback_chat_ajax, name="student_feedback_chat_ajax"),
 path("staff-feedback-reply-ajax/", AdminViews.staff_feedback_reply_ajax, name="staff_feedback_reply_ajax"),
 
 

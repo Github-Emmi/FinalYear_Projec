@@ -15,7 +15,7 @@ from .generic_views import generic_paginated_list
 from django.template.loader import render_to_string
 from django.shortcuts import render, get_object_or_404, redirect
 from notifications.signals import notify
-from django.db.models import Q
+
 
 
 @login_required(login_url="/")
@@ -987,13 +987,14 @@ def check_username_exist(request):
     else:
         return HttpResponse(False)
     
-from django.http import JsonResponse
 
 @login_required
 def student_feedback_message(request, sender_id=None):
     student_list = Students.objects.filter(
         feedbackstudent__isnull=False
     ).distinct()
+    # Fallback avatar paths if you don't store profile pics
+    admin_avatar_url = "/static/assets/images/avatar3.png"
 
     messages_qs = []
     selected_student = None
@@ -1020,9 +1021,51 @@ def student_feedback_message(request, sender_id=None):
         "messages": messages_qs,
         "selected_student": selected_student,
         "no_feedback_message": no_feedback_message,
-        "unread_student_count": unread_student_count
+        "unread_student_count": unread_student_count,
+        "admin_avatar_url": admin_avatar_url
     })
 
+@login_required
+def student_feedback_chat_ajax(request, student_id):
+    """Returns only the chat HTML for a selected student (AJAX)."""
+    student = get_object_or_404(Students, id=student_id)
+    messages_qs = FeedBackStudent.objects.filter(
+        student_id=student
+    ).order_by("created_at")
+
+    html = render_to_string("admin_templates/student_chat_box.html", {
+        "messages": messages_qs,
+        "selected_student": student,
+    }, request=request)
+
+    return JsonResponse({"status": "success", "html": html})
+
+
+@login_required
+def student_feedback_reply_ajax(request):
+    """Handles reply to student feedback via AJAX"""
+    if request.method == "POST":
+        student_id = request.POST.get("student_id")
+        message = request.POST.get("message")
+
+        if not message.strip():
+            return JsonResponse({"status": "error", "msg": "Message cannot be empty"})
+
+        student = get_object_or_404(Students, id=student_id)
+
+        # Create a reply message
+        feedback = FeedBackStudent.objects.create(
+            student_id=student,
+            feedback="",
+            feedback_reply=message
+        )
+        return JsonResponse({
+            "status": "success",
+            "msg": "Reply sent",
+            "created_at": feedback.created_at.strftime("%b %d, %H:%M")
+        })
+
+    return JsonResponse({"status": "error", "msg": "Invalid request"})
 
 @login_required
 def staff_feedback_message(request, sender_id=None):
@@ -1057,32 +1100,6 @@ def staff_feedback_message(request, sender_id=None):
         "unread_staff_count": unread_staff_count
     })
 
-
-@login_required
-def student_feedback_reply_ajax(request):
-    """Handles reply to student feedback via AJAX"""
-    if request.method == "POST":
-        student_id = request.POST.get("student_id")
-        message = request.POST.get("message")
-
-        if not message.strip():
-            return JsonResponse({"status": "error", "msg": "Message cannot be empty"})
-
-        student = get_object_or_404(Students, id=student_id)
-
-        # Create a reply (or update latest message)
-        feedback = FeedBackStudent.objects.create(
-            student_id=student,
-            feedback="",
-            feedback_reply=message
-        )
-        return JsonResponse({
-            "status": "success",
-            "msg": "Reply sent",
-            "created_at": feedback.created_at.strftime("%b %d, %H:%M")
-        })
-
-    return JsonResponse({"status": "error", "msg": "Invalid request"})
 
 
 @login_required
