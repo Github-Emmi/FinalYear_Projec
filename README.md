@@ -1,54 +1,77 @@
-# 🏫 School Management System (LMS)
+# 🎓 LMS School Management System
 
-A powerful, full-stack Django-based Learning Management System (LMS) designed for schools to manage academic activities with ease.
-
-![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
-![Django](https://img.shields.io/badge/Django-5.0-green?logo=django)
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
+A modern **Learning Management System (LMS)** built with Django, designed for schools to manage students, staff, classes, sessions, quizzes, and communication in one unified platform.  
+Clean UI, real-time messaging, and AI-powered quiz grading make this system stand out from traditional LMS platforms.
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-- 🎓 **Student & Staff Dashboards**
-- 📚 **Subjects, Classes, Departments**
-- 📝 **Timetables + Dynamic Calendars (FullCalendar)**
-- 📥 **Assignment Upload & Submission**
-- ✅ **Staff Grading + In-app Notifications**
-- 🧪 **Auto-Graded Quiz System with Timer**
-- 📅 **Academic Event Calendar (Exams, Holidays, Results)**
-- 🔔 **Real-time Notifications using Django Signals**
-- 📱 **Mobile-ready Frontend (responsive layout)**
+### 🔑 Authentication & Profiles
+- Role-based login system (**Admin, Staff, Student**).
+- Each role has its own **custom dashboard**.
+- User profile pages with profile pictures.
+
+### 💬 Real-Time Feedback & Communication
+- **Student → Admin** feedback messaging with notifications system (chat-bubble UI).
+- **Staff → Admin** feedback messaging with notifications system (chat-bubble UI).
+- **Admin → Staff/Students** threaded conversations.
+- Sidebar shows scrollable list of users with:
+  - Latest activity
+  - Add Sessions (Here you add students, staffs, Session Year, Time Table, and more...)
+  - manage Sessions (Here you manage students, staffs, Session Year, Time Table, and more...)
+  - Feedback Real-Time Messaging
+  - Message count indicators
+- Smooth **AJAX-powered chat** (no page reload).
+
+### 📚 Exams & Assessments
+- Staff create Exams for their subjects.
+- Two question types supported:
+  - ✅ Multiple Choice (MCQs) – Options A–D
+  - ✅ Short Answer – Students type answers
+- Exam options:
+  - Title, Instructions, Subject, Class, Department, Session
+  - Deadline, Duration, Start/End time
+  - Status: **Draft / Published**
+- **Automatic Grading**:
+  - MCQs graded instantly
+  - **AI-powered grading** for open-ended answers (OpenAI GPT integration)
+- Staff can **add/edit/delete** questions.
+- Admin can view **all staff Exams** with teacher info, subject, deadlines, status.
+- Direct links to send **feedback messages** to staff about their quizzes.
+
+### 🏫 Admin Management
+- Full CRUD for **Students, Staff, Classes, Departments, Sessions**.
+- Read-only access to quiz details.
+- Direct communication with staff/students.
+
+### ⚡ Extra Features / Upcoming
+- Sidebar notifications with unread counts.
+- WhatsApp-style chat bubble interface.
+- Section switching for staff/students.
+- SaaS-ready for multi-school hosting.
 
 ---
 
-## 📂 Tech Stack
+## 🖼️ Screenshots
 
-| Tech | Purpose |
-|------|---------|
-| 🐍 Python 3.11 | Backend language |
-| 🌿 Django 5.x | Web framework |
-| 🧩 Django REST Framework | API layer |
-| 🗃️ SQLite / PostgreSQL | Database |
-| 📊 FullCalendar JS | Dynamic schedules |
-| 📱 Bootstrap 5 | Frontend styling |
-| 🔔 Django-Notifications | In-app alerts |
+> _(Add your project screenshots here for max impact)_
+
+- **Login Page**
+- **Admin Dashboard**
+- **Staff Quiz Creation**
+- **Student Quiz Attempt**
+- **Chat System with Notifications**
 
 ---
 
-## 🏗️ Project Structure
+## 🚀 Tech Stack
 
-school-management-lms/
-│
-├── schoolapp/ # Main Django app
-│ ├── views/ # All views (student, staff, admin)
-│ ├── models.py # Data models
-│ ├── urls.py
-│ ├── templates/
-│
-├── static/ # CSS, JS, images
-├── media/ # Uploaded files
-├── api/ # Optional API (DRF)
-│
-├── manage.py
-└── requirements.txt
+- **Backend**: Django, Django ORM  
+- **Frontend**: HTML5, CSS3, Bootstrap, JavaScript (AJAX)  
+- **Database**: PostgreSQL / MySQL  
+- **AI Grading**: OpenAI GPT API  
+- **Hosting Ready**: Heroku, DigitalOcean, AWS, or Render  
+
+---
+
