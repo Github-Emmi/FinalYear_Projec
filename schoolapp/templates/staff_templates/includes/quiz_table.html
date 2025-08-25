@@ -1,0 +1,42 @@
+{% for quiz in objects %}
+<tr>
+  <td>{{ quiz.title }}</td>
+  <td>{{ quiz.subject.subject_name }}</td>
+  <td>{{ quiz.class_id.class_name }}</td>
+  <td>{{ quiz.department_id.department_name }}</td>
+  <td>{{ quiz.session_year.session_start_year }} - {{ quiz.session_year.session_end_year }}</td>
+  <td>{{ quiz.deadline|date:"M d, Y H:i" }}</td>
+
+  <td>
+    <span class="badge {% if quiz.status == 'PUBLISHED' %}badge-success{% else %}badge-secondary{% endif %}">
+      {{ quiz.get_status_display }}
+    </span>
+  </td>
+
+  <td>
+    <a href="{% url 'staff_view_quiz_questions' quiz.id %}" class="btn btn-sm btn-info">
+      <i class="fas fa-eye"></i> View
+    </a>
+    <a href="{% url 'toggle_quiz_status' quiz.id %}" class="btn btn-sm btn-warning">
+      {% if quiz.status == 'DRAFT' %}
+        <i class="fas fa-upload"></i> Publish
+      {% else %}
+        <i class="fas fa-ban"></i> Unpublish
+      {% endif %}
+    </a>
+  </td>
+
+  <td>
+    <form method="post" action="{% url 'staff_delete_quiz' quiz.id %}" onsubmit="return confirm('Delete this quiz?');">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-danger">
+        <i class="fas fa-trash"></i> Delete
+      </button>
+    </form>
+  </td>
+</tr>
+{% empty %}
+<tr>
+  <td colspan="9" class="text-center text-muted">No quizzes created yet.</td>
+</tr>
+{% endfor %}

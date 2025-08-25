@@ -464,6 +464,16 @@ def manage_session_year(request):
         table_template='admin_templates/includes/session_year_table.html'
     )
 
+@login_required(login_url="/")
+def admin_quiz_list(request):
+    return generic_paginated_list(
+        request=request,
+        model=Quiz,
+        related_fields=['subject', 'class_id', 'department_id', 'session_year', 'staff'],
+        template_name='staff_templates/quiz_list.html',
+        table_template='staff_templates/includes/quiz_table.html'
+    )
+
 
 ####################### Manage Session #######################
 
@@ -1402,3 +1412,26 @@ def admin_create_event(request):
     return render(request, "admin_templates/event_form.html", {
         "sessions": SessionYearModel.objects.all()
     })
+
+
+@login_required
+def admin_view_quizzes(request):
+    # Fetch all quizzes, order by most recent
+    quizzes = Quiz.objects.select_related(
+        "staff", "subject", "class_id", "department_id", "session_year"
+    ).order_by("-created_at")
+
+    return render(request, "admin_templates/admin_quiz_list.html", {
+        "quizzes": quizzes
+    })
+
+@login_required
+def admin_quiz_detail(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    questions = Question.objects.filter(quiz=quiz)
+
+    return render(request, "admin_templates/quiz_detail.html", {
+        "quiz": quiz,
+        "questions": questions,
+    })
+

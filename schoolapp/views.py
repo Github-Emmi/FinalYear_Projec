@@ -162,7 +162,7 @@ def delete_selected_notifications(request):
 def admin_mark_all_read(request):
     """Mark all notifications as read for the current user."""
     Notification.objects.filter(recipient=request.user, unread=True).update(unread=False)
-    return redirect('admin_notifications_list')
+    return redirect('admin_notification_list')
 
 @login_required
 def admin_notification_read(request, pk):

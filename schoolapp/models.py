@@ -6,6 +6,8 @@ from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from difflib import SequenceMatcher
+import openai
 from django.utils.translation import gettext_lazy as _
 from schoolapp.storages import RawMediaCloudinaryStorage  # adjust path if needed
 
@@ -382,6 +384,9 @@ class TimeTable(models.Model):
     def __str__(self):
         return f"{self.subject.subject_name} - {self.day} {self.start_time}-{self.end_time}"
     
+# =====================
+# QUIZ MODELS
+# =====================
 
 class Quiz(models.Model):
     STATUS_CHOICES = [
@@ -396,45 +401,168 @@ class Quiz(models.Model):
     department_id = models.ForeignKey(Departments, on_delete=models.CASCADE)
     session_year = models.ForeignKey(SessionYearModel, on_delete=models.CASCADE)
     staff = models.ForeignKey(Staffs, on_delete=models.CASCADE)
-    deadline = models.DateTimeField() ##### notify students for the quiz deadline
+
+    deadline = models.DateTimeField()  # Notify students before this time
     duration_minutes = models.PositiveIntegerField(default=30)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='DRAFT') ## make it accessible once published
+    
+    status = models.CharField(
+        max_length=10, choices=STATUS_CHOICES, default="DRAFT"
+    )  # Accessible only when published
     created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
         return f"{self.title} - {self.subject.subject_name}"
+    def get_absolute_url(self):
+        return reverse("admin_quiz_detail", args=[self.id])
+
 
 class Question(models.Model):
-    quiz = models.ForeignKey('Quiz', related_name="questions", on_delete=models.CASCADE)
+    QUESTION_TYPE_CHOICES = [
+        ("MCQ", "Multiple Choice"),
+        ("OPEN", "Open-Ended"),
+    ]
+
+    quiz = models.ForeignKey(Quiz, related_name="questions", on_delete=models.CASCADE)
     question_text = models.TextField()
-    option_a = models.CharField(max_length=255)
-    option_b = models.CharField(max_length=255)
-    option_c = models.CharField(max_length=255)
-    option_d = models.CharField(max_length=255)
+    question_type = models.CharField(max_length=10, choices=QUESTION_TYPE_CHOICES, default="MCQ")
+
+    # For MCQs
+    option_a = models.CharField(max_length=255, blank=True, null=True)
+    option_b = models.CharField(max_length=255, blank=True, null=True)
+    option_c = models.CharField(max_length=255, blank=True, null=True)
+    option_d = models.CharField(max_length=255, blank=True, null=True)
     correct_answer = models.CharField(
         max_length=1,
-        choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')]
+        choices=[("A", "A"), ("B", "B"), ("C", "C"), ("D", "D")],
+        blank=True, null=True
     )
+
+    # For open-ended
+    correct_text_answer = models.TextField(blank=True, null=True)
+
     def __str__(self):
-        return f"Q: {self.question_text[:50]}"
+        return f"{self.quiz.title} - {self.question_text[:50]}"
+
 
 class StudentQuizSubmission(models.Model):
-    student = models.ForeignKey('Students', on_delete=models.CASCADE)
-    quiz = models.ForeignKey('Quiz', on_delete=models.CASCADE)
+    student = models.ForeignKey(Students, on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
     submitted_at = models.DateTimeField(auto_now_add=True)
     total_score = models.FloatField(default=0.0)
     is_graded = models.BooleanField(default=False)
+
     def __str__(self):
         return f"{self.student.admin.get_full_name()} - {self.quiz.title}"
+
+    def grade_submission(self, use_ai=True):
+        """
+        Grade all answers in this submission.
+        - Calls StudentAnswer.grade_answer() on each answer.
+        - Calculates total score.
+        """
+        total_questions = self.quiz.questions.count()
+        correct_answers = 0
+
+        for answer in self.answers.all():
+            if answer.grade_answer(use_ai=use_ai):
+                correct_answers += 1
+
+        # Score as percentage
+        self.total_score = (correct_answers / total_questions) * 100 if total_questions > 0 else 0
+        self.is_graded = True
+        self.save()
+        return self.total_score
 
 class StudentAnswer(models.Model):
     submission = models.ForeignKey(StudentQuizSubmission, related_name='answers', on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    selected_option = models.CharField(max_length=1, choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')])
+    selected_option = models.CharField(
+        max_length=1,
+        choices=[('A', 'A'), ('B', 'B'), ('C', 'C'), ('D', 'D')],
+        null=True, blank=True
+    )
+    text_answer = models.TextField(null=True, blank=True)
     is_correct = models.BooleanField(default=False)
+    ai_confidence = models.FloatField(null=True, blank=True)  # Confidence score if AI graded
+
     def __str__(self):
         return f"{self.submission.student.admin.get_full_name()} - QID: {self.question.id}"
+
+    def grade_answer(self, use_ai=True):
+        """
+        Grade this answer automatically.
+        If use_ai=True and it's an open-ended question, use GPT to grade.
+        """
+        # ✅ Case 1: Multiple Choice
+        if self.question.question_type == 'MCQ':
+            if self.selected_option == self.question.correct_answer:
+                self.is_correct = True
+            else:
+                self.is_correct = False
+            self.ai_confidence = 1.0
+            self.save()
+            return self.is_correct
+
+        # ✅ Case 2: Short Answer (Open-ended)
+        if self.question.question_type == 'OPEN':
+            # Fallback simple similarity check
+            if self.question.correct_text_answer:
+                ratio = SequenceMatcher(None, self.text_answer.lower(), self.question.correct_text_answer.lower()).ratio()
+                if ratio > 0.85:  # simple similarity threshold
+                    self.is_correct = True
+                    self.ai_confidence = ratio
+                    self.save()
+                    return True
+
+            if use_ai:
+                try:
+                    # Call OpenAI API
+                    openai.api_key = settings.OPENAI_API_KEY
+
+                    prompt = f"""
+                    You are an examiner grading a student's answer.
+                    Question: {self.question.question_text}
+                    Correct Answer: {self.question.correct_text_answer}
+                    Student's Answer: {self.text_answer}
+
+                    Score the student's answer strictly as Correct or Incorrect.
+                    Respond in JSON with fields:
+                    {{
+                        "is_correct": true/false,
+                        "confidence": float between 0 and 1
+                    }}
+                    """
+
+                    response = openai.ChatCompletion.create(
+                        model="gpt-4o-mini",  # or "gpt-4" / "gpt-5" when available
+                        messages=[{"role": "system", "content": "You are a strict but fair exam grader."},
+                                  {"role": "user", "content": prompt}],
+                        max_tokens=150,
+                        temperature=0
+                    )
+
+                    ai_output = response.choices[0].message["content"].strip()
+
+                    # Parse AI output safely
+                    import json
+                    result = json.loads(ai_output)
+
+                    self.is_correct = result.get("is_correct", False)
+                    self.ai_confidence = result.get("confidence", 0.5)
+                    self.save()
+                    return self.is_correct
+
+                except Exception as e:
+                    print("AI grading failed:", str(e))
+                    # Fallback to marking as ungraded
+                    self.is_correct = False
+                    self.ai_confidence = None
+                    self.save()
+                    return False
+
+        return False
 
 
 @receiver(post_save, sender=CustomUser)

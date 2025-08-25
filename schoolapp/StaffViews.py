@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 from django.urls import reverse
 from schoolapp.models import *
+from .generic_views import generic_paginated_list
 from django.utils.timezone import localtime
 from django.contrib.auth.decorators import login_required
 from notifications.signals import notify
@@ -556,7 +557,6 @@ def staff_schedule_json(request):
 @login_required
 def staff_add_quiz(request):
     staff = Staffs.objects.get(admin=request.user)
-    # Filter subjects assigned to this staff
     assigned_subjects = Subjects.objects.filter(staff_id=staff.admin.id)
     assigned_classes = Class.objects.filter(id__in=assigned_subjects.values_list('class_id', flat=True))
     assigned_departments = Departments.objects.filter(id__in=assigned_subjects.values_list('department_id', flat=True))
@@ -584,7 +584,18 @@ def staff_add_quiz(request):
                 end_time=end_time,
                 staff=staff
             )
-            messages.success(request, "Quiz created successfully.")
+            # ✅ Send notification to Admin
+            admin_user = CustomUser.objects.filter(user_type="1").first()  # Assuming user_type=1 => Admin
+            if admin_user:
+                notify.send(
+                    sender=request.user,
+                    recipient=admin_user,
+                    verb=f"New Quiz from {staff.admin.get_full_name() or staff.admin.username}",
+                    description="Click to view quiz details",
+                    target=quiz,
+)
+
+            messages.success(request, "Quiz created successfully. Admin notified.")
             return redirect("staff_add_quiz")
         except Exception as e:
             messages.error(request, f"Error: {e}")
@@ -596,30 +607,40 @@ def staff_add_quiz(request):
         "sessions": sessions,
     })
 
+
 @login_required
 def staff_quiz_list(request):
-    staff = Staffs.objects.get(admin=request.user)
-    quizzes = Quiz.objects.filter(staff=staff).select_related("subject", "class_id", "department_id", "session_year")
+    staff = get_object_or_404(Staffs, admin=request.user)
+    base_qs = Quiz.objects.filter(staff=staff).select_related(
+        'subject', 'class_id', 'department_id', 'session_year', 'staff__admin'
+    )
+    return generic_paginated_list(
+        request=request,
+        model=Quiz,
+        related_fields=['subject', 'class_id', 'department_id', 'session_year', 'staff__admin'],
+        template_name='staff_templates/quiz_list.html',
+        table_template='staff_templates/includes/quiz_table.html',
+        base_qs=base_qs,
+        per_page=10,
+        extra_context={}  # add filter dropdown data here later if needed
+    )
 
-    return render(request, "staff_templates/quiz_list.html", {
-        "quizzes": quizzes
-    })
 
 @login_required
 def staff_add_question_to_quiz(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id, staff__admin=request.user)
-
     if request.method == "POST":
+        question_type = request.POST.get("question_type")
         question_text = request.POST.get("question_text")
-        option_a = request.POST.get("option_a")
-        option_b = request.POST.get("option_b")
-        option_c = request.POST.get("option_c")
-        option_d = request.POST.get("option_d")
-        correct_answer = request.POST.get("correct_answer")
-
-        try:
+        if question_type == "MCQ":
+            option_a = request.POST.get("option_a")
+            option_b = request.POST.get("option_b")
+            option_c = request.POST.get("option_c")
+            option_d = request.POST.get("option_d")
+            correct_answer = request.POST.get("correct_answer")
             Question.objects.create(
                 quiz=quiz,
+                question_type="MCQ",
                 question_text=question_text,
                 option_a=option_a,
                 option_b=option_b,
@@ -627,15 +648,19 @@ def staff_add_question_to_quiz(request, quiz_id):
                 option_d=option_d,
                 correct_answer=correct_answer
             )
-            messages.success(request, "Question added successfully.")
-        except Exception as e:
-            messages.error(request, f"Error: {e}")
+        elif question_type == "OPEN":
+            correct_text_answer = request.POST.get("correct_text_answer")
 
+            Question.objects.create(
+                quiz=quiz,
+                question_type="OPEN",
+                question_text=question_text,
+                correct_text_answer=correct_text_answer
+            )
+        messages.success(request, "Question added successfully.")
         return redirect("staff_add_question_to_quiz", quiz_id=quiz.id)
+    return render(request, "staff_templates/quiz_add_question.html", {"quiz": quiz})
 
-    return render(request, "staff_templates/quiz_add_question.html", {
-        "quiz": quiz
-    })
 
 @login_required
 def staff_view_quiz_questions(request, quiz_id):
@@ -647,6 +672,8 @@ def staff_view_quiz_questions(request, quiz_id):
         "questions": questions
     })
 
+
+
 @login_required
 def staff_delete_question(request, question_id):
     question = get_object_or_404(Question, id=question_id, quiz__staff__admin=request.user)
@@ -654,6 +681,14 @@ def staff_delete_question(request, question_id):
     question.delete()
     messages.success(request, "Question deleted.")
     return redirect("staff_view_quiz_questions", quiz_id=quiz_id)
+
+@login_required
+def staff_delete_quiz(request, question_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id, quiz__staff__admin=request.user)
+    quiz_id = quiz.id
+    quiz.delete()
+    messages.success(request, "Quiz deleted.")
+    return redirect("staff_quiz_list", quiz_id=quiz_id)
 
 @login_required
 def toggle_quiz_status(request, quiz_id):

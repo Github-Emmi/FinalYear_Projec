@@ -258,6 +258,16 @@
           </a>
         </li>
         <li class="nav-item">
+          {% url 'admin_view_quizzes' as admin_view_quizzes %}
+           <a href="{% url 'admin_view_quizzes' %}" class="nav-link {% if request.path == admin_view_quizzes %} active {% endif %}">
+            <i class="nav-icon fas fa-bullseye"></i>
+            <p>
+              View Exam Questions
+            </p>
+          </a>
+        </li>
+
+        <li class="nav-item">
           {% url 'admin_view_results' as admin_view_results %}
            <a href="{% url 'admin_view_results' %}" class="nav-link {% if request.path == admin_view_results %} active {% endif %}">
             <i class="nav-icon fas fa-bullseye"></i>

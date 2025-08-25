@@ -74,9 +74,6 @@ path("student-feedback-reply-ajax/", AdminViews.student_feedback_reply_ajax, nam
 path("student-feedback/chat/<int:student_id>/", AdminViews.student_feedback_chat_ajax, name="student_feedback_chat_ajax"),
 path("staff-feedback-reply-ajax/", AdminViews.staff_feedback_reply_ajax, name="staff_feedback_reply_ajax"),
 
-
-
-
 path('student-leave-view', AdminViews.student_leave_view,name="student_leave_view"),
 path('staff-leave-view', AdminViews.staff_leave_view,name="staff_leave_view"),
 path('student-approve-leave/<str:leave_id>', AdminViews.student_approve_leave,name="student_approve_leave"),
@@ -94,6 +91,9 @@ path("admin-timetable/add/", AdminViews.admin_add_timetable, name="admin_add_tim
 path("admin-timetable/edit/<int:pk>/", AdminViews.admin_edit_timetable, name="admin_edit_timetable"),
 path("admin-timetable/delete/<int:pk>/", AdminViews.admin_delete_timetable, name="admin_delete_timetable"),
 path("admin-create-event/", AdminViews.admin_create_event, name="admin_create_event"),
+path("admin-quizzes/", AdminViews.admin_view_quizzes, name="admin_view_quizzes"),
+path("admin-quiz/<int:quiz_id>/", AdminViews.admin_quiz_detail, name="admin_quiz_detail"),
+
 
 
    ####################################
@@ -127,6 +127,7 @@ path("staff-quizzes/", StaffViews.staff_quiz_list, name="staff_quiz_list"),
 path("staff-quiz/<int:quiz_id>/add-question/", StaffViews.staff_add_question_to_quiz, name="staff_add_question_to_quiz"),
 path("staff-quiz/<int:quiz_id>/questions/", StaffViews.staff_view_quiz_questions, name="staff_view_quiz_questions"),
 path("staff-quiz/question/<int:question_id>/delete/", StaffViews.staff_delete_question, name="staff_delete_question"),
+path("staff-quiz/<int:quiz_id>/delete/", StaffViews.staff_delete_quiz, name="staff_delete_quiz"),
 path("staff-quiz/<int:quiz_id>/toggle-status/", StaffViews.toggle_quiz_status, name="toggle_quiz_status"),
 
    ####################################

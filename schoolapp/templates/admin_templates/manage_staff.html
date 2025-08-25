@@ -1,5 +1,6 @@
 {% extends 'admin_templates/base.html' %}
  {% load static %}
+ {% block title %}Manage Staffs{% endblock title %}
  {% block dashboard_title %} Manage Staffs {% endblock dashboard_title %}
  {% block dashboard_title1 %}Manage Staffs {% endblock dashboard_title1 %}
 {% block main_content %}
@@ -54,7 +55,7 @@
                               </div>
                               <!-- /.modal -->        
                             
-                              </tr> 
+                              {% comment %} </tr>  {% endcomment %}
                               {% endfor %}
                             </tbody>
         </table>

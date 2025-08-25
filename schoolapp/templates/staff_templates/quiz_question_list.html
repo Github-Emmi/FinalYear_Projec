@@ -1,5 +1,7 @@
 {% extends 'staff_templates/base.html' %}
 {% block title %}Questions – {{ quiz.title }}{% endblock %}
+{% block dashboard_title %} Question Lists {% endblock dashboard_title %}
+{% block dashboard_title1 %}Question Lists {% endblock dashboard_title1 %}
 {% block main_content %}
 <section class="content">
   <div class="container-fluid">
@@ -23,26 +25,39 @@
             </tr>
           </thead>
           <tbody>
-            {% for q in questions %}
-            <tr>
-              <td>{{ forloop.counter }}</td>
-              <td>{{ q.question_text }}</td>
-              <td>
-                <b>A:</b> {{ q.option_a }}<br>
-                <b>B:</b> {{ q.option_b }}<br>
-                <b>C:</b> {{ q.option_c }}<br>
-                <b>D:</b> {{ q.option_d }}
-              </td>
-              <td>{{ q.correct_answer }}</td>
-              <td>
-                <a href="{% url 'staff_delete_question' q.id %}" class="btn btn-danger btn-sm"
-                   onclick="return confirm('Delete this question?');">
-                  <i class="fas fa-trash"></i> Delete
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
+  {% for q in questions %}
+  <tr>
+    <td>{{ forloop.counter }}</td>
+    <td>{{ q.question_text }}</td>
+
+    <td>
+      {% if q.question_type == "MCQ" %}
+        <b>A:</b> {{ q.option_a }}<br>
+        <b>B:</b> {{ q.option_b }}<br>
+        <b>C:</b> {{ q.option_c }}<br>
+        <b>D:</b> {{ q.option_d }}
+      {% else %}
+        <span class="text-muted">(Theory Question)</span>
+      {% endif %}
+    </td>
+
+    <td>
+      {% if q.question_type == "MCQ" %}
+        {{ q.correct_answer }}
+      {% else %}
+        {{ q.correct_text_answer|default:"❌ No expected answer set" }}
+      {% endif %}
+    </td>
+
+    <td>
+      <a href="{% url 'staff_delete_question' q.id %}" class="btn btn-danger btn-sm"
+         onclick="return confirm('Delete this question?');">
+        <i class="fas fa-trash"></i> Delete
+      </a>
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
         </table>
         {% else %}
           <p class="text-muted">No questions added yet.</p>

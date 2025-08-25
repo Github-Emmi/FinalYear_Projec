@@ -1,0 +1,51 @@
+{% extends 'admin_templates/base.html' %}
+{% load static %}
+
+{% block title %}Quiz Detail{% endblock %}
+{% block dashboard_title %}Quiz Detail{% endblock %}
+{% block dashboard_title1 %}{{ quiz.title }}{% endblock %}
+
+{% block main_content %}
+<div class="row">e
+  <div class="col-md-12">
+    <div class="card card-outline card-primary">
+      <div class="card-header">
+        <h3 class="card-title">{{ quiz.title }}</h3>
+      </div>
+      <div class="card-body">
+        <p><strong>Teacher:</strong> {{ quiz.staff.admin.first_name }} {{ quiz.staff.admin.last_name }}</p>
+        <p><strong>Subject:</strong> {{ quiz.subject.subject_name }}</p>
+        <p><strong>Class:</strong> {{ quiz.class_id.class_name }}</p>
+        <p><strong>Department:</strong> {{ quiz.department_id.department_name }}</p>
+        <p><strong>Session:</strong> {{ quiz.session_year }}</p>
+        <p><strong>Deadline:</strong> {{ quiz.deadline }}</p>
+        <p><strong>Status:</strong> {{ quiz.get_status_display }}</p>
+        <hr>
+        <h5>Questions</h5>
+        {% if questions %}
+          <ul class="list-group">
+            {% for q in questions %}
+              <li class="list-group-item">
+                {{ q.question_text }}
+                {% if q.question_type == "MCQ" %}
+                  <ul>
+                    <li>A: {{ q.option_a }}</li>
+                    <li>B: {{ q.option_b }}</li>
+                    <li>C: {{ q.option_c }}</li>
+                    <li>D: {{ q.option_d }}</li>
+                    <strong>Correct:</strong> {{ q.correct_answer }}
+                  </ul>
+                {% else %}
+                  <p><em>Expected Answer:</em> {{ q.expected_answer }}</p>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">No questions added to this Quiz yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
