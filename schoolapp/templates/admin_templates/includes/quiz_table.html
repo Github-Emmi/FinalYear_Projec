@@ -1,0 +1,29 @@
+{% comment %} schoolapp/templates/admin_templates/includes/quiz_table.html {% endcomment %}
+{% for quiz in objects %}
+<tr>
+  <td>{{ quiz.title }}</td>
+  <td>{{ quiz.subject.subject_name }}</td>
+  <td>{{ quiz.class_id.class_name }}</td>
+  <td>{{ quiz.department_id.department_name }}</td>
+  <td>{{ quiz.session_year.session_start_year }} - {{ quiz.session_year.session_end_year }}</td>
+  <td>{{ quiz.deadline|date:"M d, Y H:i" }}</td>
+
+  <td>
+    <span class="badge {% if quiz.status == 'PUBLISHED' %}badge-success{% else %}badge-secondary{% endif %}">
+      {{ quiz.get_status_display }}
+    </span>
+  </td>
+
+  <td>{{ quiz.staff.admin.get_full_name }}</td>
+
+  <td>
+    <a href="{{ quiz.get_absolute_url }}" class="btn btn-sm btn-info">
+      <i class="fas fa-eye"></i> View
+    </a>
+  </td>
+</tr>
+{% empty %}
+<tr>
+  <td colspan="9" class="text-center text-muted">No quizzes available.</td>
+</tr>
+{% endfor %}

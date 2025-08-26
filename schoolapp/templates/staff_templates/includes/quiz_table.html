@@ -6,13 +6,11 @@
   <td>{{ quiz.department_id.department_name }}</td>
   <td>{{ quiz.session_year.session_start_year }} - {{ quiz.session_year.session_end_year }}</td>
   <td>{{ quiz.deadline|date:"M d, Y H:i" }}</td>
-
   <td>
     <span class="badge {% if quiz.status == 'PUBLISHED' %}badge-success{% else %}badge-secondary{% endif %}">
       {{ quiz.get_status_display }}
     </span>
   </td>
-
   <td>
     <a href="{% url 'staff_view_quiz_questions' quiz.id %}" class="btn btn-sm btn-info">
       <i class="fas fa-eye"></i> View
@@ -25,7 +23,6 @@
       {% endif %}
     </a>
   </td>
-
   <td>
     <form method="post" action="{% url 'staff_delete_quiz' quiz.id %}" onsubmit="return confirm('Delete this quiz?');">
       {% csrf_token %}

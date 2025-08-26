@@ -9,22 +9,26 @@
   <div class="container-fluid">
     <div class="card">
       <div class="card-header d-flex align-items-center justify-content-between">
+        <!-- Search -->
         <form method="get" id="searchForm" class="mb-0">
           <div class="input-group input-group-sm" style="width: 260px;">
-            <input type="text" name="q" class="form-control" placeholder="Search Exams"
-                   value="{{ search_query|default_if_none:'' }}">
+            <input type="text" id="quiz-search" name="q" class="form-control"
+                   placeholder="Search Exams..." value="{{ search_query|default_if_none:'' }}">
             <div class="input-group-append">
-              <button type="submit" class="btn btn-default">
+              <button type="button" class="btn btn-default">
                 <i class="fas fa-search"></i>
               </button>
             </div>
           </div>
         </form>
+
+        <!-- Create quiz -->
         <a href="{% url 'staff_add_quiz' %}" class="btn btn-sm btn-primary">
           <i class="fas fa-plus-circle"></i> Create Quiz
         </a>
       </div>
 
+      <!-- Table -->
       <div class="card-body table-responsive p-0">
         <table class="table table-hover table-fixed text-nowrap">
           <thead>
@@ -40,15 +44,13 @@
               <th>Delete</th>
             </tr>
           </thead>
-
-          <!-- Table body rendered via partial for AJAX updates -->
           <tbody id="table-body">
             {% include 'staff_templates/includes/quiz_table.html' with objects=objects %}
           </tbody>
-
         </table>
       </div>
 
+      <!-- Pagination -->
       <div class="card-footer" id="pagination-area">
         {% include 'includes/pagination.html' with page_obj=page_obj %}
       </div>
@@ -59,9 +61,8 @@
 
 {% block custom_js %}
 <script>
-  function ajaxLoad(url) {
-    const params = new URLSearchParams(new FormData(document.getElementById('searchForm')));
-    const fullUrl = url.includes('?') ? (url + '&' + params.toString()) : (url + '?' + params.toString());
+  function ajaxLoad(url, query="") {
+    const fullUrl = url + "?q=" + encodeURIComponent(query);
     fetch(fullUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
       .then(r => r.json())
       .then(data => {
@@ -71,19 +72,19 @@
       .catch(() => alert('Failed to load data'));
   }
 
-  // Search submit -> AJAX
-  document.getElementById('searchForm').addEventListener('submit', function(e){
-    e.preventDefault();
-    ajaxLoad(window.location.pathname);
+  // Live search on typing
+  document.getElementById('quiz-search').addEventListener('keyup', function() {
+    let query = this.value;
+    ajaxLoad(window.location.pathname, query);
   });
 
-  // Pagination click -> AJAX (event delegation)
+  // Pagination (delegation)
   document.addEventListener('click', function(e){
     const a = e.target.closest('a.page-link');
     if (!a) return;
     if (a.getAttribute('data-ajax') === '1') {
       e.preventDefault();
-      ajaxLoad(a.href);
+      ajaxLoad(a.href.split('?')[0], document.getElementById('quiz-search').value);
     }
   });
 </script>

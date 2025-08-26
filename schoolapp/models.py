@@ -446,6 +446,18 @@ class Question(models.Model):
         return f"{self.quiz.title} - {self.question_text[:50]}"
 
 
+class QuizAttempt(models.Model):
+    quiz = models.ForeignKey("Quiz", on_delete=models.CASCADE, related_name="attempts")
+    student = models.ForeignKey("Students", on_delete=models.CASCADE, related_name="quiz_attempts")
+    score = models.FloatField(null=True, blank=True)
+    attempted_on = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("quiz", "student")  # A student can attempt a quiz only once
+
+    def __str__(self):
+        return f"{self.student.admin.username} - {self.quiz.title}"
+
 class StudentQuizSubmission(models.Model):
     student = models.ForeignKey(Students, on_delete=models.CASCADE)
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)

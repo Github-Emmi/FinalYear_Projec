@@ -1,0 +1,82 @@
+{% extends 'admin_templates/base.html' %}
+{% load static %}
+
+{% block dashboard_title %}All Quizzes{% endblock %}
+{% block dashboard_title1 %}All Quizzes{% endblock %}
+
+{% block main_content %}
+<section class="content">
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <form method="get" id="searchForm" class="mb-0">
+          <div class="input-group input-group-sm" style="width: 260px;">
+            <input type="text" name="q" class="form-control" placeholder="Search Quizzes"
+                   value="{{ search_query|default_if_none:'' }}">
+            <div class="input-group-append">
+              <button type="submit" class="btn btn-default">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="card-body table-responsive p-0">
+        <table class="table table-hover table-fixed text-nowrap">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Subject</th>
+              <th>Class</th>
+              <th>Department</th>
+              <th>Session</th>
+              <th>Deadline</th>
+              <th>Status</th>
+              <th>Created By</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            {% include 'admin_templates/includes/quiz_table.html' with objects=objects %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-footer" id="pagination-area">
+        {% include 'includes/pagination.html' with page_obj=page_obj %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block custom_js %}
+<script>
+  function ajaxLoad(url) {
+    const params = new URLSearchParams(new FormData(document.getElementById('searchForm')));
+    const fullUrl = url.includes('?') ? (url + '&' + params.toString()) : (url + '?' + params.toString());
+    fetch(fullUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('table-body').innerHTML = data.table_html;
+        document.getElementById('pagination-area').innerHTML = data.pagination_html;
+      })
+      .catch(() => alert('Failed to load data'));
+  }
+
+  document.getElementById('searchForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    ajaxLoad(window.location.pathname);
+  });
+
+  document.addEventListener('click', function(e){
+    const a = e.target.closest('a.page-link');
+    if (!a) return;
+    if (a.getAttribute('data-ajax') === '1') {
+      e.preventDefault();
+      ajaxLoad(a.href);
+    }
+  });
+</script>
+{% endblock %}

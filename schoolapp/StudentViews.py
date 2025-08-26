@@ -488,142 +488,107 @@ def student_schedule_json(request):
 
     return JsonResponse(events, safe=False)
 
-@login_required
-def quiz_start(request, quiz_id):
-    quiz = get_object_or_404(Quiz, id=quiz_id, status='PUBLISHED')
-    # Store quiz start time for countdown
-    request.session['quiz_start_time'] = str(datetime.datetime.now())
-    request.session['quiz_id'] = quiz.id
-    return render(request, "student_templates/quiz_start.html", {
-        "quiz": quiz,
-    })
+######## Quiz Views ########
+
+from django.utils import timezone
 
 @login_required
 def student_quiz_list(request):
-    student = request.user.students
-    session = student.session_year_id
-
+    student = get_object_or_404(Students, admin=request.user)
     quizzes = Quiz.objects.filter(
         class_id=student.class_id,
         department_id=student.department_id,
-        session_year=session,
+        session_year=student.session_year_id,
         status="PUBLISHED",
-    ).order_by("-created_at")
+        deadline__gte=timezone.now()   # make sure deadline not passed
+    ).select_related("subject", "class_id", "department_id", "session_year").order_by("-created_at")
 
-    submissions = StudentQuizSubmission.objects.filter(student=student)
-    attempted_ids = submissions.values_list("quiz_id", flat=True)
+    print("DEBUG QUIZZES: ", quizzes)  # 👈 See what is passed
 
+    attempted_ids = []  # until QuizAttempt model is created
     return render(request, "student_templates/quiz_list.html", {
         "quizzes": quizzes,
         "attempted_ids": attempted_ids,
     })
 
-@login_required
-def student_quiz_attempt(request, quiz_id, page):
-    student = request.user.students
-    quiz = get_object_or_404(Quiz, id=quiz_id, status='PUBLISHED')
-    questions = quiz.questions.all().order_by('id')
+# 2. Take Quiz (with timer)
+def take_quiz(request, quiz_id):
+    student = get_object_or_404(Students, admin=request.user)
+    quiz = get_object_or_404(Quiz, id=quiz_id)
 
-    paginator = Paginator(questions, 10)
-    current_page = paginator.get_page(page)
+    # Check deadline
+    if timezone.now() > quiz.deadline:
+        return render(request, "student_templates/quiz_closed.html", {"quiz": quiz})
 
-    session_key = f"quiz_{quiz_id}_answers"
-    timer_key = f"quiz_{quiz_id}_start_time"
+    # Get or create submission
+    submission, created = StudentQuizSubmission.objects.get_or_create(
+        student=student, quiz=quiz
+    )
 
-    if session_key not in request.session:
-        request.session[session_key] = {}
-
-    if timer_key not in request.session:
-        request.session[timer_key] = now().isoformat()
-
-    # Timer logic
-    quiz_start_time = parse_datetime(request.session[timer_key])
-    elapsed = (now() - quiz_start_time).total_seconds()
-    remaining = max((quiz.duration_minutes * 60) - int(elapsed), 0)
+    if submission.is_graded:
+        # Already submitted and graded
+        return redirect("view_result", submission.id)
 
     if request.method == "POST":
-        answers = request.session.get(session_key, {})
-        for question in current_page:
-            ans = request.POST.get(f"question_{question.id}")
-            if ans:
-                answers[str(question.id)] = ans
-        request.session[session_key] = answers
-        request.session.modified = True
+        # Save answers
+        for question in quiz.questions.all():
+            answer_value = request.POST.get(str(question.id))
+            if not answer_value:
+                continue  # skip unanswered
 
-        if 'next' in request.POST and current_page.has_next():
-            return redirect("student_quiz_attempt", quiz_id=quiz_id, page=page + 1)
-        elif 'prev' in request.POST and current_page.has_previous():
-            return redirect("student_quiz_attempt", quiz_id=quiz_id, page=page - 1)
-        elif 'submit' in request.POST:
-            return redirect("student_quiz_submit", quiz_id=quiz_id)
+            student_answer, created = StudentAnswer.objects.get_or_create(
+                submission=submission, question=question
+            )
 
-    context = {
-        "quiz": quiz,
-        "questions": current_page,
-        "page": page,
-        "total_pages": paginator.num_pages,
-        "answers": request.session.get(session_key, {}),
-        "seconds_remaining": remaining,
-    }
-    return render(request, "student_templates/attempt_quiz.html", context)
+            if question.question_type == "MCQ":
+                student_answer.selected_option = answer_value
+                student_answer.is_correct = (answer_value == question.correct_answer)
+            else:  # Open-ended
+                student_answer.text_answer = answer_value
+                # leave grading for staff/AI
+            student_answer.save()
 
-@login_required
-def student_quiz_submit(request, quiz_id):
-    student = request.user.students
-    quiz = get_object_or_404(Quiz, id=quiz_id, status='PUBLISHED')
+        # Auto-grade MCQs immediately
+        submission.grade_submission(use_ai=False)
+        return redirect("view_result", submission.id)
 
-    session_key = f"quiz_{quiz_id}_answers"
-    answers = request.session.get(session_key, {})
+    # Calculate remaining time (in seconds)
+    elapsed = (timezone.now() - submission.submitted_at).total_seconds()
+    remaining_time = (quiz.duration_minutes * 60) - elapsed
+    if remaining_time <= 0:
+        submission.grade_submission(use_ai=False)
+        return redirect("view_result", submission.id)
 
-    total_questions = quiz.questions.count()
-    correct = 0
-
-    # Create submission
-    submission = StudentQuizSubmission.objects.create(student=student, quiz=quiz)
-
-    for question in quiz.questions.all():
-        selected = answers.get(str(question.id))
-        is_correct = selected == question.correct_answer
-        if is_correct:
-            correct += 1
-
-        StudentAnswer.objects.create(
-            submission=submission,
-            question=question,
-            selected_option=selected or '',
-            is_correct=is_correct
-        )
-
-    score = (correct / total_questions) * 100
-    submission.total_score = score
-    submission.is_graded = True
-    submission.save()
-
-    # Clean up session
-    if session_key in request.session:
-        del request.session[session_key]
-
-    timer_key = f"quiz_{quiz_id}_start_time"
-    if timer_key in request.session:
-        del request.session[timer_key]
-
-    return render(request, "student_templates/quiz_result.html", {
+    return render(request, "student_templates/take_quiz.html", {
         "quiz": quiz,
         "submission": submission,
-        "correct": correct,
-        "total": total_questions,
-        "score": round(score, 2),
-    })
-
-@login_required
-def student_quiz_taken_list(request):
-    student = request.user.students
-    submissions = StudentQuizSubmission.objects.filter(student=student).select_related('quiz').order_by('-submitted_at')
-    return render(request, "student_templates/quiz_taken_list.html", {
-        "submissions": submissions
+        "remaining_time": int(remaining_time)
     })
 
 
+# 3. View results
+def view_result(request, submission_id):
+    submission = get_object_or_404(StudentQuizSubmission, id=submission_id)
+
+    # If staff chooses to delay results
+    if not submission.is_graded:
+        return render(request, "student_templates/result_pending.html", {"quiz": submission.quiz})
+
+    return render(request, "student_templates/view_result.html", {"submission": submission})
+
+
+# 4. Auto-submit via AJAX
+@csrf_exempt
+def auto_submit_quiz(request, quiz_id):
+    if request.method == "POST":
+        student = get_object_or_404(Students, admin=request.user)
+        quiz = get_object_or_404(Quiz, id=quiz_id)
+        submission = get_object_or_404(StudentQuizSubmission, student=student, quiz=quiz)
+
+        submission.grade_submission(use_ai=False)
+        return JsonResponse({"status": "submitted"})
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
 
 @login_required
 def student_make_payment(request):

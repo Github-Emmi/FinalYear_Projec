@@ -607,24 +607,21 @@ def staff_add_quiz(request):
         "sessions": sessions,
     })
 
-
 @login_required
 def staff_quiz_list(request):
     staff = get_object_or_404(Staffs, admin=request.user)
-    base_qs = Quiz.objects.filter(staff=staff).select_related(
-        'subject', 'class_id', 'department_id', 'session_year', 'staff__admin'
-    )
+
+    # Filter quizzes only for this staff
+    staff_quizzes = Quiz.objects.filter(staff=staff)
+
     return generic_paginated_list(
         request=request,
         model=Quiz,
         related_fields=['subject', 'class_id', 'department_id', 'session_year', 'staff__admin'],
         template_name='staff_templates/quiz_list.html',
         table_template='staff_templates/includes/quiz_table.html',
-        base_qs=base_qs,
-        per_page=10,
-        extra_context={}  # add filter dropdown data here later if needed
+        base_queryset=staff_quizzes
     )
-
 
 @login_required
 def staff_add_question_to_quiz(request, quiz_id):

@@ -464,16 +464,6 @@ def manage_session_year(request):
         table_template='admin_templates/includes/session_year_table.html'
     )
 
-@login_required(login_url="/")
-def admin_quiz_list(request):
-    return generic_paginated_list(
-        request=request,
-        model=Quiz,
-        related_fields=['subject', 'class_id', 'department_id', 'session_year', 'staff'],
-        template_name='staff_templates/quiz_list.html',
-        table_template='staff_templates/includes/quiz_table.html'
-    )
-
 
 ####################### Manage Session #######################
 
@@ -997,21 +987,19 @@ def check_username_exist(request):
     else:
         return HttpResponse(False)
     
-
 @login_required
 def student_feedback_message(request, sender_id=None):
+    # list of students who have sent feedback
     student_list = Students.objects.filter(
         feedbackstudent__isnull=False
     ).distinct()
-    # Fallback avatar paths if you don't store profile pics
-    admin_avatar_url = "/static/assets/images/avatar3.png"
 
     messages_qs = []
     selected_student = None
     no_feedback_message = None
 
     if not student_list.exists():
-        no_feedback_message = "No Recent feedback from Students"
+        no_feedback_message = "No recent feedback from Students"
     else:
         if not sender_id:
             sender_id = student_list.first().id
@@ -1021,7 +1009,6 @@ def student_feedback_message(request, sender_id=None):
             student_id=selected_student
         ).order_by("created_at")
 
-    # Count of unread feedback (no reply yet)
     unread_student_count = FeedBackStudent.objects.filter(
         Q(feedback_reply__isnull=True) | Q(feedback_reply="")
     ).count()
@@ -1031,8 +1018,7 @@ def student_feedback_message(request, sender_id=None):
         "messages": messages_qs,
         "selected_student": selected_student,
         "no_feedback_message": no_feedback_message,
-        "unread_student_count": unread_student_count,
-        "admin_avatar_url": admin_avatar_url
+        "unread_student_count": unread_student_count
     })
 
 @login_required
@@ -1413,17 +1399,20 @@ def admin_create_event(request):
         "sessions": SessionYearModel.objects.all()
     })
 
-
 @login_required
-def admin_view_quizzes(request):
-    # Fetch all quizzes, order by most recent
-    quizzes = Quiz.objects.select_related(
-        "staff", "subject", "class_id", "department_id", "session_year"
-    ).order_by("-created_at")
-
-    return render(request, "admin_templates/admin_quiz_list.html", {
-        "quizzes": quizzes
-    })
+def admin_quiz_list(request):
+    """
+    Admin can view all quizzes created by all staff
+    with pagination and search.
+    """
+    return generic_paginated_list(
+        request=request,
+        model=Quiz,
+        related_fields=['subject', 'class_id', 'department_id', 'session_year', 'staff__admin'],
+        template_name='admin_templates/quiz_list.html',
+        table_template='admin_templates/includes/quiz_table.html',
+        base_queryset=Quiz.objects.all()
+    )
 
 @login_required
 def admin_quiz_detail(request, quiz_id):

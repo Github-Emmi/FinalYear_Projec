@@ -91,7 +91,9 @@ path("admin-timetable/add/", AdminViews.admin_add_timetable, name="admin_add_tim
 path("admin-timetable/edit/<int:pk>/", AdminViews.admin_edit_timetable, name="admin_edit_timetable"),
 path("admin-timetable/delete/<int:pk>/", AdminViews.admin_delete_timetable, name="admin_delete_timetable"),
 path("admin-create-event/", AdminViews.admin_create_event, name="admin_create_event"),
-path("admin-quizzes/", AdminViews.admin_view_quizzes, name="admin_view_quizzes"),
+# Admin quiz management
+path("admin-quizzes/", AdminViews.admin_quiz_list, name="admin_quiz_list"),
+
 path("admin-quiz/<int:quiz_id>/", AdminViews.admin_quiz_detail, name="admin_quiz_detail"),
 
 
@@ -151,13 +153,11 @@ path("student-submission/<int:submission_id>/feedback/", StudentViews.student_su
 path("student-submissions/", StudentViews.student_submissions, name="student_submissions"),
 path("student/timetable/", StudentViews.student_timetable, name="student_timetable"),
 path('student-schedule-json/', StudentViews.student_schedule_json, name='student_schedule_json'),
-path('student-make-payment',StudentViews.student_make_payment,name="student_make_payment"),
-path("student-quizzes/", StudentViews.student_quiz_list, name="student_quiz_list"),
-path("student-quiz-start/<int:quiz_id>/", StudentViews.quiz_start, name="student_quiz_start"),
-path("student-quiz-attempt/<int:quiz_id>/<int:page>/", StudentViews.student_quiz_attempt, name="student_quiz_attempt"),
-path("student-quiz-submit/<int:quiz_id>/", StudentViews.student_quiz_submit, name="student_quiz_submit"),
-path("student-quiz-taken/", StudentViews.student_quiz_taken_list, name="student_quiz_taken_list"),
-
+path('student-make-payment', StudentViews.student_make_payment, name="student_make_payment"),
+path("student/quizzes/", StudentViews.student_quiz_list, name="student_quiz_list"),
+path("student/quiz/<int:quiz_id>/take/", StudentViews.take_quiz, name="take_quiz"),
+path("student/quiz/result/<int:submission_id>/", StudentViews.view_result, name="view_result"),
+path("student/quiz/<int:quiz_id>/auto_submit/", StudentViews.auto_submit_quiz, name="auto_submit_quiz"),
 
 
 
