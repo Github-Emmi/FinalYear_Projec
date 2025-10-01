@@ -75,3 +75,17 @@ Clean UI, real-time messaging, and AI-powered quiz grading make this system stan
 
 ---
 
+## 🔐 Login details.
+
+- **Admin**:
+- email: aghason.emmanuel@gmail.com
+- password: django1234
+
+- **Staff**:
+- email: joy@gmail.com
+- password: django1234
+
+- **Student**:
+- email: danny@gmail.com
+- password: django1234
+
