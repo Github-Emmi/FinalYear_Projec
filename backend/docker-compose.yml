@@ -1,0 +1,133 @@
+# Docker Compose for local development
+# Services: FastAPI, PostgreSQL, Redis, RabbitMQ, Adminer, Redis Commander
+
+version: '3.8'
+
+services:
+  # FastAPI Application
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: school_ms_app
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=postgresql+asyncpg://school_user:school_password@postgres:5432/school_management
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=school_user
+      - DB_PASSWORD=school_password
+      - DB_NAME=school_management
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - SECRET_KEY=your-development-secret-key-change-in-production
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY:-}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ../:/app
+    networks:
+      - school_network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: school_ms_postgres
+    environment:
+      - POSTGRES_USER=school_user
+      - POSTGRES_PASSWORD=school_password
+      - POSTGRES_DB=school_management
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --locale=en_US.UTF-8
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U school_user -d school_management"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - school_network
+
+  # Redis - Cache & Sessions
+  redis:
+    image: redis:7-alpine
+    container_name: school_ms_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - school_network
+
+  # RabbitMQ - Message Queue
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: school_ms_rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"      # AMQP port
+      - "15672:15672"    # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - school_network
+
+  # Adminer - PostgreSQL UI
+  adminer:
+    image: adminer:latest
+    container_name: school_ms_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - school_network
+
+  # Redis Commander - Redis UI
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: school_ms_redis_commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - school_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  school_network:
+    driver: bridge
