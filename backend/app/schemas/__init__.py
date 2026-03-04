@@ -92,3 +92,135 @@ class StatusResponse(BaseSchema):
     """Simple status response"""
     success: bool
     message: str
+
+
+# ============= DOMAIN SCHEMA IMPORTS =============
+
+# Authentication
+from app.schemas.auth import (
+    UserLogin,
+    UserRegister,
+    TokenResponse,
+    RefreshTokenRequest,
+    UserResponse,
+    PasswordResetRequest,
+    PasswordResetConfirm,
+    ChangePasswordRequest
+)
+
+# Academic Structure
+from app.schemas.academic import (
+    SessionYearCreate,
+    SessionYearUpdate,
+    SessionYearResponse,
+    DepartmentCreate,
+    DepartmentUpdate,
+    DepartmentResponse,
+    ClassCreate,
+    ClassUpdate,
+    ClassResponse,
+    SubjectCreate,
+    SubjectUpdate,
+    SubjectResponse,
+    TimeTableCreate,
+    TimeTableUpdate,
+    TimeTableResponse
+)
+
+# Student Management
+from app.schemas.student import (
+    StudentCreate,
+    StudentUpdate,
+    StudentResponse,
+    StudentDetailedResponse,
+    StudentDashboardResponse,
+    StudentEnrollmentCreate,
+    StudentEnrollmentResponse
+)
+
+# Staff & Administration
+from app.schemas.staff import (
+    StaffCreate,
+    StaffUpdate,
+    StaffResponse,
+    StaffDetailedResponse,
+    AdminHODCreate,
+    AdminHODUpdate,
+    AdminHODResponse,
+    AdminHODDetailedResponse
+)
+
+# Assessment & Quiz
+from app.schemas.assessment import (
+    QuizCreate,
+    QuizUpdate,
+    QuizPublishRequest,
+    QuizResponse,
+    QuestionCreate,
+    QuestionUpdate,
+    QuestionResponse,
+    StudentAnswerCreate,
+    StudentQuizSubmissionCreate,
+    StudentQuizSubmissionResponse,
+    QuizAttemptStartResponse,
+    QuizAttemptResponse,
+    QuizResultsResponse
+)
+
+# Assignment Management
+from app.schemas.assignment import (
+    AssignmentCreate,
+    AssignmentUpdate,
+    AssignmentResponse,
+    AssignmentSubmissionCreate,
+    AssignmentSubmissionUpdate,
+    AssignmentSubmissionResponse,
+    AssignmentGradeRequest,
+    AssignmentGradeResponse,
+    StudentAssignmentResponse
+)
+
+# Attendance Tracking
+from app.schemas.attendance import (
+    AttendanceRecordCreate,
+    AttendanceCreate,
+    AttendanceResponse,
+    AttendanceReportResponse,
+    StudentAttendanceHistoryResponse,
+    ClassAttendanceSummaryResponse
+)
+
+# Leave Management
+from app.schemas.leave import (
+    StudentLeaveCreate,
+    StudentLeaveResponse,
+    StaffLeaveCreate,
+    StaffLeaveResponse,
+    LeaveApprovalRequest,
+    LeaveStatisticsResponse
+)
+
+# Feedback & Messaging
+from app.schemas.feedback import (
+    FeedbackCreate,
+    FeedbackResponse,
+    FeedbackReplyCreate,
+    FeedbackReplyResponse,
+    FeedbackDetailResponse,
+    MessageCreate,
+    MessageResponse,
+    ConversationResponse,
+    AnnouncementCreate,
+    AnnouncementResponse
+)
+
+# Notifications & Reminders
+from app.schemas.notification import (
+    NotificationCreate,
+    NotificationResponse,
+    NotificationPreferencesCreate,
+    NotificationPreferencesResponse,
+    ReminderCreate,
+    ReminderResponse,
+    UserNotificationSummaryResponse
+)
