@@ -148,19 +148,118 @@ def get_password_hash(password: str) -> str:
     return sec.hash_password(password)
 
 
+def hash_password(password: str) -> str:
+    """
+    Hash password using bcrypt.
+    
+    Alias for get_password_hash() with cleaner naming.
+    
+    Args:
+        password: Plain-text password
+        
+    Returns:
+        Hashed password safe for storage
+    """
+    return get_password_hash(password)
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Convenience function for password verification"""
     sec = SecurityConfig()
     return sec.verify_password(plain_password, hashed_password)
 
 
-def create_access_token(data: Dict[str, Any]) -> str:
-    """Convenience function for creating access tokens"""
+def create_access_token(subject: str | None = None, data: Dict[str, Any] | None = None, expires_in: int | None = None) -> str:
+    """
+    Create JWT access token.
+    
+    Can be called in two ways:
+    1. With subject (user_id) and optional expires_in parameter:
+       token = create_access_token(user_id, expires_in=900)
+    2. With raw data dictionary (for backward compatibility):
+       token = create_access_token(data={"sub": user_id, "role": "STUDENT"})
+    
+    Args:
+        subject: User ID or subject for token
+        data: Raw claims dictionary (if subject not provided)
+        expires_in: Expiry time in seconds (default: 900 = 15 minutes)
+        
+    Returns:
+        Signed JWT access token string
+    """
     sec = SecurityConfig()
-    return sec.create_access_token(data)
+    
+    if subject is not None:
+        # Service-friendly API: create_access_token(user_id, expires_in=900)
+        token_data = {"sub": str(subject)}
+        if expires_in:
+            return sec.create_access_token(token_data, timedelta(seconds=expires_in))
+        else:
+            return sec.create_access_token(token_data)
+    elif data is not None:
+        # Legacy API: create_access_token(data={...})
+        if expires_in:
+            return sec.create_access_token(data, timedelta(seconds=expires_in))
+        else:
+            return sec.create_access_token(data)
+    else:
+        raise ValueError("Either 'subject' or 'data' must be provided")
+
+
+def create_refresh_token(subject: str | None = None, data: Dict[str, Any] | None = None) -> str:
+    """
+    Create JWT refresh token (longer expiry).
+    
+    Args:
+        subject: User ID or subject for token
+        data: Raw claims dictionary (if subject not provided)
+        
+    Returns:
+        Signed JWT refresh token string
+    """
+    sec = SecurityConfig()
+    
+    if subject is not None:
+        # Service-friendly API: create_refresh_token(user_id)
+        token_data = {"sub": str(subject)}
+        return sec.create_refresh_token(token_data)
+    elif data is not None:
+        # Legacy API: create_refresh_token(data={...})
+        return sec.create_refresh_token(data)
+    else:
+        raise ValueError("Either 'subject' or 'data' must be provided")
 
 
 def verify_token(token: str) -> Dict[str, Any]:
     """Convenience function for verifying tokens"""
     sec = SecurityConfig()
     return sec.verify_token(token)
+
+
+def decode_token(token: str) -> Dict[str, Any]:
+    """
+    Decode and verify JWT token.
+    
+    Alias for verify_token() with cleaner naming for services.
+    
+    Args:
+        token: JWT token to decode
+        
+    Returns:
+        Decoded token claims as dictionary
+        
+    Raises:
+        JWTError: If token is invalid or expired
+    """
+    return verify_token(token)
+
+
+def generate_reset_token() -> str:
+    """
+    Generate cryptographically secure reset token for password reset emails.
+    
+    Returns:
+        Random secure token string
+    """
+    sec = SecurityConfig()
+    return sec.generate_random_token()
