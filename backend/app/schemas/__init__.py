@@ -96,7 +96,19 @@ class StatusResponse(BaseSchema):
 
 # ============= DOMAIN SCHEMA IMPORTS =============
 
-# Authentication
+# User Authentication & Registration
+from app.schemas.user import (
+    LoginRequest,
+    RegisterRequest,
+    TokenResponse as UserTokenResponse,
+    UserResponse as UserProfileResponse,
+    ChangePasswordRequest as UserChangePasswordRequest,
+    ForgotPasswordRequest,
+    ForgotPasswordConfirm,
+    UserProfileUpdateRequest
+)
+
+# Authentication (Legacy - kept for backward compatibility)
 from app.schemas.auth import (
     UserLogin,
     UserRegister,
