@@ -37,6 +37,18 @@ from app.services.user_service import UserService
 from app.services.student_service import StudentService
 from app.services.quiz_service import QuizService
 from app.services.assessment_service import AssessmentService
+from app.services.assignment_service import AssignmentService
+from app.services.leave_service import LeaveService
+from app.services.attendance_service import AttendanceService
+from app.services.notification_service import NotificationService
+from app.services.analytics_service import AnalyticsService
+from app.services.staff_service import StaffService
+from app.services.academic_service import AcademicService
+from app.services.subject_service import SubjectService
+from app.services.feedback_service import FeedbackService
+from app.services.report_service import ReportService
+from app.services.file_service import FileService
+from app.services.email_service import EmailService
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -61,7 +73,18 @@ class ServiceFactory:
         student: StudentService for enrollment operations
         quiz: QuizService for assessment management
         assignment: AssignmentService for assignment operations
-        attendance: AttendanceService for attendance tracking
+        leave: LeaveService for leave request management
+        assessment: AssessmentService for grading operations
+        attendance: AttendanceService for attendance tracking operations
+        notification: NotificationService for notification management operations
+        analytics: AnalyticsService for analytics and reporting operations
+        staff: StaffService for staff management operations
+        academic: AcademicService for academic structure and timetable operations
+        subject: SubjectService for subject management and schedule operations
+        feedback: FeedbackService for messaging, announcements, and feedback operations
+        report: ReportService for transcripts, analytics, and report generation operations
+        file: FileService for cloud storage and file management operations (Cloudinary/S3)
+        email: EmailService for Zoho Mail SMTP integration and email communications
     """
 
     def __init__(self, repos: RepositoryFactory) -> None:
@@ -77,7 +100,18 @@ class ServiceFactory:
         self._student_service: StudentService | None = None
         self._quiz_service: QuizService | None = None
         self._assessment_service: AssessmentService | None = None
-        # Future services will be lazily loaded similarly
+        self._assignment_service: AssignmentService | None = None
+        self._leave_service: LeaveService | None = None
+        self._attendance_service: AttendanceService | None = None
+        self._notification_service: NotificationService | None = None
+        self._analytics_service: AnalyticsService | None = None
+        self._staff_service: StaffService | None = None
+        self._academic_service: AcademicService | None = None
+        self._subject_service: SubjectService | None = None
+        self._feedback_service: FeedbackService | None = None
+        self._report_service: ReportService | None = None
+        self._file_service: FileService | None = None
+        self._email_service: EmailService | None = None
 
     @property
     def auth(self) -> AuthService:
@@ -139,7 +173,149 @@ class ServiceFactory:
             self._assessment_service = AssessmentService(self.repos)
         return self._assessment_service
 
-    # TODO: Add other service properties as they're created
+    @property
+    def assignment(self) -> AssignmentService:
+        """
+        Get AssignmentService instance (lazy-loaded).
+        
+        Returns:
+            AssignmentService instance for assignment management operations
+        """
+        if self._assignment_service is None:
+            self._assignment_service = AssignmentService(self.repos)
+        return self._assignment_service
+
+    @property
+    def leave(self) -> LeaveService:
+        """
+        Get LeaveService instance (lazy-loaded).
+        
+        Returns:
+            LeaveService instance for leave request and approval operations
+        """
+        if self._leave_service is None:
+            self._leave_service = LeaveService(self.repos)
+        return self._leave_service
+
+    @property
+    def attendance(self) -> AttendanceService:
+        """
+        Get AttendanceService instance (lazy-loaded).
+        
+        Returns:
+            AttendanceService instance for attendance tracking and reporting operations
+        """
+        if self._attendance_service is None:
+            self._attendance_service = AttendanceService(self.repos.session, self.repos)
+        return self._attendance_service
+
+    @property
+    def notification(self) -> NotificationService:
+        """
+        Get NotificationService instance (lazy-loaded).
+        
+        Returns:
+            NotificationService instance for notification management and delivery operations
+        """
+        if self._notification_service is None:
+            self._notification_service = NotificationService(self.repos.session, self.repos)
+        return self._notification_service
+
+    @property
+    def analytics(self) -> AnalyticsService:
+        """
+        Get AnalyticsService instance (lazy-loaded).
+        
+        Returns:
+            AnalyticsService instance for analytics, reporting, and performance prediction operations
+        """
+        if self._analytics_service is None:
+            self._analytics_service = AnalyticsService(self.repos.session, self.repos)
+        return self._analytics_service
+
+    @property
+    def staff(self) -> StaffService:
+        """
+        Get StaffService instance (lazy-loaded).
+        
+        Returns:
+            StaffService instance for staff management, assignments, and leave processing operations
+        """
+        if self._staff_service is None:
+            self._staff_service = StaffService(self.repos.session, self.repos)
+        return self._staff_service
+
+    @property
+    def academic(self) -> AcademicService:
+        """
+        Get AcademicService instance (lazy-loaded).
+        
+        Returns:
+            AcademicService instance for academic structure, sessions, and timetable operations
+        """
+        if self._academic_service is None:
+            self._academic_service = AcademicService(self.repos.session, self.repos)
+        return self._academic_service
+
+    @property
+    def subject(self) -> SubjectService:
+        """
+        Get SubjectService instance (lazy-loaded).
+        
+        Returns:
+            SubjectService instance for subject management, qualifications, and schedule conflict resolution operations
+        """
+        if self._subject_service is None:
+            self._subject_service = SubjectService(self.repos)
+        return self._subject_service
+
+    @property
+    def feedback(self) -> FeedbackService:
+        """
+        Get FeedbackService instance (lazy-loaded).
+        
+        Returns:
+            FeedbackService instance for messaging, announcements, support tickets, and feedback operations
+        """
+        if self._feedback_service is None:
+            self._feedback_service = FeedbackService(self.repos)
+        return self._feedback_service
+
+    @property
+    def report(self) -> ReportService:
+        """
+        Get ReportService instance (lazy-loaded).
+        
+        Returns:
+            ReportService instance for report generation, transcripts, and analytics operations
+        """
+        if self._report_service is None:
+            self._report_service = ReportService(self.repos)
+        return self._report_service
+
+    @property
+    def file(self) -> FileService:
+        """
+        Get FileService instance (lazy-loaded).
+        
+        Returns:
+            FileService instance for cloud storage, file uploads, and Cloudinary/S3 operations
+        """
+        if self._file_service is None:
+            self._file_service = FileService(self.repos)
+        return self._file_service
+
+    @property
+    def email(self) -> EmailService:
+        """
+        Get EmailService instance (lazy-loaded).
+        
+        Returns:
+            EmailService instance for Zoho Mail SMTP transactional and bulk email operations
+        """
+        if self._email_service is None:
+            self._email_service = EmailService(self.repos)
+        return self._email_service
 
 
 async def get_services(repos: RepositoryFactory = Depends(get_repos)) -> ServiceFactory:
@@ -179,6 +355,18 @@ __all__ = [
     "StudentService",
     "QuizService",
     "AssessmentService",
+    "AssignmentService",
+    "LeaveService",
+    "AttendanceService",
+    "NotificationService",
+    "AnalyticsService",
+    "StaffService",
+    "AcademicService",
+    "SubjectService",
+    "FeedbackService",
+    "ReportService",
+    "FileService",
+    "EmailService",
     # And more...
     
     # Factory & DI
