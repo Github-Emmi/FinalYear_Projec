@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 # Import Base so Alembic can autogenerate from model metadata
 from app.core.database import Base  # noqa: F401 — registers metadata
+import app.models  # noqa: F401 — side-effect: registers all 20 tables in Base.metadata
 from app.core.config import get_settings
 
 config = context.config
