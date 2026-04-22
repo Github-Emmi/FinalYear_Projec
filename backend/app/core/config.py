@@ -80,6 +80,18 @@ class Settings(BaseSettings):
     CORS_METHODS: List[str] = Field(default=["*"])
     CORS_HEADERS: List[str] = Field(default=["*"])
 
+    # ── OpenAI ─────────────────────────────────────────────────────────────────
+    OPENAI_API_KEY: Optional[str] = Field(default=None)
+    OPENAI_MODEL: str = Field(default="gpt-4o-mini")
+
+    # ── SMTP ───────────────────────────────────────────────────────────────────
+    SMTP_HOST: str = Field(default="localhost")
+    SMTP_PORT: int = Field(default=587)
+    SMTP_USER: Optional[str] = Field(default=None)
+    SMTP_PASSWORD: Optional[str] = Field(default=None)
+    SMTP_FROM: str = Field(default="noreply@school.edu")
+    SMTP_TLS: bool = Field(default=True)
+
     # ── API Docs ───────────────────────────────────────────────────────────────
     API_TITLE: str = "School Management System API"
     API_DESCRIPTION: str = "FastAPI backend for School Management System"
