@@ -135,3 +135,14 @@ class QuizResultResponse(BaseResponse):
     is_correct: Optional[bool] = None
     marks_earned: float
     ai_feedback: Optional[str] = None
+
+
+# ── Submit attempt request ─────────────────────────────────────────────────────
+
+class AnswerItem(BaseModel):
+    question_id: UUID
+    answer: str
+
+
+class SubmitAttemptRequest(BaseModel):
+    answers: list[AnswerItem]

@@ -56,7 +56,7 @@ async def get_current_user(
         raise _CREDENTIALS_EXCEPTION
 
     user = await RepositoryFactory(db).users.get_by_id(UUID(user_id))
-    if user is None or not user.is_active:
+    if user is None or not user.is_active: #type: ignore
         raise _CREDENTIALS_EXCEPTION
 
     return user

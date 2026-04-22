@@ -11,3 +11,4 @@ from app.services.leave_service import LeaveService  # noqa: F401
 from app.services.notification_service import NotificationService  # noqa: F401
 from app.services.analytics_service import AnalyticsService  # noqa: F401
 from app.services.email_service import EmailService  # noqa: F401
+from app.services.academic_service import AcademicService  # noqa: F401

@@ -33,3 +33,10 @@ class NotificationResponse(BaseResponse):
     notification_type: str
     is_read: bool
     read_at: Optional[datetime] = None
+
+
+class BroadcastNotificationRequest(BaseModel):
+    recipient_ids: list[UUID]
+    title: str
+    message: str
+    notification_type: NotificationType = NotificationType.info
