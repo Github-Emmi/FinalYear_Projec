@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import Boolean, Column, DateTime
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import declared_attr
 from sqlalchemy.sql import func
 
@@ -19,7 +19,7 @@ class UUIDPrimaryKeyMixin:
     @declared_attr
     def id(cls):
         return Column(
-            UUID(as_uuid=True),
+            Uuid,
             primary_key=True,
             default=uuid.uuid4,
             nullable=False,

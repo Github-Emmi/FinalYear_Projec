@@ -5,7 +5,7 @@ from __future__ import annotations
 import enum
 
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -34,9 +34,9 @@ class Quiz(BaseModel):
 
     title = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
-    subject_id = Column(UUID(as_uuid=True), ForeignKey("subjects.id"), nullable=False)
+    subject_id = Column(Uuid, ForeignKey("subjects.id"), nullable=False)
     staff_id = Column(
-        UUID(as_uuid=True), ForeignKey("staff_profiles.id"), nullable=False
+        Uuid, ForeignKey("staff_profiles.id"), nullable=False
     )
     status = Column(String(50), default=QuizStatus.draft.value, nullable=False)
     time_limit_minutes = Column(Integer, nullable=True)
@@ -59,7 +59,7 @@ class Quiz(BaseModel):
 class Question(BaseModel):
     __tablename__ = "questions"
 
-    quiz_id = Column(UUID(as_uuid=True), ForeignKey("quizzes.id"), nullable=False)
+    quiz_id = Column(Uuid, ForeignKey("quizzes.id"), nullable=False)
     text = Column(Text, nullable=False)
     question_type = Column(
         String(50),
@@ -83,9 +83,9 @@ class Question(BaseModel):
 class QuizAttempt(BaseModel):
     __tablename__ = "quiz_attempts"
 
-    quiz_id = Column(UUID(as_uuid=True), ForeignKey("quizzes.id"), nullable=False)
+    quiz_id = Column(Uuid, ForeignKey("quizzes.id"), nullable=False)
     student_id = Column(
-        UUID(as_uuid=True), ForeignKey("student_profiles.id"), nullable=False
+        Uuid, ForeignKey("student_profiles.id"), nullable=False
     )
     status = Column(
         String(50), default=AttemptStatus.in_progress.value, nullable=False
@@ -108,10 +108,10 @@ class QuizResult(BaseModel):
     __tablename__ = "quiz_results"
 
     attempt_id = Column(
-        UUID(as_uuid=True), ForeignKey("quiz_attempts.id"), nullable=False
+        Uuid, ForeignKey("quiz_attempts.id"), nullable=False
     )
     question_id = Column(
-        UUID(as_uuid=True), ForeignKey("questions.id"), nullable=False
+        Uuid, ForeignKey("questions.id"), nullable=False
     )
     student_answer = Column(Text, nullable=True)
     is_correct = Column(Boolean, nullable=True)

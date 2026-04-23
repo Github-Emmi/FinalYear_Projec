@@ -5,7 +5,7 @@ from __future__ import annotations
 import enum
 
 from sqlalchemy import Column, Date, DateTime, ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -28,7 +28,7 @@ class LeaveStatus(str, enum.Enum):
 class LeaveRequest(BaseModel):
     __tablename__ = "leave_requests"
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    user_id = Column(Uuid, ForeignKey("users.id"), nullable=False)
     leave_type = Column(
         String(50), default=LeaveType.casual.value, nullable=False
     )
@@ -37,7 +37,7 @@ class LeaveRequest(BaseModel):
     end_date = Column(Date, nullable=False)
     reason = Column(Text, nullable=True)
     reviewed_by_id = Column(
-        UUID(as_uuid=True), ForeignKey("staff_profiles.id"), nullable=True
+        Uuid, ForeignKey("staff_profiles.id"), nullable=True
     )
     reviewed_at = Column(DateTime, nullable=True)
     rejection_reason = Column(Text, nullable=True)

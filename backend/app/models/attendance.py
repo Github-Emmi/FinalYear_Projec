@@ -5,7 +5,7 @@ from __future__ import annotations
 import enum
 
 from sqlalchemy import Column, Date, ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -22,11 +22,11 @@ class AttendanceSession(BaseModel):
     __tablename__ = "attendance_sessions"
 
     classroom_id = Column(
-        UUID(as_uuid=True), ForeignKey("classrooms.id"), nullable=False
+        Uuid, ForeignKey("classrooms.id"), nullable=False
     )
-    subject_id = Column(UUID(as_uuid=True), ForeignKey("subjects.id"), nullable=False)
+    subject_id = Column(Uuid, ForeignKey("subjects.id"), nullable=False)
     staff_id = Column(
-        UUID(as_uuid=True), ForeignKey("staff_profiles.id"), nullable=False
+        Uuid, ForeignKey("staff_profiles.id"), nullable=False
     )
     date = Column(Date, nullable=False, index=True)
 
@@ -43,10 +43,10 @@ class AttendanceRecord(BaseModel):
     __tablename__ = "attendance_records"
 
     session_id = Column(
-        UUID(as_uuid=True), ForeignKey("attendance_sessions.id"), nullable=False
+        Uuid, ForeignKey("attendance_sessions.id"), nullable=False
     )
     student_id = Column(
-        UUID(as_uuid=True), ForeignKey("student_profiles.id"), nullable=False
+        Uuid, ForeignKey("student_profiles.id"), nullable=False
     )
     status = Column(
         String(50), default=AttendanceStatus.present.value, nullable=False

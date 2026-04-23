@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from sqlalchemy import Column, Date, ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -13,13 +13,13 @@ class StudentProfile(BaseModel):
     __tablename__ = "student_profiles"
 
     user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False
+        Uuid, ForeignKey("users.id"), unique=True, nullable=False
     )
     classroom_id = Column(
-        UUID(as_uuid=True), ForeignKey("classrooms.id"), nullable=True
+        Uuid, ForeignKey("classrooms.id"), nullable=True
     )
     session_year_id = Column(
-        UUID(as_uuid=True), ForeignKey("session_years.id"), nullable=True
+        Uuid, ForeignKey("session_years.id"), nullable=True
     )
     roll_number = Column(String(50), nullable=True)
     date_of_birth = Column(Date, nullable=True)

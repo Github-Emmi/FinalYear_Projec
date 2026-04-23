@@ -5,7 +5,7 @@ from __future__ import annotations
 import enum
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -22,10 +22,10 @@ class Notification(BaseModel):
     __tablename__ = "notifications"
 
     sender_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+        Uuid, ForeignKey("users.id"), nullable=True
     )
     recipient_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
+        Uuid, ForeignKey("users.id"), nullable=False, index=True
     )
     title = Column(String(255), nullable=False)
     message = Column(Text, nullable=False)

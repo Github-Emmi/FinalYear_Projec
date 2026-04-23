@@ -5,7 +5,7 @@ from __future__ import annotations
 import enum
 
 from sqlalchemy import Column, ForeignKey, JSON, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -23,10 +23,10 @@ class AuditAction(str, enum.Enum):
 class AuditLog(BaseModel):
     __tablename__ = "audit_logs"
 
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    user_id = Column(Uuid, ForeignKey("users.id"), nullable=True)
     action = Column(String(50), nullable=False, index=True)
     resource_type = Column(String(100), nullable=True, index=True)
-    resource_id = Column(UUID(as_uuid=True), nullable=True)
+    resource_id = Column(Uuid, nullable=True)
     details = Column(JSON, nullable=True)
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(Text, nullable=True)

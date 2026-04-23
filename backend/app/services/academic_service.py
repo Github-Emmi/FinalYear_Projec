@@ -10,6 +10,7 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.academic import ClassRoom, Department, SessionYear, Subject
 from app.repositories.factory import RepositoryFactory
 from app.schemas.academic import (
     ClassRoomCreate,
@@ -30,7 +31,7 @@ class AcademicService:
     # ── Department ─────────────────────────────────────────────────────────────
 
     async def create_department(self, data: DepartmentCreate):
-        return await self._repo.departments.create(data.model_dump())
+        return await self._repo.departments.create(Department(**data.model_dump()))
 
     async def get_department(self, dept_id: UUID):
         obj = await self._repo.departments.get_by_id(dept_id)
@@ -52,7 +53,7 @@ class AcademicService:
     # ── SessionYear ────────────────────────────────────────────────────────────
 
     async def create_session_year(self, data: SessionYearCreate):
-        return await self._repo.session_years.create(data.model_dump())
+        return await self._repo.session_years.create(SessionYear(**data.model_dump()))
 
     async def get_session_year(self, year_id: UUID):
         obj = await self._repo.session_years.get_by_id(year_id)
@@ -74,7 +75,7 @@ class AcademicService:
     # ── ClassRoom ──────────────────────────────────────────────────────────────
 
     async def create_classroom(self, data: ClassRoomCreate):
-        return await self._repo.classrooms.create(data.model_dump())
+        return await self._repo.classrooms.create(ClassRoom(**data.model_dump()))
 
     async def get_classroom(self, room_id: UUID):
         obj = await self._repo.classrooms.get_by_id(room_id)
@@ -96,7 +97,7 @@ class AcademicService:
     # ── Subject ────────────────────────────────────────────────────────────────
 
     async def create_subject(self, data: SubjectCreate):
-        return await self._repo.subjects.create(data.model_dump())
+        return await self._repo.subjects.create(Subject(**data.model_dump()))
 
     async def get_subject(self, subject_id: UUID):
         obj = await self._repo.subjects.get_by_id(subject_id)

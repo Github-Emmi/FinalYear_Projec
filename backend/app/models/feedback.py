@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from sqlalchemy import Column, ForeignKey, Integer, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -15,10 +15,10 @@ class FeedbackStaff(BaseModel):
     __tablename__ = "feedback_staff"
 
     staff_id = Column(
-        UUID(as_uuid=True), ForeignKey("staff_profiles.id"), nullable=False
+        Uuid, ForeignKey("staff_profiles.id"), nullable=False
     )
     student_id = Column(
-        UUID(as_uuid=True), ForeignKey("student_profiles.id"), nullable=False
+        Uuid, ForeignKey("student_profiles.id"), nullable=False
     )
     feedback_text = Column(Text, nullable=False)
     rating = Column(Integer, nullable=True)  # 1–5
@@ -34,10 +34,10 @@ class FeedbackStudent(BaseModel):
     __tablename__ = "feedback_students"
 
     student_id = Column(
-        UUID(as_uuid=True), ForeignKey("student_profiles.id"), nullable=False
+        Uuid, ForeignKey("student_profiles.id"), nullable=False
     )
     staff_id = Column(
-        UUID(as_uuid=True), ForeignKey("staff_profiles.id"), nullable=False
+        Uuid, ForeignKey("staff_profiles.id"), nullable=False
     )
     feedback_text = Column(Text, nullable=False)
     rating = Column(Integer, nullable=True)  # 1–5

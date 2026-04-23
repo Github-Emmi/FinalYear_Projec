@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from sqlalchemy import Column, ForeignKey, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -13,10 +13,10 @@ class StaffProfile(BaseModel):
     __tablename__ = "staff_profiles"
 
     user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False
+        Uuid, ForeignKey("users.id"), unique=True, nullable=False
     )
     department_id = Column(
-        UUID(as_uuid=True), ForeignKey("departments.id"), nullable=True
+        Uuid, ForeignKey("departments.id"), nullable=True
     )
     designation = Column(String(255), nullable=True)
     phone = Column(String(20), nullable=True)

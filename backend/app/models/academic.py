@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -35,7 +35,7 @@ class ClassRoom(BaseModel):
 
     name = Column(String(255), nullable=False, index=True)
     department_id = Column(
-        UUID(as_uuid=True), ForeignKey("departments.id"), nullable=False
+        Uuid, ForeignKey("departments.id"), nullable=False
     )
 
     # ── Relationships ──────────────────────────────────────────────────────────
@@ -52,10 +52,10 @@ class Subject(BaseModel):
 
     name = Column(String(255), nullable=False, index=True)
     classroom_id = Column(
-        UUID(as_uuid=True), ForeignKey("classrooms.id"), nullable=False
+        Uuid, ForeignKey("classrooms.id"), nullable=False
     )
     staff_id = Column(
-        UUID(as_uuid=True), ForeignKey("staff_profiles.id"), nullable=True
+        Uuid, ForeignKey("staff_profiles.id"), nullable=True
     )
 
     # ── Relationships ──────────────────────────────────────────────────────────
