@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.pool import NullPool
 
 from .config import get_settings
 
@@ -29,10 +28,9 @@ class Base(DeclarativeBase):
 engine: AsyncEngine = create_async_engine(
     settings.DATABASE_URL,
     echo=settings.DB_ECHO,
-    pool_size=settings.DB_POOL_SIZE if settings.ENVIRONMENT != "production" else 1,
-    max_overflow=settings.DB_MAX_OVERFLOW if settings.ENVIRONMENT != "production" else 0,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
     pool_pre_ping=True,
-    poolclass=NullPool if settings.ENVIRONMENT == "production" else None,
 )
 
 async_session_maker: async_sessionmaker[AsyncSession] = async_sessionmaker(
@@ -58,6 +56,9 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 async def init_db() -> None:
     """Create all tables on startup (development only; use Alembic in production)."""
+    if settings.ENVIRONMENT == "production":
+        logger.info("Skipping create_all in production; use Alembic migrations")
+        return
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     logger.info("Database initialized")
