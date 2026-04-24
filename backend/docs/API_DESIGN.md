@@ -74,7 +74,7 @@ Response:
 | GET/POST | `/api/v1/admin/users` | admin | List/create users |
 | GET/PATCH/DELETE | `/api/v1/admin/users/{id}` | admin | Manage single user |
 | GET/POST | `/api/v1/students/` | staff,admin | List/create students |
-| GET/PATCH | `/api/v1/students/{id}` | staff,admin,student | Get/update student |
+| GET/PATCH | `/api/v1/students/{id}` | staff,admin,student | Get/update student | 
 | GET/POST | `/api/v1/staff/` | admin | List/create staff |
 | GET/POST | `/api/v1/quizzes/` | staff | List/create quizzes |
 | POST | `/api/v1/quizzes/{id}/attempt` | student | Submit quiz attempt |
