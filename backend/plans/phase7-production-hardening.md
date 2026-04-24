@@ -168,6 +168,7 @@ If multiple commits were made for Phase 7, revert them in reverse order.
 - 2026-04-24: `ENVIRONMENT=production` crashed at import time due to invalid engine args with `NullPool`:
   - `TypeError: Invalid argument(s) 'pool_size','max_overflow' ... PGDialect_asyncpg/NullPool/Engine`
   - Fixed by removing `NullPool` forcing and skipping `create_all` in production (`backend/app/core/database.py`).
+- 2026-04-24: `docker compose ... config` validates both compose files, but Compose warns that the `version` key is obsolete and that `SECRET_KEY` defaults to blank when not set for the prod compose.
 
 ---
 
