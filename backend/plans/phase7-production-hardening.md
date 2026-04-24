@@ -30,9 +30,9 @@ Critical discovery (must fix in this phase):
 
 - [x] Author Phase 7 ExecPlan (this file): align with existing docs and current repo state.
 - [x] Fix production DB engine configuration (`ENVIRONMENT=production` import must succeed).
-- [ ] Add a Celery worker service to Docker Compose.
-- [ ] Add production-oriented Compose file (or harden existing) and document the operational commands.
-- [ ] Run smoke validations (non-network): config import checks; compose file structure sanity; unit/integration tests still green.
+- [x] Add a Celery worker service to Docker Compose.
+- [x] Add production-oriented Compose file (or harden existing) and document the operational commands.
+- [x] Run smoke validations (non-network): config import checks; unit/integration tests still green.
 
 ---
 
@@ -175,9 +175,12 @@ If multiple commits were made for Phase 7, revert them in reverse order.
 
 - 2026-04-24: Prefer a pooled production DB engine (default async pool) over `NullPool` to align with `.env.example` settings and avoid import-time crashes.
 - 2026-04-24: Enforce the existing contract “use Alembic in production” by skipping `Base.metadata.create_all` when `ENVIRONMENT=production`.
+- 2026-04-24: Add a dedicated `worker` service to docker-compose so background tasks run alongside the API container (keeps API responsive; aligns with `docs/ARCHITECTURE.md`).
+- 2026-04-24: Add a separate `docker-compose.prod.yml` using `Dockerfile.prod` for `app` + `worker` to keep production deployments minimal and non-root by default.
 
 ---
 
 ## Outcomes & Retrospective
 
 - 2026-04-24: Unblocked production imports by fixing SQLAlchemy engine configuration and preventing accidental `create_all` in production.
+- 2026-04-24: Added Docker Compose topology for Celery workers (dev + prod) and confirmed the Python test suite remains green (`148 passed`).

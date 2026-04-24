@@ -1,28 +1,31 @@
-# Development docker-compose — all 6 services
+# Production docker-compose — minimal footprint (no Adminer/Redis Commander)
 # Usage (from backend/ directory):
-#   docker compose -f docker/docker-compose.yml up -d
+#   docker compose -f docker/docker-compose.prod.yml up -d
+#
+# NOTE: Provide secrets via environment or a non-committed .env file.
 
-version: '3.8'
+version: "3.8"
 
 services:
   app:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
-    container_name: school_ms_app
+      dockerfile: docker/Dockerfile.prod
+    container_name: school_ms_app_prod
     environment:
-      ENVIRONMENT: development
-      DEBUG: "true"
+      ENVIRONMENT: production
+      DEBUG: "false"
+      RELOAD: "false"
       DB_HOST: postgres
       DB_PORT: "5432"
-      DB_USER: school_user
-      DB_PASSWORD: school_password
-      DB_NAME: school_management
+      DB_USER: ${DB_USER:-school_user}
+      DB_PASSWORD: ${DB_PASSWORD:-school_password}
+      DB_NAME: ${DB_NAME:-school_management}
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: "5672"
-      SECRET_KEY: dev-secret-key-change-in-production
+      SECRET_KEY: ${SECRET_KEY}
     ports:
       - "8000:8000"
     depends_on:
@@ -45,21 +48,22 @@ services:
   worker:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
-    container_name: school_ms_worker
+      dockerfile: docker/Dockerfile.prod
+    container_name: school_ms_worker_prod
     environment:
-      ENVIRONMENT: development
-      DEBUG: "true"
+      ENVIRONMENT: production
+      DEBUG: "false"
+      RELOAD: "false"
       DB_HOST: postgres
       DB_PORT: "5432"
-      DB_USER: school_user
-      DB_PASSWORD: school_password
-      DB_NAME: school_management
+      DB_USER: ${DB_USER:-school_user}
+      DB_PASSWORD: ${DB_PASSWORD:-school_password}
+      DB_NAME: ${DB_NAME:-school_management}
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: "5672"
-      SECRET_KEY: dev-secret-key-change-in-production
+      SECRET_KEY: ${SECRET_KEY}
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,17 +78,15 @@ services:
 
   postgres:
     image: postgres:15-alpine
-    container_name: school_ms_postgres
+    container_name: school_ms_postgres_prod
     environment:
-      POSTGRES_USER: school_user
-      POSTGRES_PASSWORD: school_password
-      POSTGRES_DB: school_management
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${DB_USER:-school_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-school_password}
+      POSTGRES_DB: ${DB_NAME:-school_management}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U school_user -d school_management"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-school_user} -d ${DB_NAME:-school_management}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -93,9 +95,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: school_ms_redis
-    ports:
-      - "6379:6379"
+    container_name: school_ms_redis_prod
     volumes:
       - redis_data:/data
     healthcheck:
@@ -108,12 +108,11 @@ services:
 
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
-    container_name: school_ms_rabbitmq
+    container_name: school_ms_rabbitmq_prod
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     ports:
-      - "5672:5672"
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
@@ -125,28 +124,6 @@ services:
     networks:
       - school_network
 
-  adminer:
-    image: adminer:4.8.1
-    container_name: school_ms_adminer
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-    networks:
-      - school_network
-
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: school_ms_redis_commander
-    environment:
-      REDIS_HOSTS: local:redis:6379
-    ports:
-      - "8081:8081"
-    depends_on:
-      - redis
-    networks:
-      - school_network
-
 volumes:
   postgres_data:
   redis_data:
@@ -155,3 +132,4 @@ volumes:
 networks:
   school_network:
     driver: bridge
+

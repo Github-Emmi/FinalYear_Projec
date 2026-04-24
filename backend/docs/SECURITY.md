@@ -62,5 +62,5 @@ The role is read from the JWT `role` claim — no database lookup on each reques
 - [ ] Database password is not `school_password`
 - [ ] `CORS_ORIGINS` set to specific frontend domain(s), not `*`
 - [ ] Redis protected with `REDIS_PASSWORD`
-- [ ] RabbitMQ `RABBITMQ_DEFAULT_USER`/`PASS` changed from `guest/guest`
+- [ ] RabbitMQ credentials changed from `guest/guest` (RabbitMQ container `RABBITMQ_DEFAULT_USER`/`PASS`, app config `RABBITMQ_USER`/`RABBITMQ_PASSWORD`)
 - [ ] HTTPS/TLS termination at reverse proxy (nginx or Traefik)
