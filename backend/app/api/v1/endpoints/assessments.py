@@ -22,6 +22,7 @@ from app.schemas.assessment import (
     QuizUpdate,
     SubmitAttemptRequest,
 )
+from app.models.assessment import Question
 from app.services.assessment_service import AssessmentService
 
 router = APIRouter(prefix="/quizzes", tags=["assessments"])
@@ -76,9 +77,9 @@ async def close_quiz(quiz_id: UUID, db: AsyncSession = Depends(get_db)) -> QuizR
 @router.post("/{quiz_id}/questions", response_model=QuestionResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(StaffOrAdmin)])
 async def add_question(quiz_id: UUID, body: QuestionCreate, db: AsyncSession = Depends(get_db)) -> QuestionResponse:
     repo = RepositoryFactory(db)
-    body_dict = body.model_dump()
+    body_dict = body.model_dump(exclude_none=True)
     body_dict["quiz_id"] = quiz_id
-    question = await repo.questions.create(body_dict)
+    question = await repo.questions.create(Question(**body_dict))
     return QuestionResponse.model_validate(question)
 
 
@@ -93,7 +94,9 @@ async def list_questions(quiz_id: UUID, db: AsyncSession = Depends(get_db)) -> l
 async def update_question(quiz_id: UUID, question_id: UUID, body: QuestionUpdate, db: AsyncSession = Depends(get_db)) -> QuestionResponse:
     repo = RepositoryFactory(db)
     question = await repo.questions.get_by_id(question_id)
-    updated = await repo.questions.update(question, body.model_dump(exclude_none=True))
+    for field, value in body.model_dump(exclude_none=True).items():
+        setattr(question, field, value)
+    updated = await repo.questions.update(question)
     return QuestionResponse.model_validate(updated)
 
 

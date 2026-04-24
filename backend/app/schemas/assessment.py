@@ -54,7 +54,7 @@ class QuizResponse(BaseResponse):
 # ── Question ───────────────────────────────────────────────────────────────────
 
 class QuestionCreate(BaseModel):
-    quiz_id: UUID
+    quiz_id: Optional[UUID] = None
     text: str
     question_type: QuestionType = QuestionType.multiple_choice
     option_a: Optional[str] = None
