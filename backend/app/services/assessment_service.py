@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from datetime import datetime
 from typing import List
 from uuid import UUID
@@ -238,36 +237,15 @@ class AssessmentService:
     async def _ai_grade(
         self, question: Question, student_answer: str
     ) -> tuple[bool, float, str]:
-        """Grade a short-answer question with GPT-4o-mini.
-
-        Falls back to (False, 0.0, "AI grading unavailable") on any error.
-        """
+        """Grade a short-answer question via AIGradingAgent (OpenRouter)."""
         try:
-            from openai import AsyncOpenAI  # lazy import
+            from app.services.ai_agent import ai_agent  # lazy to avoid circular import
 
-            client = AsyncOpenAI(api_key=_settings.OPENAI_API_KEY)
-            prompt = (
-                "You are grading a student's short-answer response.\n\n"
-                f"Question: {question.text}\n"
-                f"Expected answer: {question.correct_answer}\n"
-                f"Student's answer: {student_answer}\n\n"
-                "Respond with valid JSON only (no markdown):\n"
-                '{"is_correct": true|false, '
-                f'"marks_earned": <number 0 to {question.marks}>, '
-                '"feedback": "<one sentence>"}'
-            )
-            response = await client.chat.completions.create(
-                model=_settings.OPENAI_MODEL,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.1,
-                max_tokens=150,
-            )
-            raw = response.choices[0].message.content.strip()
-            data = json.loads(raw)
-            return (
-                bool(data["is_correct"]),
-                float(data["marks_earned"]),
-                str(data["feedback"]),
+            return await ai_agent.grade_short_answer(
+                question_text=question.text,
+                correct_answer=question.correct_answer,
+                student_answer=student_answer,
+                marks=question.marks,
             )
         except Exception:
             return False, 0.0, "AI grading unavailable"

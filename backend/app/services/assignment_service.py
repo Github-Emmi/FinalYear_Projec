@@ -103,24 +103,14 @@ class AssignmentService:
         self, assignment: Assignment, submission: AssignmentSubmission
     ) -> str:
         try:
-            from openai import AsyncOpenAI  # lazy import
+            from app.services.ai_agent import ai_agent  # lazy to avoid circular import
 
-            client = AsyncOpenAI(api_key=_settings.OPENAI_API_KEY)
-            prompt = (
-                f"You are grading a student assignment submission.\n\n"
-                f"Assignment: {assignment.title}\n"
-                f"Description: {assignment.description or 'N/A'}\n"
-                f"File submitted: {submission.file_url or 'N/A'}\n\n"
-                "Provide brief constructive feedback (2-3 sentences) "
-                "on the quality and completeness of the submission."
+            feedback = await ai_agent.grade_essay(
+                assignment_title=assignment.title,
+                assignment_description=assignment.description,
+                file_url=submission.file_url,
             )
-            response = await client.chat.completions.create(
-                model=_settings.OPENAI_MODEL,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.3,
-                max_tokens=200,
-            )
-            return response.choices[0].message.content.strip()
+            return feedback or "AI feedback unavailable"
         except Exception:
             return "AI feedback unavailable"
 

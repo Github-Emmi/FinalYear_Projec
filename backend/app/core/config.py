@@ -100,9 +100,19 @@ class Settings(BaseSettings):
     CORS_METHODS: List[str] = Field(default=["*"])
     CORS_HEADERS: List[str] = Field(default=["*"])
 
-    # ── OpenAI ─────────────────────────────────────────────────────────────────
+    # ── OpenAI / OpenRouter ────────────────────────────────────────────────────
     OPENAI_API_KEY: Optional[str] = Field(default=None)
-    OPENAI_MODEL: str = Field(default="gpt-4o-mini")
+    OPENAI_BASE_URL: Optional[str] = Field(default=None)  # Override for OpenRouter
+
+    # Per-task model assignments (swap without code changes)
+    # Defaults use free/cheap OpenRouter models; override in .env for production
+    OPENAI_MODEL: str = Field(default="openai/gpt-4o-mini")
+    # Essay / assignment grading — benefits from instruction-following
+    GRADING_ESSAY_MODEL: str = Field(default="openai/gpt-4o-mini")
+    # Short-answer quiz grading — fast, cheap
+    GRADING_QUIZ_MODEL: str = Field(default="meta-llama/llama-3.3-70b-instruct:free")
+    # Reasoning-heavy tasks (analytics, complex feedback)
+    REASONING_MODEL: str = Field(default="deepseek/deepseek-r1-distill-qwen-32b")
 
     # ── SMTP ───────────────────────────────────────────────────────────────────
     SMTP_HOST: str = Field(default="localhost")

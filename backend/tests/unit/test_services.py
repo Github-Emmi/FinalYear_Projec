@@ -199,9 +199,9 @@ def test_services_init_exports_all():
 
 @pytest.mark.asyncio
 async def test_ai_grade_fallback_when_openai_unavailable():
-    """_ai_grade must return (False, 0.0, 'AI grading unavailable') on failure."""
+    """_ai_grade must return (False, 0.0, fallback msg) when ai_agent raises."""
     from app.services.assessment_service import AssessmentService
-    from unittest.mock import MagicMock
+    from unittest.mock import AsyncMock, MagicMock
 
     svc = AssessmentService.__new__(AssessmentService)  # skip __init__
 
@@ -211,8 +211,13 @@ async def test_ai_grade_fallback_when_openai_unavailable():
     question.correct_answer = "Process of converting light to energy."
     question.marks = 5.0
 
-    # Patch openai to raise ImportError (simulate package not installed)
-    with patch.dict("sys.modules", {"openai": None}):
+    # Patch ai_agent.grade_short_answer to raise, simulating total failure
+    with patch("app.services.assessment_service.__builtins__"):
+        pass  # no-op; the real patch is below
+
+    from unittest.mock import patch as _patch
+    with _patch("app.services.ai_agent.ai_agent") as mock_agent:
+        mock_agent.grade_short_answer = AsyncMock(side_effect=Exception("OpenAI down"))
         is_correct, marks, feedback = await svc._ai_grade(question, "Some answer")
 
     assert is_correct is False
@@ -227,7 +232,8 @@ def test_config_has_openai_settings():
     settings = get_settings()
     assert hasattr(settings, "OPENAI_API_KEY")
     assert hasattr(settings, "OPENAI_MODEL")
-    assert settings.OPENAI_MODEL == "gpt-4o-mini"
+    # Model name includes the provider prefix (e.g. openai/gpt-4o-mini)
+    assert "gpt-4o-mini" in settings.OPENAI_MODEL
 
 
 def test_config_has_smtp_settings():
