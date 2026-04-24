@@ -110,9 +110,9 @@ class Settings(BaseSettings):
     # Essay / assignment grading — benefits from instruction-following
     GRADING_ESSAY_MODEL: str = Field(default="openai/gpt-4o-mini")
     # Short-answer quiz grading — fast, cheap
-    GRADING_QUIZ_MODEL: str = Field(default="meta-llama/llama-3.3-70b-instruct:free")
+    GRADING_QUIZ_MODEL: str = Field(default="meta-llama/llama-3.1-8b-instruct")
     # Reasoning-heavy tasks (analytics, complex feedback)
-    REASONING_MODEL: str = Field(default="deepseek/deepseek-r1-distill-qwen-32b")
+    REASONING_MODEL: str = Field(default="deepseek/deepseek-r1-distill-llama-70b")
 
     # ── SMTP ───────────────────────────────────────────────────────────────────
     SMTP_HOST: str = Field(default="localhost")
