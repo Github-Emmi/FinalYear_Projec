@@ -33,21 +33,10 @@ from app.models.user import User, UserRole
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
-
-# ── Event loop (session-scoped) ───────────────────────────────────────────────
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Single event loop for the entire integration test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
-
-
 # ── Engine + tables (session-scoped) ─────────────────────────────────────────
 
 @pytest_asyncio.fixture(scope="session")
-async def test_engine():
+async def test_engine(event_loop):
     engine = create_async_engine(
         TEST_DATABASE_URL,
         connect_args={"check_same_thread": False},
@@ -78,7 +67,7 @@ async def db_session(session_factory) -> AsyncGenerator[AsyncSession, None]:
 # ── HTTP client (function-scoped, get_db overridden) ─────────────────────────
 
 @pytest_asyncio.fixture
-async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def client(db_session: AsyncSession, event_loop) -> AsyncGenerator[AsyncClient, None]:
     app = create_app()
 
     async def _override_get_db():

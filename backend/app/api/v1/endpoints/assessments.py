@@ -24,6 +24,7 @@ from app.schemas.assessment import (
 )
 from app.models.assessment import Question
 from app.services.assessment_service import AssessmentService
+from app.tasks.grading_tasks import grade_attempt_task
 
 router = APIRouter(prefix="/quizzes", tags=["assessments"])
 
@@ -112,8 +113,10 @@ async def start_attempt(quiz_id: UUID, student_id: UUID, db: AsyncSession = Depe
 @router.post("/attempts/{attempt_id}/submit", response_model=QuizAttemptResponse, dependencies=[Depends(AnyAuthenticatedUser)])
 async def submit_attempt(attempt_id: UUID, body: SubmitAttemptRequest, db: AsyncSession = Depends(get_db)) -> QuizAttemptResponse:
     svc = AssessmentService(db)
-    answers = [{"question_id": a.question_id, "answer": a.answer} for a in body.answers]
+    answers = [{"question_id": a.question_id, "student_answer": a.answer} for a in body.answers]
     attempt = await svc.submit_attempt(attempt_id, answers)
+    # Enqueue Celery task for AI grading
+    grade_attempt_task.delay(str(attempt_id))
     return QuizAttemptResponse.model_validate(attempt)
 
 

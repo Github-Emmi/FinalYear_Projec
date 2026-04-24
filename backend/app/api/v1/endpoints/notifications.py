@@ -35,7 +35,11 @@ async def broadcast_notification(
         title=body.title,
         message=body.message,
         sender_id=current_user.id,
-        type=body.notification_type,
+        notification_type=(
+            body.notification_type.value
+            if hasattr(body.notification_type, "value")
+            else body.notification_type
+        ),
     )
 
 

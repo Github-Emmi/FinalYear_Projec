@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import List, Optional
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -16,6 +16,26 @@ class Settings(BaseSettings):
     API_PREFIX: str = "/api/v1"
     ENVIRONMENT: str = Field(default="development")
     DEBUG: bool = Field(default=True)
+
+    @field_validator("DEBUG", mode="before")
+    @classmethod
+    def _parse_debug(cls, value):
+        """Allow common non-boolean env values (e.g. DEBUG=release) without crashing.
+
+        Some environments export build-mode strings into DEBUG. Treat production-like
+        values as False and development-like values as True.
+        """
+        if isinstance(value, bool) or value is None:
+            return value
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            truthy = {"1", "true", "t", "yes", "y", "on", "debug", "dev", "development"}
+            falsy = {"0", "false", "f", "no", "n", "off", "release", "prod", "production"}
+            if normalized in truthy:
+                return True
+            if normalized in falsy:
+                return False
+        return value
 
     # ── Server ─────────────────────────────────────────────────────────────────
     HOST: str = Field(default="0.0.0.0")

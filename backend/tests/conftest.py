@@ -21,7 +21,7 @@ def event_loop():
 
 
 @pytest_asyncio.fixture
-async def client() -> AsyncGenerator[AsyncClient, None]:
+async def client(event_loop) -> AsyncGenerator[AsyncClient, None]:
     """Async HTTP test client pointing at the FastAPI app in-process."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac

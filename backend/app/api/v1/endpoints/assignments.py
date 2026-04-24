@@ -18,6 +18,7 @@ from app.schemas.assignment import (
     SubmissionUpdate,
 )
 from app.services.assignment_service import AssignmentService
+from app.tasks.grading_tasks import grade_submission_task
 
 router = APIRouter(prefix="/assignments", tags=["assignments"])
 
@@ -76,8 +77,8 @@ async def grade_submission(
     return SubmissionResponse.model_validate(submission)
 
 
-@router.post("/submissions/{submission_id}/grade-ai", response_model=SubmissionResponse, dependencies=[Depends(StaffOrAdmin)])
-async def grade_submission_with_ai(submission_id: UUID, db: AsyncSession = Depends(get_db)) -> SubmissionResponse:
-    svc = AssignmentService(db)
-    submission = await svc.grade_with_ai(submission_id)
-    return SubmissionResponse.model_validate(submission)
+@router.post("/submissions/{submission_id}/grade-ai", status_code=status.HTTP_202_ACCEPTED, dependencies=[Depends(StaffOrAdmin)])
+async def grade_submission_with_ai(submission_id: UUID, db: AsyncSession = Depends(get_db)):
+    # Enqueue Celery task for AI grading
+    grade_submission_task.delay(str(submission_id))
+    return {"detail": "Grading task enqueued"}

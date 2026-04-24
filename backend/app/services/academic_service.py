@@ -44,11 +44,13 @@ class AcademicService:
 
     async def update_department(self, dept_id: UUID, data: DepartmentUpdate):
         obj = await self.get_department(dept_id)
-        return await self._repo.departments.update(obj, data.model_dump(exclude_none=True))
+        for field, value in data.model_dump(exclude_unset=True).items():
+            setattr(obj, field, value)
+        return await self._repo.departments.update(obj)
 
     async def delete_department(self, dept_id: UUID) -> None:
-        obj = await self.get_department(dept_id)
-        await self._repo.departments.delete(obj)
+        await self.get_department(dept_id)
+        await self._repo.departments.soft_delete(dept_id)
 
     # ── SessionYear ────────────────────────────────────────────────────────────
 
@@ -66,11 +68,13 @@ class AcademicService:
 
     async def update_session_year(self, year_id: UUID, data: SessionYearUpdate):
         obj = await self.get_session_year(year_id)
-        return await self._repo.session_years.update(obj, data.model_dump(exclude_none=True))
+        for field, value in data.model_dump(exclude_unset=True).items():
+            setattr(obj, field, value)
+        return await self._repo.session_years.update(obj)
 
     async def delete_session_year(self, year_id: UUID) -> None:
-        obj = await self.get_session_year(year_id)
-        await self._repo.session_years.delete(obj)
+        await self.get_session_year(year_id)
+        await self._repo.session_years.soft_delete(year_id)
 
     # ── ClassRoom ──────────────────────────────────────────────────────────────
 
@@ -88,11 +92,13 @@ class AcademicService:
 
     async def update_classroom(self, room_id: UUID, data: ClassRoomUpdate):
         obj = await self.get_classroom(room_id)
-        return await self._repo.classrooms.update(obj, data.model_dump(exclude_none=True))
+        for field, value in data.model_dump(exclude_unset=True).items():
+            setattr(obj, field, value)
+        return await self._repo.classrooms.update(obj)
 
     async def delete_classroom(self, room_id: UUID) -> None:
-        obj = await self.get_classroom(room_id)
-        await self._repo.classrooms.delete(obj)
+        await self.get_classroom(room_id)
+        await self._repo.classrooms.soft_delete(room_id)
 
     # ── Subject ────────────────────────────────────────────────────────────────
 
@@ -110,8 +116,10 @@ class AcademicService:
 
     async def update_subject(self, subject_id: UUID, data: SubjectUpdate):
         obj = await self.get_subject(subject_id)
-        return await self._repo.subjects.update(obj, data.model_dump(exclude_none=True))
+        for field, value in data.model_dump(exclude_unset=True).items():
+            setattr(obj, field, value)
+        return await self._repo.subjects.update(obj)
 
     async def delete_subject(self, subject_id: UUID) -> None:
-        obj = await self.get_subject(subject_id)
-        await self._repo.subjects.delete(obj)
+        await self.get_subject(subject_id)
+        await self._repo.subjects.soft_delete(subject_id)

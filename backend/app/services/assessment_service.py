@@ -96,7 +96,8 @@ class AssessmentService:
         """Grade all answers and finalise the attempt.
 
         *answers* is a list of ``{"question_id": str|UUID, "student_answer": str}``.
-        MCQ/True-False are auto-graded; short-answer uses GPT-4o-mini when enabled.
+        MCQ/True-False are auto-graded. Short-answer grading is deferred to
+        `grade_attempt_with_ai()` (Celery background task) when enabled.
         """
         attempt = await self._require_attempt(attempt_id)
 
@@ -106,8 +107,18 @@ class AssessmentService:
                 detail="Attempt is already submitted or graded",
             )
 
+        quiz = await self._repos.quizzes.get_by_id(attempt.quiz_id)
+        if not quiz:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Quiz not found",
+            )
+
         questions = await self._repos.questions.get_by_quiz(attempt.quiz_id)
         q_map = {q.id: q for q in questions}
+        has_short_answer = any(
+            q.question_type == QuestionType.short_answer.value for q in questions
+        )
         total_marks = sum(q.marks for q in questions) or 1.0  # guard div-by-zero
 
         earned_marks = 0.0
@@ -121,7 +132,9 @@ class AssessmentService:
             if question is None:
                 continue
 
-            student_answer = ans.get("student_answer", "")
+            student_answer = ans.get("student_answer")
+            if student_answer is None:
+                student_answer = ans.get("answer", "")
             is_correct, marks_earned, ai_feedback = await self._grade_answer(
                 question, student_answer, attempt.quiz_id
             )
@@ -137,17 +150,66 @@ class AssessmentService:
             )
             await self._repos.quiz_results.create(result)
 
-        score = round(earned_marks / total_marks * 100, 2)
-        attempt.score = score
+        # If the quiz has short-answer questions, the attempt is not fully graded
+        # until the Celery task runs (or manual grading occurs).
+        if has_short_answer:
+            attempt.score = None
+        else:
+            attempt.score = round(earned_marks / total_marks * 100, 2)
         attempt.submitted_at = datetime.utcnow()
         attempt.status = AttemptStatus.submitted.value
 
-        # If all answers were auto/AI-graded, mark as graded immediately
-        quiz = await self._repos.quizzes.get_by_id(attempt.quiz_id)
-        if quiz and quiz.ai_grading_enabled:
+        # If there are no short-answer questions, the attempt can be marked as graded immediately.
+        if not has_short_answer:
             attempt.status = AttemptStatus.graded.value
             attempt.graded_at = datetime.utcnow()
 
+        return await self._repos.quiz_attempts.update(attempt)
+
+    async def grade_attempt_with_ai(self, attempt_id: UUID) -> QuizAttempt:
+        """Grade short-answer questions for an already-submitted attempt.
+
+        Intended for background execution (Celery). Safe to call multiple times.
+        """
+        attempt = await self._require_attempt(attempt_id)
+
+        # Already graded (or manually graded later)
+        if attempt.status == AttemptStatus.graded.value:
+            return attempt
+
+        quiz = await self._repos.quizzes.get_by_id(attempt.quiz_id)
+        if not quiz:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Quiz not found",
+            )
+
+        if not quiz.ai_grading_enabled or not _settings.OPENAI_API_KEY:
+            # AI grading disabled or unavailable — leave attempt in submitted state.
+            return attempt
+
+        questions = await self._repos.questions.get_by_quiz(attempt.quiz_id)
+        q_map = {q.id: q for q in questions}
+        results = await self._repos.quiz_results.get_by_attempt(attempt_id)
+
+        for result in results:
+            q = q_map.get(result.question_id)
+            if not q or q.question_type != QuestionType.short_answer.value:
+                continue
+
+            is_correct, marks_earned, feedback = await self._ai_grade(
+                q, result.student_answer or ""
+            )
+            result.is_correct = is_correct
+            result.marks_earned = marks_earned
+            result.ai_feedback = feedback
+            await self._repos.quiz_results.update(result)
+
+        total_marks = sum(q.marks for q in questions) or 1.0
+        earned_marks = sum(r.marks_earned for r in results)
+        attempt.score = round(earned_marks / total_marks * 100, 2)
+        attempt.status = AttemptStatus.graded.value
+        attempt.graded_at = datetime.utcnow()
         return await self._repos.quiz_attempts.update(attempt)
 
     # ── Internal helpers ───────────────────────────────────────────────────────
@@ -168,10 +230,7 @@ class AssessmentService:
             return correct, question.marks if correct else 0.0, None
 
         if q_type == QuestionType.short_answer.value:
-            quiz = await self._repos.quizzes.get_by_id(quiz_id)
-            if quiz and quiz.ai_grading_enabled and _settings.OPENAI_API_KEY:
-                return await self._ai_grade(question, student_answer)
-            # No AI — return 0, awaiting manual grading
+            # Deferred: short-answer questions are graded by `grade_attempt_with_ai()`.
             return False, 0.0, None
 
         return False, 0.0, None

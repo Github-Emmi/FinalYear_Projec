@@ -30,7 +30,18 @@ class NotificationService:
             ),
             is_read=False,
         )
-        return await self._repos.notifications.create(notification)
+        notif = await self._repos.notifications.create(notification)
+        # Fire-and-forget WebSocket push
+        try:
+            from app.websockets.manager import manager
+            import asyncio
+            asyncio.create_task(manager.send_to_user(
+                str(notif.recipient_id),
+                {"type": "notification", "title": notif.title, "message": notif.message}
+            ))
+        except Exception:
+            pass
+        return notif
 
     async def send_broadcast(
         self,
@@ -42,6 +53,8 @@ class NotificationService:
     ) -> list[Notification]:
         """Send the same notification to multiple recipients."""
         created = []
+        from app.websockets.manager import manager
+        import asyncio
         for rid in recipient_ids:
             n = Notification(
                 sender_id=sender_id,
@@ -51,7 +64,15 @@ class NotificationService:
                 notification_type=notification_type,
                 is_read=False,
             )
-            created.append(await self._repos.notifications.create(n))
+            notif = await self._repos.notifications.create(n)
+            try:
+                asyncio.create_task(manager.send_to_user(
+                    str(notif.recipient_id),
+                    {"type": "notification", "title": notif.title, "message": notif.message}
+                ))
+            except Exception:
+                pass
+            created.append(notif)
         return created
 
     async def mark_read(self, notification_id: UUID, user_id: UUID) -> Notification:

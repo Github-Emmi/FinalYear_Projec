@@ -79,4 +79,4 @@ async def set_user_active(
     user_id: UUID, active: bool, db: AsyncSession = Depends(get_db)
 ) -> None:
     svc = UserService(db)
-    await svc.set_active(user_id, active) #type: ignore
+    await svc.set_active(user_id, active=active)
