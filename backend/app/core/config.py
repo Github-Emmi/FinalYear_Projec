@@ -106,13 +106,12 @@ class Settings(BaseSettings):
 
     # Per-task model assignments (swap without code changes)
     # Defaults use free/cheap OpenRouter models; override in .env for production
-    OPENAI_MODEL: str = Field(default="openai/gpt-4o-mini")
-    # Essay / assignment grading — benefits from instruction-following
-    GRADING_ESSAY_MODEL: str = Field(default="openai/gpt-4o-mini")
-    # Short-answer quiz grading — fast, cheap
-    GRADING_QUIZ_MODEL: str = Field(default="meta-llama/llama-3.1-8b-instruct")
-    # Reasoning-heavy tasks (analytics, complex feedback)
-    REASONING_MODEL: str = Field(default="deepseek/deepseek-r1-distill-llama-70b")
+    OPENAI_MODEL: str = Field(default="openrouter/free")
+    # openrouter/free auto-routes to a capable free model from OpenRouter's free pool.
+    # Override any of these in .env with a specific model ID when needed.
+    GRADING_ESSAY_MODEL: str = Field(default="openrouter/free")
+    GRADING_QUIZ_MODEL: str = Field(default="openrouter/free")
+    REASONING_MODEL: str = Field(default="openrouter/free")
 
     # ── SMTP ───────────────────────────────────────────────────────────────────
     SMTP_HOST: str = Field(default="localhost")
