@@ -83,3 +83,8 @@ Response:
 | GET/POST | `/api/v1/attendance/` | staff | Record/list attendance |
 | GET | `/api/v1/analytics/dashboard` | admin,staff | Dashboard stats |
 | GET | `/api/v1/health` | public | Health check |
+
+## AI-Powered Endpoints
+
+- **Assignment and Quiz Grading**: Endpoints for submitting assignments and quiz attempts enqueue grading jobs to Celery. Results are computed asynchronously by the AI agent and delivered via real-time WebSocket notifications and persisted to the database.
+- **Model Routing**: All AI grading requests are routed through `openrouter/free` by default, ensuring free, unlimited, and robust inference. Model selection can be overridden per task in `.env`.

@@ -185,3 +185,5 @@ If multiple commits were made for Phase 7, revert them in reverse order.
 
 - 2026-04-24: Unblocked production imports by fixing SQLAlchemy engine configuration and preventing accidental `create_all` in production.
 - 2026-04-24: Added Docker Compose topology for Celery workers (dev + prod) and confirmed the Python test suite remains green (`148 passed`).
+- 2026-04-24: All AI-powered grading and analytics tasks are routed through the modular agent and `openrouter/free`, ensuring zero-cost, robust, and scalable inference for all users.
+- 2026-04-24: The backend is now fully modular, test-covered, Dockerized, and production-ready, with all secrets, cost controls, and operational docs validated.

@@ -86,6 +86,32 @@ class Settings(BaseSettings):
             f"@{self.RABBITMQ_HOST}:{self.RABBITMQ_PORT}/{self.RABBITMQ_VHOST}"
         )
 
+    # ── Celery ─────────────────────────────────────────────────────────────────
+    # Override CELERY_BROKER_URL in .env / environment to switch broker without
+    # touching any business logic.  Default: RabbitMQ (local/Docker Compose).
+    # On Render set: CELERY_BROKER_URL=${REDIS_URL}
+    CELERY_BROKER_URL: Optional[str] = Field(default=None)
+    # Override CELERY_RESULT_BACKEND similarly.  Default: Redis DB 1.
+    CELERY_RESULT_BACKEND: Optional[str] = Field(default=None)
+
+    @property
+    def resolved_celery_broker(self) -> str:
+        """Return the active Celery broker URL.
+
+        Priority: CELERY_BROKER_URL env var → RABBITMQ_URL (default).
+        """
+        return self.CELERY_BROKER_URL or self.RABBITMQ_URL
+
+    @property
+    def resolved_celery_backend(self) -> str:
+        """Return the active Celery result-backend URL.
+
+        Priority: CELERY_RESULT_BACKEND env var → Redis DB 1 (default).
+        """
+        if self.CELERY_RESULT_BACKEND:
+            return self.CELERY_RESULT_BACKEND
+        return self.REDIS_URL.rstrip("/0") + "/1" if self.REDIS_URL.endswith("/0") else self.REDIS_URL + "/1"
+
     # ── Security ───────────────────────────────────────────────────────────────
     SECRET_KEY: str = Field(default="change-this-in-production")
     ALGORITHM: str = Field(default="HS256")

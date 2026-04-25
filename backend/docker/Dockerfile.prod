@@ -1,29 +1,45 @@
-# Production image — non-root user, 4 workers, no reload
-FROM python:3.14-slim AS builder
+# Production image — multi-stage build, non-root user, no reload
+# Stage 1: install Python dependencies into an isolated prefix
+FROM python:3.11-slim AS builder
 
-WORKDIR /app
+WORKDIR /build
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev && rm -rf /var/lib/apt/lists/*
+    build-essential gcc libpq-dev && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
+# Install into /root/.local so they can be copied cleanly to the runtime stage
 RUN pip install --user --no-cache-dir -r requirements.txt
 
-FROM python:3.14-slim
+# Stage 2: lean runtime image
+FROM python:3.11-slim
 
 WORKDIR /app
+
+# Runtime-only native libs (libpq for asyncpg, curl for healthcheck)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 curl && rm -rf /var/lib/apt/lists/*
 
-# Non-root user for production
+# Create a non-root user; packages will live under their home dir
 RUN useradd -m -u 1000 appuser
+
+# Copy pip-installed packages from builder into the non-root user's local bin
 COPY --from=builder /root/.local /home/appuser/.local
+
 ENV PATH=/home/appuser/.local/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app
 
+# Copy application source, owned by non-root user
 COPY --chown=appuser:appuser . .
+
 USER appuser
 
+# Render routes traffic only once this check passes, preventing zombie instances
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD curl -f http://localhost:8000/api/v1/health || exit 1
+
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+
+# Use factory pattern; Render injects $PORT; 4 workers for production concurrency
+CMD ["sh", "-c", "uvicorn app.main:create_app --factory --host 0.0.0.0 --port ${PORT:-8000} --workers 4"]

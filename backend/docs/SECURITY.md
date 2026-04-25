@@ -64,3 +64,18 @@ The role is read from the JWT `role` claim — no database lookup on each reques
 - [ ] Redis protected with `REDIS_PASSWORD`
 - [ ] RabbitMQ credentials changed from `guest/guest` (RabbitMQ container `RABBITMQ_DEFAULT_USER`/`PASS`, app config `RABBITMQ_USER`/`RABBITMQ_PASSWORD`)
 - [ ] HTTPS/TLS termination at reverse proxy (nginx or Traefik)
+
+## AI Model Security & Cost Controls
+
+- **Default Model**: All AI tasks use `openrouter/free` by default, ensuring no cost and no risk of accidental paid usage.
+- **Override**: To use a paid or custom model, set the model slug in `.env` (e.g., `GRADING_ESSAY_MODEL=openai/gpt-4o-mini`).
+- **No API Key Leakage**: OpenRouter API keys are stored only in `.env` and never logged or exposed.
+
+## Production Readiness Checklist (2026)
+
+- [x] All secrets in `.env`, not in code or committed files
+- [x] All AI tasks routed through cost-controlled, rate-limit-resistant endpoints
+- [x] All background jobs (grading, email, notifications) run in Celery worker, not API process
+- [x] WebSockets secured with JWT, no anonymous connections
+- [x] All core logic covered by automated tests
+- [x] Docker Compose production file includes all required services

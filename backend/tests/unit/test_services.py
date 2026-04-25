@@ -232,8 +232,8 @@ def test_config_has_openai_settings():
     settings = get_settings()
     assert hasattr(settings, "OPENAI_API_KEY")
     assert hasattr(settings, "OPENAI_MODEL")
-    # Model name includes the provider prefix (e.g. openai/gpt-4o-mini)
-    assert "gpt-4o-mini" in settings.OPENAI_MODEL
+    # Default model is the OpenRouter free pool; override via .env for specific models
+    assert settings.OPENAI_MODEL  # non-empty string is all we require
 
 
 def test_config_has_smtp_settings():

@@ -14,8 +14,8 @@ settings = get_settings()
 
 celery_app = Celery(
     "lms_worker",
-    broker=settings.RABBITMQ_URL,
-    backend=settings.REDIS_URL.replace("/0", "/1"),  # Use DB 1 for results
+    broker=settings.resolved_celery_broker,
+    backend=settings.resolved_celery_backend,
     include=[
         "app.tasks.grading_tasks",
         "app.tasks.email_tasks",
