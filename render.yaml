@@ -1,0 +1,110 @@
+# render.yaml — Infrastructure as Code for Render.com
+# Defines the full four-service cluster: PostgreSQL, Redis, Web API, Celery Worker.
+#
+# Deploy: connect this repo to Render → "New Blueprint Instance" → select render.yaml
+# All service-to-service URLs (DB, Redis) are wired automatically via fromDatabase/fromService.
+
+services:
+  # ── 1. FastAPI Web Service (API + WebSocket gateway) ─────────────────────────
+  - type: web
+    name: lms-api
+    env: docker
+    # Dockerfile context is the backend/ directory; Dockerfile.prod is the target
+    dockerfilePath: backend/docker/Dockerfile.prod
+    dockerContext: backend
+    plan: free
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: RELOAD
+        value: "false"
+
+      # Wired automatically from managed services below
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lms-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: lms-cache
+          property: connectionString
+
+      # Celery: use Redis as broker on Render (no managed RabbitMQ available)
+      # Business logic is unchanged; only this env var differs from local dev
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: lms-cache
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: lms-cache
+          property: connectionString
+
+      # Secrets — set these manually in Render dashboard after first deploy
+      - key: SECRET_KEY
+        generateValue: true   # Render generates a secure random value automatically
+      - key: OPENROUTER_API_KEY
+        sync: false           # Prompt for manual entry; never committed to repo
+
+  # ── 2. Celery Background Worker ───────────────────────────────────────────────
+  - type: worker
+    name: lms-worker
+    env: docker
+    dockerfilePath: backend/docker/Dockerfile.prod
+    dockerContext: backend
+    # Override the Dockerfile CMD with the Celery worker command
+    dockerCommand: celery -A app.tasks.celery_app worker --loglevel=info -Q grading,email,notifications,celery
+    plan: free
+    envVars:
+      # Mirror all env vars from the web service so worker and API share config
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lms-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: lms-cache
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: lms-cache
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: lms-cache
+          property: connectionString
+      - key: SECRET_KEY
+        fromService:
+          type: web
+          name: lms-api
+          envVarKey: SECRET_KEY
+      - key: OPENROUTER_API_KEY
+        fromService:
+          type: web
+          name: lms-api
+          envVarKey: OPENROUTER_API_KEY
+
+# ── Managed Data Services ───────────────────────────────────────────────────────
+databases:
+  - name: lms-db
+    databaseName: school_management
+    plan: free
+
+redis:
+  - name: lms-cache
+    plan: free
+    # Restrict Redis access to internal Render network only (no public exposure)
+    ipAllowList: []
