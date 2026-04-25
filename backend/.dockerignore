@@ -1,0 +1,57 @@
+# Python runtime artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments — never include; image builds its own
+venv/
+.venv/
+env/
+.env.local
+.env.test
+
+# Secrets — never bake into the image
+.env
+*.env
+
+# Test suite — not needed in production image
+tests/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Local editor / OS noise
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Git history
+.git/
+.gitignore
+
+# Docker compose files — not needed inside the image
+docker-compose*.yml
+
+# Log files
+logs/
+*.log
+
+# Alembic offline SQL dumps
+migrations/versions/*.sql
+
+# Scripts not needed at runtime
+scripts/smoke_test_openrouter.py
+scripts/render-build.sh
+
+# Docs — not needed in production image
+docs/
+plans/

@@ -54,8 +54,20 @@ class Settings(BaseSettings):
     DB_MAX_OVERFLOW: int = Field(default=10)
     DB_ECHO: bool = Field(default=False)
 
+    # Direct URL override — set by Render/Heroku/Fly; takes priority over component fields.
+    # Render provides: postgresql://user:pass@host:port/db  (no +asyncpg driver prefix)
+    DATABASE_URL: Optional[str] = Field(default=None)
+
     @property
-    def DATABASE_URL(self) -> str:
+    def async_database_url(self) -> str:
+        """Return asyncpg-compatible URL. Converts plain postgresql:// URLs from Render."""
+        if self.DATABASE_URL:
+            url = self.DATABASE_URL
+            # Handle both legacy 'postgres://' and standard 'postgresql://' schemes
+            for prefix in ("postgres://", "postgresql://"):
+                if url.startswith(prefix):
+                    return url.replace(prefix, "postgresql+asyncpg://", 1)
+            return url  # already has correct driver prefix (e.g. postgresql+asyncpg://)
         return (
             f"{self.DB_DRIVER}+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
@@ -67,8 +79,14 @@ class Settings(BaseSettings):
     REDIS_DB: int = Field(default=0)
     REDIS_PASSWORD: Optional[str] = Field(default=None)
 
+    # Direct URL override — set by Render; takes priority over component fields.
+    REDIS_URL: Optional[str] = Field(default=None)
+
     @property
-    def REDIS_URL(self) -> str:
+    def async_redis_url(self) -> str:
+        """Return Redis URL. Uses REDIS_URL env var if set (Render), else constructs from parts."""
+        if self.REDIS_URL:
+            return self.REDIS_URL
         auth = f":{self.REDIS_PASSWORD}@" if self.REDIS_PASSWORD else ""
         return f"redis://{auth}{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
 
@@ -110,7 +128,11 @@ class Settings(BaseSettings):
         """
         if self.CELERY_RESULT_BACKEND:
             return self.CELERY_RESULT_BACKEND
-        return self.REDIS_URL.rstrip("/0") + "/1" if self.REDIS_URL.endswith("/0") else self.REDIS_URL + "/1"
+        base = self.async_redis_url
+        # Use Redis DB 1 for results to keep it separate from app cache (DB 0)
+        if base.endswith("/0"):
+            return base[:-2] + "/1"
+        return base + "/1"
 
     # ── Security ───────────────────────────────────────────────────────────────
     SECRET_KEY: str = Field(default="change-this-in-production")

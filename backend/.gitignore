@@ -37,9 +37,6 @@ htmlcov/
 logs/
 *.log
 
-# Docker
-.dockerignore
-
 # OS
 .DS_Store
 Thumbs.db

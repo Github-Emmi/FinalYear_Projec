@@ -41,5 +41,11 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
 
 EXPOSE 8000
 
-# Use factory pattern; Render injects $PORT; 4 workers for production concurrency
-CMD ["sh", "-c", "uvicorn app.main:create_app --factory --host 0.0.0.0 --port ${PORT:-8000} --workers 4"]
+# entrypoint.sh routes on $1:
+#   'api'    → alembic upgrade head + uvicorn (API service)
+#   'celery' → skip migrations, exec celery (worker service)
+ENTRYPOINT ["docker/entrypoint.sh"]
+
+# 'api' signals the entrypoint to run migrations then start uvicorn.
+# Render worker overrides this via dockerCommand: celery ...
+CMD ["api"]
