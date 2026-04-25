@@ -6,6 +6,8 @@ assert task registration without starting a worker process.
 
 from __future__ import annotations
 
+import ssl
+
 from celery import Celery
 
 from app.core.config import get_settings
@@ -29,12 +31,22 @@ celery_app.conf.task_routes = {
     "app.tasks.notification_tasks.*": {"queue": "notifications"},
 }
 
+# Render's managed Redis uses TLS (rediss://) with a certificate that may not
+# be in the system trust store.  Pass ssl_cert_reqs=CERT_NONE so both the
+# broker and result-backend connections succeed without cert verification.
+_tls_url = settings.resolved_celery_broker.startswith("rediss://")
+_ssl_opts: dict = (
+    {"ssl_cert_reqs": ssl.CERT_NONE} if _tls_url else {}
+)
+
 celery_app.conf.update(
     task_serializer="json",
     result_serializer="json",
     accept_content=["json"],
     timezone="UTC",
     enable_utc=True,
+    broker_use_ssl=_ssl_opts or None,
+    redis_backend_use_ssl=_ssl_opts or None,
 )
 
 # Import task modules so @celery_app.task decorators register tasks on this app.
