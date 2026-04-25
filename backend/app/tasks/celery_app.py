@@ -47,6 +47,7 @@ celery_app.conf.update(
     enable_utc=True,
     broker_use_ssl=_ssl_opts or None,
     redis_backend_use_ssl=_ssl_opts or None,
+    broker_connection_retry_on_startup=True,
 )
 
 # Import task modules so @celery_app.task decorators register tasks on this app.
