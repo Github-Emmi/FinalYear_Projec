@@ -11,7 +11,7 @@ set -e
 case "$1" in
   api)
     echo "[entrypoint] Running Alembic migrations..."
-    alembic upgrade head
+    alembic -c migrations/alembic.ini upgrade head
     echo "[entrypoint] Migrations complete. Starting API on port ${PORT:-8000}..."
     exec uvicorn app.main:create_app \
       --factory \
