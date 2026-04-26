@@ -7,11 +7,18 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import StaffOrAdmin
+from app.api.deps import AdminOnly, StaffOrAdmin
 from app.core.database import get_db
 from app.services.analytics_service import AnalyticsService
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
+
+
+@router.get("/platform", dependencies=[Depends(AdminOnly)])
+async def platform_analytics(db: AsyncSession = Depends(get_db)) -> dict:
+    """Admin-only platform-wide stats for the dashboard."""
+    svc = AnalyticsService(db)
+    return await svc.platform_summary()
 
 
 @router.get("/students/{student_id}", dependencies=[Depends(StaffOrAdmin)])

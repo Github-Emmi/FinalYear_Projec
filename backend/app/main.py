@@ -72,9 +72,9 @@ def create_app() -> FastAPI:
     app.add_middleware(LoggingMiddleware)
 
 
-    # Include WebSocket router for real-time notifications
+    # Include WebSocket router — mounted under the same /api/v1 prefix
     from app.websockets.router import ws_router
-    app.include_router(ws_router)
+    app.include_router(ws_router, prefix=settings.API_PREFIX)
     app.include_router(v1_router, prefix=settings.API_PREFIX)
 
     return app

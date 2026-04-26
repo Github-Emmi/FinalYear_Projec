@@ -106,3 +106,55 @@ class AnalyticsService:
             "quizzes_created": len(staff_quizzes),
             "assignments_created": len(staff_assignments),
         }
+
+    async def platform_summary(self) -> dict:
+        """Return platform-wide stats for the admin dashboard."""
+        from datetime import date
+        from sqlalchemy import func, select
+        from app.models.user import User
+        from app.models.student import StudentProfile
+        from app.models.staff import StaffProfile
+        from app.models.academic import ClassRoom
+        from app.models.assignment import Assignment
+        from app.models.assessment import Quiz, QuizAttempt
+        from app.models.assignment import AssignmentSubmission
+        from app.models.notification import Notification
+
+        session = self._repos._session
+
+        total_users = (await session.execute(select(func.count()).select_from(User).where(User.is_deleted.is_(False)))).scalar_one()
+        total_students = (await session.execute(select(func.count()).select_from(StudentProfile).where(StudentProfile.is_deleted.is_(False)))).scalar_one()
+        total_staff = (await session.execute(select(func.count()).select_from(StaffProfile).where(StaffProfile.is_deleted.is_(False)))).scalar_one()
+        total_classrooms = (await session.execute(select(func.count()).select_from(ClassRoom).where(ClassRoom.is_deleted.is_(False)))).scalar_one()
+        total_assignments = (await session.execute(select(func.count()).select_from(Assignment).where(Assignment.is_deleted.is_(False)))).scalar_one()
+        total_quizzes = (await session.execute(select(func.count()).select_from(Quiz).where(Quiz.is_deleted.is_(False)))).scalar_one()
+
+        today = date.today()
+        from sqlalchemy import cast, Date
+        submissions_today = (await session.execute(
+            select(func.count()).select_from(AssignmentSubmission)
+            .where(
+                AssignmentSubmission.is_deleted.is_(False),
+                cast(AssignmentSubmission.created_at, Date) == today,
+            )
+        )).scalar_one()
+
+        grading_queue = (await session.execute(
+            select(func.count()).select_from(AssignmentSubmission)
+            .where(
+                AssignmentSubmission.is_deleted.is_(False),
+                AssignmentSubmission.score.is_(None),
+            )
+        )).scalar_one()
+
+        return {
+            "total_users": total_users,
+            "total_students": total_students,
+            "total_staff": total_staff,
+            "total_classrooms": total_classrooms,
+            "total_assignments": total_assignments,
+            "total_quizzes": total_quizzes,
+            "active_sessions": 0,
+            "submissions_today": submissions_today,
+            "grading_queue": grading_queue,
+        }

@@ -94,6 +94,20 @@ class NotificationService:
     async def get_unread(self, user_id: UUID) -> list[Notification]:
         return await self._repos.notifications.get_unread_for_user(user_id)
 
+    async def list_for_user(
+        self,
+        user_id: UUID,
+        skip: int = 0,
+        limit: int = 20,
+        is_read: bool | None = None,
+    ) -> tuple[list[Notification], int]:
+        return await self._repos.notifications.get_for_user_paginated(
+            user_id, skip=skip, limit=limit, is_read=is_read
+        )
+
+    async def mark_all_read(self, user_id: UUID) -> int:
+        return await self._repos.notifications.mark_all_read_for_user(user_id)
+
     async def delete(self, notification_id: UUID) -> None:
         n = await self._repos.notifications.get_by_id(notification_id)
         if not n:

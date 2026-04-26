@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import AdminOnly, AnyAuthenticatedUser, StaffOrAdmin, get_current_user
 from app.core.database import get_db
@@ -14,6 +13,38 @@ from app.schemas.notification import BroadcastNotificationRequest, NotificationC
 from app.services.notification_service import NotificationService
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
+
+
+@router.get("", response_model=dict)
+async def list_my_notifications(
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
+    is_read: bool | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Return paginated notifications for the current user."""
+    svc = NotificationService(db)
+    skip = (page - 1) * size
+    items, total = await svc.list_for_user(
+        current_user.id, skip=skip, limit=size, is_read=is_read
+    )
+    return {
+        "items": [NotificationResponse.model_validate(n) for n in items],
+        "total": total,
+        "page": page,
+        "size": size,
+    }
+
+
+@router.post("/read-all", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+async def mark_all_read(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    """Mark all unread notifications as read for the current user."""
+    svc = NotificationService(db)
+    await svc.mark_all_read(current_user.id)
 
 
 @router.post("", response_model=NotificationResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(StaffOrAdmin)])
