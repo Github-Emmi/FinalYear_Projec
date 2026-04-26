@@ -36,6 +36,10 @@ if [[ -z "${REDIS_URL}" ]]; then
     exit 1
 fi
 
+if [[ -z "${OPENAI_API_KEY}" ]]; then
+    echo "[worker] WARNING: OPENAI_API_KEY is not set — AI grading tasks will return empty feedback."
+fi
+
 # The Celery app uses CELERY_BROKER_URL / CELERY_RESULT_BACKEND env vars.
 # On Render the broker and backend both point at the same Redis instance.
 # Celery reads these env vars before our _tls_url() helper runs, so we must

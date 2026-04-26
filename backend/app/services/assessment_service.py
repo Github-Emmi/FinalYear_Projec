@@ -183,8 +183,8 @@ class AssessmentService:
                 detail="Quiz not found",
             )
 
-        if not quiz.ai_grading_enabled or not _settings.OPENAI_API_KEY:
-            # AI grading disabled or unavailable — leave attempt in submitted state.
+        if not quiz.ai_grading_enabled:
+            # AI grading disabled — leave attempt in submitted state.
             return attempt
 
         questions = await self._repos.questions.get_by_quiz(attempt.quiz_id)

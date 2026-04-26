@@ -85,7 +85,7 @@ class AssignmentService:
         submission = await self._require_submission(submission_id)
         assignment = await self._require_assignment(submission.assignment_id)
 
-        if not assignment.ai_grading_enabled or not _settings.OPENAI_API_KEY:
+        if not assignment.ai_grading_enabled:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="AI grading is not enabled for this assignment",
