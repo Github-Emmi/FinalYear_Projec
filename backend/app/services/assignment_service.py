@@ -81,7 +81,7 @@ class AssignmentService:
         return await self._repos.submissions.update(submission)
 
     async def grade_with_ai(self, submission_id: UUID) -> AssignmentSubmission:
-        """Generate AI feedback for a submission using GPT-4o-mini."""
+        """Generate AI feedback and numeric score for a submission."""
         submission = await self._require_submission(submission_id)
         assignment = await self._require_assignment(submission.assignment_id)
 
@@ -91,7 +91,8 @@ class AssignmentService:
                 detail="AI grading is not enabled for this assignment",
             )
 
-        ai_feedback = await self._generate_ai_feedback(assignment, submission)
+        score, ai_feedback = await self._generate_ai_feedback(assignment, submission)
+        submission.score = score
         submission.ai_feedback = ai_feedback
         submission.status = SubmissionStatus.graded.value
         submission.graded_at = datetime.utcnow()
@@ -101,18 +102,20 @@ class AssignmentService:
 
     async def _generate_ai_feedback(
         self, assignment: Assignment, submission: AssignmentSubmission
-    ) -> str:
+    ) -> tuple[float, str]:
+        """Return (score, feedback) from the AI grading agent."""
         try:
             from app.services.ai_agent import ai_agent  # lazy to avoid circular import
 
-            feedback = await ai_agent.grade_essay(
+            score, feedback = await ai_agent.grade_essay_scored(
                 assignment_title=assignment.title,
                 assignment_description=assignment.description,
                 file_url=submission.file_url,
+                max_score=assignment.max_score or 100.0,
             )
-            return feedback or "AI feedback unavailable"
+            return score, feedback or "AI feedback unavailable"
         except Exception:
-            return "AI feedback unavailable"
+            return 0.0, "AI feedback unavailable"
 
     async def _require_assignment(self, assignment_id: UUID) -> Assignment:
         obj = await self._repos.assignments.get_by_id(assignment_id)

@@ -93,6 +93,48 @@ class AIGradingAgent:
         )
         return await _call(system, user, "essay")
 
+    async def grade_essay_scored(
+        self,
+        assignment_title: str,
+        assignment_description: str | None,
+        file_url: str | None,
+        max_score: float = 100.0,
+    ) -> tuple[float, str]:
+        """Return (numeric_score, feedback) for an assignment submission.
+
+        The model returns JSON: {"score": float, "feedback": str}
+        where score is in the range [0, max_score].
+        Falls back to (0.0, prose_response) on parse errors.
+        """
+        import json
+
+        system = (
+            "You are an expert educator grading student assignment submissions. "
+            f"The assignment is worth {max_score:.0f} points. "
+            "Return ONLY valid JSON with exactly two keys: "
+            '"score" (a float between 0 and ' + str(max_score) + ") and "
+            '"feedback" (a 2-3 sentence string of constructive feedback). '
+            "No extra keys, no markdown fences."
+        )
+        user = (
+            f"Assignment: {assignment_title}\n"
+            f"Description: {assignment_description or 'N/A'}\n"
+            f"Submitted answer: {file_url or 'N/A'}\n\n"
+            "Grade this submission."
+        )
+        raw = await _call(system, user, "essay")
+        try:
+            # Strip optional markdown code fences the model may add despite instructions
+            cleaned = raw.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
+            data = json.loads(cleaned)
+            score = max(0.0, min(float(data["score"]), max_score))
+            feedback = str(data.get("feedback", ""))
+            return score, feedback
+        except Exception:
+            # Graceful fallback: return 0 score but preserve the raw prose as feedback
+            logger.warning("grade_essay_scored: failed to parse JSON response — falling back")
+            return 0.0, raw or "AI feedback unavailable"
+
     # ── Quiz short-answer grading ──────────────────────────────────────────────
 
     async def grade_short_answer(
