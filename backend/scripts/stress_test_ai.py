@@ -193,6 +193,7 @@ async def student_pipeline(
         "student": student_username,
         "index": index,
         "submission_id": None,
+        "assignment_id": assignment_id,
         "submitted": False,
         "grading_queued": False,
         "grading_status": "pending",
@@ -237,6 +238,7 @@ async def student_pipeline(
 
         submission = sub_resp.json()
         result["submission_id"] = submission["id"]
+        result["assignment_id"] = assignment_id
         result["submitted"] = True
         ui_ok(f"[{student_username}] submitted  sub={submission['id'][:8]}...  ({result['submit_ms']}ms)")
 

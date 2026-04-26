@@ -65,6 +65,13 @@ async def submit_assignment(
     return SubmissionResponse.model_validate(submission)
 
 
+@router.get("/submissions/{submission_id}", response_model=SubmissionResponse, dependencies=[Depends(AnyAuthenticatedUser)])
+async def get_submission(submission_id: UUID, db: AsyncSession = Depends(get_db)) -> SubmissionResponse:
+    svc = AssignmentService(db)
+    submission = await svc._require_submission(submission_id)
+    return SubmissionResponse.model_validate(submission)
+
+
 @router.post("/submissions/{submission_id}/grade", response_model=SubmissionResponse, dependencies=[Depends(StaffOrAdmin)])
 async def grade_submission(
     submission_id: UUID,
