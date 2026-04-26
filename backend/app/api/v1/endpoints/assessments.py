@@ -115,8 +115,15 @@ async def submit_attempt(attempt_id: UUID, body: SubmitAttemptRequest, db: Async
     svc = AssessmentService(db)
     answers = [{"question_id": a.question_id, "student_answer": a.answer} for a in body.answers]
     attempt = await svc.submit_attempt(attempt_id, answers)
-    # Enqueue Celery task for AI grading
-    grade_attempt_task.delay(str(attempt_id))
+    # Enqueue Celery task for AI grading — best-effort (non-blocking failure)
+    from fastapi import HTTPException
+    try:
+        grade_attempt_task.delay(str(attempt_id))
+    except Exception as exc:  # broker unavailable
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Grading queue unavailable — check broker configuration: {exc}",
+        )
     return QuizAttemptResponse.model_validate(attempt)
 
 

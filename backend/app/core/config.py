@@ -107,7 +107,7 @@ class Settings(BaseSettings):
     # ── Celery ─────────────────────────────────────────────────────────────────
     # Override CELERY_BROKER_URL in .env / environment to switch broker without
     # touching any business logic.  Default: RabbitMQ (local/Docker Compose).
-    # On Render set: CELERY_BROKER_URL=${REDIS_URL}
+    # On Render: only REDIS_URL is needed — broker auto-falls-back to Redis.
     CELERY_BROKER_URL: Optional[str] = Field(default=None)
     # Override CELERY_RESULT_BACKEND similarly.  Default: Redis DB 1.
     CELERY_RESULT_BACKEND: Optional[str] = Field(default=None)
@@ -116,9 +116,13 @@ class Settings(BaseSettings):
     def resolved_celery_broker(self) -> str:
         """Return the active Celery broker URL.
 
-        Priority: CELERY_BROKER_URL env var → RABBITMQ_URL (default).
+        Priority: CELERY_BROKER_URL → REDIS_URL (Render/cloud) → RABBITMQ_URL (local dev).
+
+        This means deployments that only set REDIS_URL (e.g. Render free tier)
+        automatically use Redis as both broker and result backend without
+        needing a separate CELERY_BROKER_URL environment variable.
         """
-        return self.CELERY_BROKER_URL or self.RABBITMQ_URL
+        return self.CELERY_BROKER_URL or self.REDIS_URL or self.RABBITMQ_URL
 
     @property
     def resolved_celery_backend(self) -> str:

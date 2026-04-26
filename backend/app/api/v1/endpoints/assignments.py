@@ -79,6 +79,13 @@ async def grade_submission(
 
 @router.post("/submissions/{submission_id}/grade-ai", status_code=status.HTTP_202_ACCEPTED, dependencies=[Depends(StaffOrAdmin)])
 async def grade_submission_with_ai(submission_id: UUID, db: AsyncSession = Depends(get_db)):
-    # Enqueue Celery task for AI grading
-    grade_submission_task.delay(str(submission_id))
-    return {"detail": "Grading task enqueued"}
+    """Enqueue AI grading for a submission. Returns 202 Accepted immediately."""
+    from fastapi import HTTPException
+    try:
+        grade_submission_task.delay(str(submission_id))
+    except Exception as exc:  # broker unavailable (e.g. Redis not reachable)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Grading queue unavailable — check broker configuration: {exc}",
+        )
+    return {"detail": "Grading task enqueued", "submission_id": str(submission_id)}

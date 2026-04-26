@@ -14,10 +14,27 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
+
+def _tls_url(url: str) -> str:
+    """Append ssl_cert_reqs=none to rediss:// URLs if not already present.
+
+    Celery's Redis backend requires this query parameter to be embedded in the
+    URL itself when using TLS; broker_use_ssl/redis_backend_use_ssl alone are
+    not sufficient for newer Celery/redis-py versions.
+    """
+    if url.startswith("rediss://") and "ssl_cert_reqs" not in url:
+        sep = "&" if "?" in url else "?"
+        return f"{url}{sep}ssl_cert_reqs=none"
+    return url
+
+
+_broker_url = _tls_url(settings.resolved_celery_broker)
+_backend_url = _tls_url(settings.resolved_celery_backend)
+
 celery_app = Celery(
     "lms_worker",
-    broker=settings.resolved_celery_broker,
-    backend=settings.resolved_celery_backend,
+    broker=_broker_url,
+    backend=_backend_url,
     include=[
         "app.tasks.grading_tasks",
         "app.tasks.email_tasks",
@@ -31,22 +48,17 @@ celery_app.conf.task_routes = {
     "app.tasks.notification_tasks.*": {"queue": "notifications"},
 }
 
-# Render's managed Redis uses TLS (rediss://) with a certificate that may not
-# be in the system trust store.  Pass ssl_cert_reqs=CERT_NONE so both the
-# broker and result-backend connections succeed without cert verification.
-_tls_url = settings.resolved_celery_broker.startswith("rediss://")
-_ssl_opts: dict = (
-    {"ssl_cert_reqs": ssl.CERT_NONE} if _tls_url else {}
-)
-
 celery_app.conf.update(
+    # Explicitly set the TLS-safe URLs here so they take precedence over any
+    # CELERY_BROKER_URL / CELERY_RESULT_BACKEND env vars that Celery reads
+    # automatically (env-var values bypass the Celery() constructor).
+    broker_url=_broker_url,
+    result_backend=_backend_url,
     task_serializer="json",
     result_serializer="json",
     accept_content=["json"],
     timezone="UTC",
     enable_utc=True,
-    broker_use_ssl=_ssl_opts or None,
-    redis_backend_use_ssl=_ssl_opts or None,
     broker_connection_retry_on_startup=True,
 )
 
