@@ -154,7 +154,13 @@ class Settings(BaseSettings):
 
     # ── OpenAI / OpenRouter ────────────────────────────────────────────────────
     OPENAI_API_KEY: Optional[str] = Field(default=None)
+    OPENROUTER_API_KEY: Optional[str] = Field(default=None)  # Render env var name
     OPENAI_BASE_URL: Optional[str] = Field(default=None)  # Override for OpenRouter
+
+    @property
+    def resolved_openai_key(self) -> Optional[str]:
+        """Return whichever API key is set: OPENAI_API_KEY or OPENROUTER_API_KEY."""
+        return self.OPENAI_API_KEY or self.OPENROUTER_API_KEY
 
     # Per-task model assignments (swap without code changes)
     # Defaults use free/cheap OpenRouter models; override in .env for production

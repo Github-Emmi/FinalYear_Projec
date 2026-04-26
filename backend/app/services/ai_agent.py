@@ -42,15 +42,15 @@ def _get_client():
     from openai import AsyncOpenAI  # lazy — not all workers need it at startup
 
     return AsyncOpenAI(
-        api_key=_settings.OPENAI_API_KEY,
+        api_key=_settings.resolved_openai_key,
         base_url=_settings.OPENAI_BASE_URL or None,
     )
 
 
 async def _call(system: str, user: str, task: TaskType) -> str:
     """Send a single-turn completion and return the text content."""
-    if not _settings.OPENAI_API_KEY:
-        logger.warning("OPENAI_API_KEY not set — AI grading skipped")
+    if not _settings.resolved_openai_key:
+        logger.warning("OPENAI_API_KEY / OPENROUTER_API_KEY not set — AI grading skipped")
         return ""
 
     model = _MODEL_MAP[task]
