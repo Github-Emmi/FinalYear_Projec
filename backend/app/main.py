@@ -55,9 +55,16 @@ def create_app() -> FastAPI:
 
     setup_exception_handlers(app)
 
+    # Allow configured origins + any GitHub Codespaces / Render preview origin
+    _CODESPACES_REGEX = (
+        r"https://[a-z0-9\-]+-\d+\.app\.github\.dev"        # Codespaces forwarded ports
+        r"|https://[a-z0-9\-]+\.preview\.app\.github\.dev"  # Codespaces preview URLs
+        r"|https://.*\.onrender\.com"                        # Render preview deployments
+    )
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
+        allow_origin_regex=_CODESPACES_REGEX,
         allow_credentials=settings.CORS_CREDENTIALS,
         allow_methods=settings.CORS_METHODS,
         allow_headers=settings.CORS_HEADERS,
