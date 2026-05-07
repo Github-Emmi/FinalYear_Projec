@@ -59,7 +59,7 @@ export interface StudentCreatePayload {
   first_name: string;
   last_name: string;
   password: string;
-  student_id: string;
+  roll_number: string;
   classroom_id: string;
   session_year_id: string;
   date_of_birth?: string | null;
@@ -89,4 +89,8 @@ export async function updateStudent(
     payload
   );
   return res.data;
+}
+
+export async function deleteStudent(id: string): Promise<void> {
+  await apiClient.delete(`/students/${id}`);
 }

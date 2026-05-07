@@ -60,9 +60,18 @@ export interface ClassRoomResponse {
 export interface SubjectResponse {
   id: string;
   name: string;
-  code: string;
   classroom_id: string;
-  classroom?: ClassRoomResponse;
+  classroom?: {
+    id: string;
+    name: string;
+  } | null;
+  staff_id?: string | null;
+  staff?: {
+    id: string;
+    first_name?: string | null;
+    last_name?: string | null;
+    email?: string | null;
+  } | null;
   created_at: string;
 }
 
@@ -78,18 +87,29 @@ export interface SessionYearResponse {
 export interface StudentProfileResponse {
   id: string;
   user_id: string;
-  user?: UserResponse;
-  student_id: string;
-  classroom_id: string;
-  classroom?: ClassRoomResponse;
-  session_year_id: string;
-  date_of_birth: string | null;
-  gender: string | null;
-  phone: string | null;
-  address: string | null;
-  guardian_name: string | null;
-  guardian_phone: string | null;
-  enrollment_date: string;
+  user?: {
+    id: string;
+    username: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    role: string;
+    is_active: boolean;
+  };
+  roll_number?: string | null;
+  classroom_id?: string | null;
+  classroom?: {
+    id: string;
+    name: string;
+    grade_level?: string | null;
+    section?: string | null;
+  };
+  session_year_id?: string | null;
+  date_of_birth?: string | null;
+  gender?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  profile_picture?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -112,16 +132,24 @@ export interface StudentAnalyticsResponse {
 export interface StaffProfileResponse {
   id: string;
   user_id: string;
-  user?: UserResponse;
-  staff_id: string;
-  department_id: string | null;
-  department?: DepartmentResponse;
-  designation: string | null;
-  date_of_birth: string | null;
-  gender: string | null;
-  phone: string | null;
-  address: string | null;
-  joining_date: string;
+  user?: {
+    id: string;
+    username: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    role: string;
+    is_active: boolean;
+  };
+  department_id?: string | null;
+  department?: {
+    id: string;
+    name: string;
+    code?: string | null;
+  };
+  designation?: string | null;
+  phone?: string | null;
+  profile_picture?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -296,9 +324,20 @@ export interface PlatformAnalyticsResponse {
   total_students: number;
   total_staff: number;
   total_classrooms: number;
+  total_subjects: number;
   total_assignments: number;
   total_quizzes: number;
   active_sessions: number;
   submissions_today: number;
   grading_queue: number;
+}
+
+export interface StaffAnalyticsResponse {
+  staff_id: string;
+  subjects_taught: number;
+  quizzes_created: number;
+  assignments_created: number;
+  students_taught: number;
+  grading_queue: number;
+  avg_assignment_score: number;
 }

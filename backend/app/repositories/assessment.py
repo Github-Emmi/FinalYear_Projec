@@ -54,6 +54,15 @@ class QuizAttemptRepository(BaseRepository[QuizAttempt]):
         )
         return list(result.scalars().all())
 
+    async def get_by_student(self, student_id: UUID) -> List[QuizAttempt]:
+        result = await self.session.execute(
+            select(QuizAttempt).where(
+                QuizAttempt.student_id == student_id,
+                QuizAttempt.is_deleted.is_(False),
+            )
+        )
+        return list(result.scalars().all())
+
 
 class QuizResultRepository(BaseRepository[QuizResult]):
     def __init__(self, session: AsyncSession) -> None:

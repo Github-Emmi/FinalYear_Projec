@@ -90,21 +90,94 @@ class AnalyticsService:
         }
 
     async def staff_summary(self, staff_id: UUID) -> dict:
-        """Return aggregated stats for a staff member."""
-        subjects = await self._repos.subjects.get_all(limit=50000)
-        staff_subjects = [s for s in subjects if s.staff_id == staff_id]
+        """Return enriched aggregated stats for a staff member."""
+        from sqlalchemy import func, select
+        from app.models.academic import Subject
+        from app.models.assignment import Assignment, AssignmentSubmission
+        from app.models.assessment import Quiz
+        from app.models.student import StudentProfile
 
-        quizzes = await self._repos.quizzes.get_all(limit=50000)
-        staff_quizzes = [q for q in quizzes if q.staff_id == staff_id]
+        session = self._repos._session
 
-        assignments = await self._repos.assignments.get_all(limit=50000)
-        staff_assignments = [a for a in assignments if a.staff_id == staff_id]
+        # Subjects taught by this staff
+        subjects_rows = (
+            await session.execute(
+                select(Subject).where(
+                    Subject.staff_id == staff_id,
+                    Subject.is_deleted.is_(False),
+                )
+            )
+        ).scalars().all()
+
+        classroom_ids = {s.classroom_id for s in subjects_rows if s.classroom_id}
+
+        # Students across those classrooms
+        students_taught = 0
+        if classroom_ids:
+            students_taught = (
+                await session.execute(
+                    select(func.count()).select_from(StudentProfile).where(
+                        StudentProfile.classroom_id.in_(classroom_ids),
+                        StudentProfile.is_deleted.is_(False),
+                    )
+                )
+            ).scalar_one()
+
+        # Assignments created by this staff
+        assignment_rows = (
+            await session.execute(
+                select(Assignment).where(
+                    Assignment.staff_id == staff_id,
+                    Assignment.is_deleted.is_(False),
+                )
+            )
+        ).scalars().all()
+
+        assignment_ids = [a.id for a in assignment_rows]
+
+        # Grading queue (ungraded submissions for staff's assignments)
+        grading_queue = 0
+        avg_assignment_score = 0.0
+        if assignment_ids:
+            grading_queue = (
+                await session.execute(
+                    select(func.count()).select_from(AssignmentSubmission).where(
+                        AssignmentSubmission.assignment_id.in_(assignment_ids),
+                        AssignmentSubmission.score.is_(None),
+                        AssignmentSubmission.is_deleted.is_(False),
+                    )
+                )
+            ).scalar_one()
+
+            scores = (
+                await session.execute(
+                    select(AssignmentSubmission.score).where(
+                        AssignmentSubmission.assignment_id.in_(assignment_ids),
+                        AssignmentSubmission.score.isnot(None),
+                        AssignmentSubmission.is_deleted.is_(False),
+                    )
+                )
+            ).scalars().all()
+            avg_assignment_score = round(sum(scores) / len(scores), 1) if scores else 0.0
+
+        # Quizzes created
+        quiz_count = (
+            await session.execute(
+                select(func.count()).select_from(Quiz).where(
+                    Quiz.staff_id == staff_id,
+                    Quiz.is_deleted.is_(False),
+                )
+            )
+        ).scalar_one()
 
         return {
             "staff_id": str(staff_id),
-            "subjects_taught": len(staff_subjects),
-            "quizzes_created": len(staff_quizzes),
-            "assignments_created": len(staff_assignments),
+            "subjects_taught": len(subjects_rows),
+            "quizzes_created": quiz_count,
+            "assignments_created": len(assignment_rows),
+            "students_taught": students_taught,
+            "grading_queue": grading_queue,
+            "avg_assignment_score": avg_assignment_score,
         }
 
     async def platform_summary(self) -> dict:
@@ -119,6 +192,7 @@ class AnalyticsService:
         from app.models.assessment import Quiz, QuizAttempt
         from app.models.assignment import AssignmentSubmission
         from app.models.notification import Notification
+        from app.models.academic import Subject
 
         session = self._repos._session
 
@@ -126,6 +200,7 @@ class AnalyticsService:
         total_students = (await session.execute(select(func.count()).select_from(StudentProfile).where(StudentProfile.is_deleted.is_(False)))).scalar_one()
         total_staff = (await session.execute(select(func.count()).select_from(StaffProfile).where(StaffProfile.is_deleted.is_(False)))).scalar_one()
         total_classrooms = (await session.execute(select(func.count()).select_from(ClassRoom).where(ClassRoom.is_deleted.is_(False)))).scalar_one()
+        total_subjects = (await session.execute(select(func.count()).select_from(Subject).where(Subject.is_deleted.is_(False)))).scalar_one()
         total_assignments = (await session.execute(select(func.count()).select_from(Assignment).where(Assignment.is_deleted.is_(False)))).scalar_one()
         total_quizzes = (await session.execute(select(func.count()).select_from(Quiz).where(Quiz.is_deleted.is_(False)))).scalar_one()
 
@@ -152,6 +227,7 @@ class AnalyticsService:
             "total_students": total_students,
             "total_staff": total_staff,
             "total_classrooms": total_classrooms,
+            "total_subjects": total_subjects,
             "total_assignments": total_assignments,
             "total_quizzes": total_quizzes,
             "active_sessions": 0,

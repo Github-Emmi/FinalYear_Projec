@@ -120,7 +120,7 @@ export default function AdminAnalyticsPage() {
               className="rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="">Select a classroom…</option>
-              {classrooms?.items.map((c) => (
+              {classrooms?.items?.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
                 </option>
@@ -175,9 +175,9 @@ export default function AdminAnalyticsPage() {
                 ))}
               </div>
 
-              {classroomAnalytics.recent_activity.length > 0 && (
+              {(classroomAnalytics.recent_activity ?? []).length > 0 && (
                 <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={classroomAnalytics.recent_activity}>
+                  <LineChart data={classroomAnalytics.recent_activity ?? []}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                     <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />

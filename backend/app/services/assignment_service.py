@@ -26,6 +26,9 @@ class AssignmentService:
         assignment = Assignment(**data.model_dump())
         return await self._repos.assignments.create(assignment)
 
+    async def list_all(self, skip: int = 0, limit: int = 20) -> list[Assignment]:
+        return await self._repos.assignments.get_all(skip=skip, limit=limit)
+
     async def get(self, assignment_id: UUID) -> Assignment:
         return await self._require_assignment(assignment_id)
 
@@ -136,3 +139,7 @@ class AssignmentService:
                 detail="Submission not found",
             )
         return obj
+
+    async def list_submissions(self, assignment_id: UUID) -> list[AssignmentSubmission]:
+        await self._require_assignment(assignment_id)
+        return await self._repos.submissions.get_by_assignment(assignment_id)

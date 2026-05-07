@@ -35,6 +35,9 @@ class AssessmentService:
         quiz = Quiz(**data.model_dump())
         return await self._repos.quizzes.create(quiz)
 
+    async def list_quizzes(self, skip: int = 0, limit: int = 20) -> list[Quiz]:
+        return await self._repos.quizzes.get_all(skip=skip, limit=limit)
+
     async def get_quiz(self, quiz_id: UUID) -> Quiz:
         return await self._require_quiz(quiz_id)
 

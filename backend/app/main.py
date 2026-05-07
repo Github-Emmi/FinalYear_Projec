@@ -8,6 +8,8 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 from app.api.v1.router import router as v1_router
 from app.core.config import get_settings
@@ -71,6 +73,11 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(LoggingMiddleware)
 
+
+    # Serve uploaded media files (feedback attachments, etc.)
+    media_path = Path(__file__).resolve().parents[2] / "media"
+    media_path.mkdir(parents=True, exist_ok=True)
+    app.mount("/media", StaticFiles(directory=str(media_path)), name="media")
 
     # Include WebSocket router — mounted under the same /api/v1 prefix
     from app.websockets.router import ws_router

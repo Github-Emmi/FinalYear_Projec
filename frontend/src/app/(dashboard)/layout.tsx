@@ -1,7 +1,6 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState } from "react";
 import { Toaster } from "sonner";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -46,7 +45,6 @@ export default function DashboardLayout({
   return (
     <QueryClientProvider client={queryClient}>
       <DashboardInner>{children}</DashboardInner>
-      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

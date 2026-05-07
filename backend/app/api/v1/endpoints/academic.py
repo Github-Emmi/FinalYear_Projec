@@ -98,10 +98,13 @@ async def create_classroom(body: ClassRoomCreate, db: AsyncSession = Depends(get
     return ClassRoomResponse.model_validate(await AcademicService(db).create_classroom(body))
 
 
-@router.get("/classrooms", response_model=list[ClassRoomResponse], dependencies=[Depends(AnyAuthenticatedUser)])
-async def list_classrooms(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)) -> list[ClassRoomResponse]:
-    items = await AcademicService(db).list_classrooms(skip=skip, limit=limit)
-    return [ClassRoomResponse.model_validate(i) for i in items]
+@router.get("/classrooms", response_model=dict, dependencies=[Depends(AnyAuthenticatedUser)])
+async def list_classrooms(page: int = 1, size: int = 100, skip: int = 0, limit: int = 0, db: AsyncSession = Depends(get_db)) -> dict:
+    effective_skip = skip if skip else (page - 1) * size
+    effective_limit = limit if limit else size
+    items = await AcademicService(db).list_classrooms(skip=effective_skip, limit=effective_limit)
+    validated = [ClassRoomResponse.model_validate(i) for i in items]
+    return {"items": [v.model_dump() for v in validated], "total": len(validated), "page": max(page, 1), "size": effective_limit}
 
 
 @router.get("/classrooms/{room_id}", response_model=ClassRoomResponse, dependencies=[Depends(AnyAuthenticatedUser)])
@@ -123,23 +126,23 @@ async def delete_classroom(room_id: UUID, db: AsyncSession = Depends(get_db)) ->
 
 @router.post("/subjects", response_model=SubjectResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(AdminOnly)])
 async def create_subject(body: SubjectCreate, db: AsyncSession = Depends(get_db)) -> SubjectResponse:
-    return SubjectResponse.model_validate(await AcademicService(db).create_subject(body))
+    return SubjectResponse.from_orm_obj(await AcademicService(db).create_subject(body))
 
 
 @router.get("/subjects", response_model=list[SubjectResponse], dependencies=[Depends(AnyAuthenticatedUser)])
 async def list_subjects(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)) -> list[SubjectResponse]:
     items = await AcademicService(db).list_subjects(skip=skip, limit=limit)
-    return [SubjectResponse.model_validate(i) for i in items]
+    return [SubjectResponse.from_orm_obj(i) for i in items]
 
 
 @router.get("/subjects/{subject_id}", response_model=SubjectResponse, dependencies=[Depends(AnyAuthenticatedUser)])
 async def get_subject(subject_id: UUID, db: AsyncSession = Depends(get_db)) -> SubjectResponse:
-    return SubjectResponse.model_validate(await AcademicService(db).get_subject(subject_id))
+    return SubjectResponse.from_orm_obj(await AcademicService(db).get_subject(subject_id))
 
 
 @router.patch("/subjects/{subject_id}", response_model=SubjectResponse, dependencies=[Depends(AdminOnly)])
 async def update_subject(subject_id: UUID, body: SubjectUpdate, db: AsyncSession = Depends(get_db)) -> SubjectResponse:
-    return SubjectResponse.model_validate(await AcademicService(db).update_subject(subject_id, body))
+    return SubjectResponse.from_orm_obj(await AcademicService(db).update_subject(subject_id, body))
 
 
 @router.delete("/subjects/{subject_id}", response_model=None, status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(AdminOnly)])

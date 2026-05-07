@@ -89,5 +89,19 @@ export const queryKeys = {
     classroom: (classroomId: string) =>
       ["analytics", "classroom", classroomId] as const,
     platform: () => ["analytics", "platform"] as const,
+    staff: (staffId: string) => ["analytics", "staff", staffId] as const,
+  },
+
+  // ── Timetable ────────────────────────────────────────────────────────────
+  timetable: {
+    list: (params?: Record<string, unknown>) =>
+      ["timetable", "list", params ?? {}] as const,
+  },
+
+  // ── Feedback Chat ────────────────────────────────────────────────────────
+  feedback: {
+    threads: (params?: Record<string, unknown>) =>
+      ["feedback", "threads", params ?? {}] as const,
+    thread: (id: string) => ["feedback", "thread", id] as const,
   },
 } as const;

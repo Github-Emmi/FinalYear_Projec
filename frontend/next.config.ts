@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
+  outputFileTracingRoot: "/Volumes/EmmiDev256G/Projects/Backup/FinalYear_Projec/frontend",
   images: {
     remotePatterns: [
       {

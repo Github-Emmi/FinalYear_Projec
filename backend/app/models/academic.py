@@ -66,3 +66,27 @@ class Subject(BaseModel):
     attendance_sessions = relationship(
         "AttendanceSession", back_populates="subject"
     )
+    timetable_entries = relationship("TimetableEntry", back_populates="subject")
+
+
+class TimetableEntry(BaseModel):
+    """A single slot in a class timetable (subject × staff × day × time)."""
+
+    __tablename__ = "timetable_entries"
+
+    classroom_id = Column(Uuid, ForeignKey("classrooms.id"), nullable=False)
+    subject_id = Column(Uuid, ForeignKey("subjects.id"), nullable=False)
+    staff_id = Column(Uuid, ForeignKey("staff_profiles.id"), nullable=False)
+    session_year_id = Column(Uuid, ForeignKey("session_years.id"), nullable=False)
+    # 0 = Monday … 6 = Sunday
+    day_of_week = Column(Integer, nullable=False)
+    start_time = Column(String(5), nullable=False)  # "08:00"
+    end_time = Column(String(5), nullable=False)    # "09:00"
+    period_number = Column(Integer, nullable=True)
+    notes = Column(String(500), nullable=True)
+
+    # ── Relationships ──────────────────────────────────────────────────────────
+    classroom = relationship("ClassRoom")
+    subject = relationship("Subject", back_populates="timetable_entries")
+    staff = relationship("StaffProfile")
+    session_year = relationship("SessionYear")

@@ -1,14 +1,14 @@
-"""Quiz / question / attempt endpoints."""
-
 from __future__ import annotations
 
+from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import AnyAuthenticatedUser, StaffOrAdmin
+from app.api.deps import AnyAuthenticatedUser, StaffOrAdmin, get_current_user
 from app.core.database import get_db
+from app.models.user import User
 from app.repositories.factory import RepositoryFactory
 from app.schemas.assessment import (
     AnswerItem,
@@ -30,6 +30,19 @@ router = APIRouter(prefix="/quizzes", tags=["assessments"])
 
 
 # ── Quiz CRUD ─────────────────────────────────────────────────────────────────
+
+@router.get("", response_model=dict, dependencies=[Depends(AnyAuthenticatedUser)])
+async def list_quizzes(
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
+    subject_id: Optional[str] = Query(None),
+    is_published: Optional[bool] = Query(None),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    svc = AssessmentService(db)
+    items = await svc.list_quizzes(skip=(page - 1) * size, limit=size)
+    return {"items": [QuizResponse.model_validate(q).model_dump() for q in items], "total": len(items), "page": page, "size": size}
+
 
 @router.post("", response_model=QuizResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(StaffOrAdmin)])
 async def create_quiz(body: QuizCreate, db: AsyncSession = Depends(get_db)) -> QuizResponse:
@@ -125,6 +138,16 @@ async def submit_attempt(attempt_id: UUID, body: SubmitAttemptRequest, db: Async
             detail=f"Grading queue unavailable — check broker configuration: {exc}",
         )
     return QuizAttemptResponse.model_validate(attempt)
+
+
+@router.get("/attempts/mine", response_model=List[QuizAttemptResponse])
+async def get_my_attempts(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> List[QuizAttemptResponse]:
+    repo = RepositoryFactory(db)
+    attempts = await repo.quiz_attempts.get_by_student(current_user.id)
+    return [QuizAttemptResponse.model_validate(a) for a in attempts]
 
 
 @router.get("/attempts/{attempt_id}", response_model=QuizAttemptResponse, dependencies=[Depends(AnyAuthenticatedUser)])

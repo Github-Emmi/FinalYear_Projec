@@ -17,14 +17,14 @@ export async function listQuizzes(
   params: QuizListParams = {}
 ): Promise<PaginatedResponse<QuizResponse>> {
   const res = await apiClient.get<PaginatedResponse<QuizResponse>>(
-    "/assessments/quizzes",
+    "/quizzes",
     { params }
   );
   return res.data;
 }
 
 export async function getQuiz(id: string): Promise<QuizResponse> {
-  const res = await apiClient.get<QuizResponse>(`/assessments/quizzes/${id}`);
+  const res = await apiClient.get<QuizResponse>(`/quizzes/${id}`);
   return res.data;
 }
 
@@ -32,7 +32,7 @@ export async function getQuizQuestions(
   quizId: string
 ): Promise<QuizQuestionResponse[]> {
   const res = await apiClient.get<QuizQuestionResponse[]>(
-    `/assessments/quizzes/${quizId}/questions`
+    `/quizzes/${quizId}/questions`
   );
   return res.data;
 }
@@ -50,7 +50,7 @@ export async function createQuiz(
   payload: QuizCreatePayload
 ): Promise<QuizResponse> {
   const res = await apiClient.post<QuizResponse>(
-    "/assessments/quizzes",
+    "/quizzes",
     payload
   );
   return res.data;
@@ -61,7 +61,7 @@ export async function updateQuiz(
   payload: Partial<QuizCreatePayload>
 ): Promise<QuizResponse> {
   const res = await apiClient.patch<QuizResponse>(
-    `/assessments/quizzes/${id}`,
+    `/quizzes/${id}`,
     payload
   );
   return res.data;
@@ -73,7 +73,7 @@ export async function startQuizAttempt(
   quizId: string
 ): Promise<QuizAttemptResponse> {
   const res = await apiClient.post<QuizAttemptResponse>(
-    `/assessments/quizzes/${quizId}/attempt`
+    `/quizzes/${quizId}/attempt`
   );
   return res.data;
 }
@@ -83,7 +83,7 @@ export async function submitQuizAttempt(
   answers: Record<string, string>
 ): Promise<QuizAttemptResponse> {
   const res = await apiClient.post<QuizAttemptResponse>(
-    `/assessments/attempts/${attemptId}/submit`,
+    `/quizzes/attempts/${attemptId}/submit`,
     { answers }
   );
   return res.data;
@@ -91,14 +91,14 @@ export async function submitQuizAttempt(
 
 export async function getAttempt(id: string): Promise<QuizAttemptResponse> {
   const res = await apiClient.get<QuizAttemptResponse>(
-    `/assessments/attempts/${id}`
+    `/quizzes/attempts/${id}`
   );
   return res.data;
 }
 
 export async function getMyAttempts(): Promise<QuizAttemptResponse[]> {
   const res = await apiClient.get<QuizAttemptResponse[]>(
-    "/assessments/attempts/mine"
+    "/quizzes/attempts/mine"
   );
   return res.data;
 }

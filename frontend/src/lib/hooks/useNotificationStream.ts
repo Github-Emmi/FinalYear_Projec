@@ -13,6 +13,7 @@ type WSMessageType =
   | "submission:graded"
   | "attempt:graded"
   | "notification:new"
+  | "feedback:new_message"
   | "item:update"
   | "pong";
 
@@ -41,6 +42,11 @@ export function useNotificationStream() {
     if (!isAuthenticated || !accessToken || !WS_URL) return;
 
     let isMounted = true;
+    // Defer the initial connection by one tick so React StrictMode's
+    // double-invoke cleanup runs before we open the socket.
+    const initTimer = setTimeout(() => {
+      if (isMounted) connect();
+    }, 0);
 
     function connect() {
       if (!isMounted) return;
@@ -145,6 +151,21 @@ export function useNotificationStream() {
           break;
         }
 
+        case "feedback:new_message": {
+          // Invalidate all feedback thread lists and the specific thread
+          queryClient.invalidateQueries({ queryKey: ["feedback"] });
+          const threadId = msg.payload?.thread_id as string | undefined;
+          if (threadId) {
+            queryClient.invalidateQueries({ queryKey: ["feedback", "thread", threadId] });
+          }
+          const title = msg.payload?.title as string | undefined;
+          const message = msg.payload?.message as string | undefined;
+          toast.info(title ?? "New feedback message", {
+            description: message,
+          });
+          break;
+        }
+
         case "item:update": {
           // Broad invalidation — use sparingly in backend
           queryClient.invalidateQueries();
@@ -160,10 +181,9 @@ export function useNotificationStream() {
       }
     }
 
-    connect();
-
     return () => {
       isMounted = false;
+      clearTimeout(initTimer);
       clearPing();
       if (reconnectRef.current) clearTimeout(reconnectRef.current);
       if (wsRef.current) {

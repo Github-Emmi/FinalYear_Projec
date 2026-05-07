@@ -3,15 +3,19 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints.academic import router as academic_router
+from app.api.v1.endpoints.admin_chat import router as admin_chat_router
 from app.api.v1.endpoints.analytics import router as analytics_router
 from app.api.v1.endpoints.assessments import router as assessments_router
 from app.api.v1.endpoints.assignments import router as assignments_router
 from app.api.v1.endpoints.attendance import router as attendance_router
 from app.api.v1.endpoints.auth import router as auth_router
+from app.api.v1.endpoints.feedback_chat import router as feedback_chat_router
 from app.api.v1.endpoints.leave import router as leave_router
+from app.api.v1.endpoints.staff_chat import router as staff_chat_router
 from app.api.v1.endpoints.notifications import router as notifications_router
 from app.api.v1.endpoints.staff import router as staff_router
 from app.api.v1.endpoints.students import router as students_router
+from app.api.v1.endpoints.timetable import router as timetable_router
 from app.api.v1.endpoints.users import router as users_router
 
 router = APIRouter()
@@ -36,3 +40,7 @@ router.include_router(attendance_router)
 router.include_router(leave_router)
 router.include_router(notifications_router)
 router.include_router(analytics_router)
+router.include_router(admin_chat_router)
+router.include_router(staff_chat_router)
+router.include_router(timetable_router)
+router.include_router(feedback_chat_router)

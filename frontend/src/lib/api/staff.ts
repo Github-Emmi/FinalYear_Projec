@@ -64,3 +64,7 @@ export async function updateStaff(
   );
   return res.data;
 }
+
+export async function deleteStaff(id: string): Promise<void> {
+  await apiClient.delete(`/staff/${id}`);
+}

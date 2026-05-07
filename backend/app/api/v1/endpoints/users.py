@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import AdminOnly, get_current_user
 from app.core.database import get_db
 from app.models.user import User
+from app.repositories.factory import RepositoryFactory
 from app.schemas.auth import PasswordChangeRequest
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.services.user_service import UserService
@@ -29,13 +30,35 @@ async def create_user(body: UserCreate, db: AsyncSession = Depends(get_db)) -> U
     return UserResponse.model_validate(user)
 
 
-@router.get("", response_model=list[UserResponse], dependencies=[Depends(AdminOnly)])
+@router.get("", response_model=dict, dependencies=[Depends(AdminOnly)])
 async def list_users(
-    skip: int = 0, limit: int = 50, db: AsyncSession = Depends(get_db)
-) -> list[UserResponse]:
-    svc = UserService(db)
-    users = await svc.get_all(skip=skip, limit=limit)
-    return [UserResponse.model_validate(u) for u in users]
+    page: int = 1,
+    size: int = 50,
+    skip: int = 0,
+    limit: int = 0,
+    role: str | None = None,
+    search: str | None = None,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    repo = RepositoryFactory(db)
+    effective_skip = skip if skip else (page - 1) * size
+    effective_limit = limit if limit else size
+    users = await repo.users.get_filtered(
+        role=role or None,
+        search=search or None,
+        skip=effective_skip,
+        limit=effective_limit,
+    )
+    total = await repo.users.count_filtered(role=role or None, search=search or None)
+    items = [UserResponse.model_validate(u) for u in users]
+    pages = max(1, (total + effective_limit - 1) // effective_limit)
+    return {
+        "items": [i.model_dump() for i in items],
+        "total": total,
+        "page": max(page, 1),
+        "size": effective_limit,
+        "pages": pages,
+    }
 
 
 @router.get("/{user_id}", response_model=UserResponse, dependencies=[Depends(AdminOnly)])
